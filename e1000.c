@@ -137,10 +137,16 @@
 #define E1000_DEV_ID_82547GI             0x1075
 #define E1000_DEV_ID_82541GI             0x1076
 #define E1000_DEV_ID_82541GI_MOBILE      0x1077
+#define E1000_DEV_ID_82541GI_LF          0x107C
 #define E1000_DEV_ID_82546GB_COPPER      0x1079
 #define E1000_DEV_ID_82546GB_FIBER       0x107A
 #define E1000_DEV_ID_82546GB_SERDES      0x107B
+#define E1000_DEV_ID_82546GB_PCIE        0x108A
 #define E1000_DEV_ID_82547EI             0x1019
+#define E1000_DEV_ID_82573E              0x108B
+#define E1000_DEV_ID_82573E_IAMT         0x108C
+
+#define E1000_DEV_ID_82546GB_QUAD_COPPER 0x1099
 
 #define E1000_82542_2_0_REV_ID 2
 #define E1000_82542_2_1_REV_ID 3
@@ -162,6 +168,7 @@ enum e1000_mac_type {
 	e1000_82541_rev_2,
 	e1000_82547,
 	e1000_82547_rev_2,
+	e1000_82573,
 	e1000_num_macs
 };
 
@@ -217,6 +224,8 @@ e1000_get_mac_type(u16 device_id, u8 revision_id)
 	case E1000_DEV_ID_82546GB_COPPER:
 	case E1000_DEV_ID_82546GB_FIBER:
 	case E1000_DEV_ID_82546GB_SERDES:
+	case E1000_DEV_ID_82546GB_PCIE:
+	case E1000_DEV_ID_82546GB_QUAD_COPPER:
 		mac_type = e1000_82546_rev_3;
 		break;
 	case E1000_DEV_ID_82541EI:
@@ -225,6 +234,7 @@ e1000_get_mac_type(u16 device_id, u8 revision_id)
 		break;
 	case E1000_DEV_ID_82541ER:
 	case E1000_DEV_ID_82541GI:
+	case E1000_DEV_ID_82541GI_LF:
 	case E1000_DEV_ID_82541GI_MOBILE:
 		mac_type = e1000_82541_rev_2;
 		break;
@@ -233,6 +243,10 @@ e1000_get_mac_type(u16 device_id, u8 revision_id)
 		break;
 	case E1000_DEV_ID_82547GI:
 		mac_type = e1000_82547_rev_2;
+		break;
+	case E1000_DEV_ID_82573E:
+	case E1000_DEV_ID_82573E_IAMT:
+		mac_type = e1000_82573;
 		break;
 	default:
 		/* list of supported devices probably needs updating */
@@ -309,7 +323,23 @@ e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		reg,
 		reg & E1000_STATUS_FD      ? "full"        : "half",
 		reg & E1000_STATUS_LU      ? "link config" : "no link config");
-	if(mac_type >= e1000_82543) {
+	if(mac_type >= e1000_82573) {
+	fprintf(stdout,
+		"      TBI mode:                          %s\n"
+		"      Link speed:                        %s\n"
+		"      Bus type:                          %s\n"
+		"      Port number:                       %s\n",
+		reg & E1000_STATUS_TBIMODE ? "enabled"     : "disabled",
+		(reg & E1000_STATUS_SPEED_MASK) == E1000_STATUS_SPEED_10   ?
+		"10Mb/s" :
+		(reg & E1000_STATUS_SPEED_MASK) == E1000_STATUS_SPEED_100  ?
+		"100Mb/s" :
+		(reg & E1000_STATUS_SPEED_MASK) == E1000_STATUS_SPEED_1000 ?
+		"1000Mb/s" : "not used",
+		"PCI Express",
+		(reg & E1000_STATUS_FUNC_MASK) == 0 ? "0" : "1");
+	}
+	else if(mac_type >= e1000_82543) {
 	fprintf(stdout,
 		"      TBI mode:                          %s\n"
 		"      Link speed:                        %s\n"
@@ -431,7 +461,9 @@ e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	/* PHY type */
 	fprintf(stdout,
 		"PHY type:                                %s\n",
-		regs_buff[12] == 0 ? "M88" : "IGP");
+		regs_buff[12] == 0 ? "M88" :
+		regs_buff[12] == 1 ? "IGP" :
+		regs_buff[12] == 2 ? "IGP2" : "unknown" );
 
 	return 0;
 }
