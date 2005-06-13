@@ -11,6 +11,7 @@
  * e1000 support by Scott Feldman <scott.feldman@intel.com>
  * e100 support by Wen Tao <wen-hwa.tao@intel.com>
  * amd8111e support by Reeja John <reeja.john@amd.com>
+ * long arguments by Andi Kleen.
  *
  * TODO:
  *   * no-args => summary of each device (mii-tool style)
@@ -65,152 +66,8 @@ static int do_goffload(int fd, struct ifreq *ifr);
 static int do_soffload(int fd, struct ifreq *ifr);
 static int do_gstats(int fd, struct ifreq *ifr);
 
-/* Syntax:
- *
- *	ethtool DEVNAME
- *	ethtool -a DEVNAME
- *	ethtool -A DEVNAME \
- *		[ autoneg on|off ] \
- *		[ rx on|off ] \
- *		[ tx on|off ]
- *	ethtool -c DEVNAME
- *	ethtool -C DEVNAME \
- *		[adaptive-rx on|off] \
- *		[adaptive-tx on|off] \
- *		[rx-usecs N] \
- *		[rx-frames N] \
- *		[rx-usecs-irq N] \
- *		[rx-frames-irq N] \
- *		[tx-usecs N] \
- *		[tx-frames N] \
- *		[tx-usecs-irq N] \
- *		[tx-frames-irq N] \
- *		[stats-block-usecs N] \
- *		[pkt-rate-low N] \
- *		[rx-usecs-low N] \
- *		[rx-frames-low N] \
- *		[tx-usecs-low N] \
- *		[tx-frames-low N] \
- *		[pkt-rate-high N] \
- *		[rx-usecs-high N] \
- *		[rx-frames-high N] \
- *		[tx-usecs-high N] \
- *		[tx-frames-high N] \
- *		[sample-interval N]
- *	ethtool -g DEVNAME
- *	ethtool -G DEVNAME \
- *		[ rx N ] \
- *		[ rx-mini N ] \
- *		[ rx-jumbo N ] \
- *		[ tx N ]
- *	ethtool -i DEVNAME
- *	ethtool -d DEVNAME [ raw on|off ]
- *	ethtool -e DEVNAME \
- *		[ raw on|off ] \
- *		[ offset N ] \
- *		[ len N ]
- *	ethtool -E DEVNAME \
- *		[ magic N ] \
- *		[ offset N ] \
- *		[ value N ] \
- *	ethtool -k DEVNAME
- *	ethtool -K DEVNAME \
- *		[ rx on|off ] \
- *		[ tx on|off ] \
- *		[ sg on|off ] \
- *		[ tso on|off ]
- *	ethtool -r DEVNAME
- *	ethtool -p DEVNAME [ %d ]
- *	ethtool -t DEVNAME [ online|offline ]
- *	ethtool -s DEVNAME [ speed 10|100|1000 ] \
- *		[ duplex half|full ] \
- *		[ port tp|aui|bnc|mii|fibre ] \
- *		[ autoneg on|off ] \
- *		[ phyad %d ] \
- *		[ xcvr internal|external ] \
- *		[ wol p|u|m|b|a|g|s|d... ] \
- *		[ sopass %x:%x:%x:%x:%x:%x ] \
- *		[ msglvl %d ]
- *	ethtool -S DEVNAME
- */
-
-static void show_usage(int badarg)
-{
-	fprintf(stderr, PACKAGE " version " VERSION "\n");
-	fprintf(stderr,
-		"Usage:\n"
-		"	ethtool DEVNAME\n"
-		"	ethtool -a DEVNAME\n"
-		"	ethtool -A DEVNAME \\\n"
-		"		[ autoneg on|off ] \\\n"
-		"		[ rx on|off ] \\\n"
-		"		[ tx on|off ]\n"
-		"	ethtool -c DEVNAME\n"
-		"	ethtool -C DEVNAME \\\n"
-		"		[adaptive-rx on|off] \\\n"
-		"		[adaptive-tx on|off] \\\n"
-		"		[rx-usecs N] \\\n"
-		"		[rx-frames N] \\\n"
-		"		[rx-usecs-irq N] \\\n"
-		"		[rx-frames-irq N] \\\n"
-		"		[tx-usecs N] \\\n"
-		"		[tx-frames N] \\\n"
-		"		[tx-usecs-irq N] \\\n"
-		"		[tx-frames-irq N] \\\n"
-		"		[stats-block-usecs N] \\\n"
-		"		[pkt-rate-low N] \\\n"
-		"		[rx-usecs-low N] \\\n"
-		"		[rx-frames-low N] \\\n"
-		"		[tx-usecs-low N] \\\n"
-		"		[tx-frames-low N] \\\n"
-		"		[pkt-rate-high N] \\\n"
-		"		[rx-usecs-high N] \\\n"
-		"		[rx-frames-high N] \\\n"
-		"		[tx-usecs-high N] \\\n"
-		"		[tx-frames-high N] \\\n"
-		"		[sample-interval N]\n"
-		"	ethtool -g DEVNAME\n"
-		"	ethtool -G DEVNAME \\\n"
-		"		[ rx N ] \\\n"
-		"		[ rx-mini N ] \\\n"
-		"		[ rx-jumbo N ] \\\n"
-		"		[ tx N ]\n"
-		"	ethtool -i DEVNAME\n"
-		"	ethtool -d DEVNAME [ raw on|off ]\n"
-		"	ethtool -e DEVNAME \\\n"
-		"		[ raw on|off ] \\\n"
-		"		[ offset N ] \\\n"
-		"		[ length N ]\n"
- 		"	ethtool -E DEVNAME \\\n"
-		"		[ magic N ] \\\n"
-		"		[ offset N ] \\\n"
-		"		[ value N ]\n"
-		"	ethtool -k DEVNAME\n"
-		"	ethtool -K DEVNAME \\\n"
-		"		[ rx on|off ] \\\n"
-		"		[ tx on|off ] \\\n"
-		"		[ sg on|off ] \\\n"
-		"		[ tso on|off ]\n"
-		"	ethtool -r DEVNAME\n"
-		"	ethtool -p DEVNAME [ %%d ]\n"
-		"	ethtool -t DEVNAME [online|(offline)]\n"
-		"	ethtool -s DEVNAME \\\n"
-		"		[ speed 10|100|1000 ] \\\n"
-		"		[ duplex half|full ]	\\\n"
-		"		[ port tp|aui|bnc|mii|fibre ] \\\n"
-		"		[ autoneg on|off ] \\\n"
-		"		[ phyad %%d ] \\\n"
-		"		[ xcvr internal|external ] \\\n"
-		"		[ wol p|u|m|b|a|g|s|d... ] \\\n"
-		"		[ sopass %%x:%%x:%%x:%%x:%%x:%%x ] \\\n"
-		"		[ msglvl %%d ] \n"
-		"	ethtool -S DEVNAME\n"
-	);
-	exit(badarg);
-}
-
-static char *devname = NULL;
 static enum {
+	MODE_HELP = -1,
 	MODE_GSET=0,
 	MODE_SSET,
 	MODE_GDRV,
@@ -230,6 +87,102 @@ static enum {
 	MODE_SOFFLOAD,
 	MODE_GSTATS,
 } mode = MODE_GSET;
+
+static struct option { 
+    char *srt, *lng;
+    int Mode;
+    char *help;
+    char *opthelp; 
+} args[] = {
+    { "-s", "--change", MODE_SSET, "Change generic options",
+		"		[ speed 10|100|1000 ]\n"
+		"		[ duplex half|full ]\n"
+		"		[ port tp|aui|bnc|mii|fibre ]\n"
+		"		[ autoneg on|off ]\n"
+		"		[ phyad %%d ]\n"
+		"		[ xcvr internal|external ]\n"
+		"		[ wol p|u|m|b|a|g|s|d... ]\n"
+		"		[ sopass %%x:%%x:%%x:%%x:%%x:%%x ]\n"
+		"		[ msglvl %%d ] \n" },
+    { "-a", "--show-pause", MODE_GPAUSE, "Show pause options" },
+    { "-A", "--pause", MODE_SPAUSE, "Set pause options",
+      "		[ autoneg on|off ]\n"
+      "		[ rx on|off ]\n"
+      "		[ tx on|off ]\n" },
+    { "-c", "--show-coalesce", MODE_GCOALESCE, "Show coalesce options" },
+    { "-C", "--coalesce", MODE_SCOALESCE, "Set coalesce options",
+		"		[adaptive-rx on|off]\n"
+		"		[adaptive-tx on|off]\n"
+		"		[rx-usecs N]\n"
+		"		[rx-frames N]\n"
+		"		[rx-usecs-irq N]\n"
+		"		[rx-frames-irq N]\n"
+		"		[tx-usecs N]\n"
+		"		[tx-frames N]\n"
+		"		[tx-usecs-irq N]\n"
+		"		[tx-frames-irq N]\n"
+		"		[stats-block-usecs N]\n"
+		"		[pkt-rate-low N]\n"
+		"		[rx-usecs-low N]\n"
+		"		[rx-frames-low N]\n"
+		"		[tx-usecs-low N]\n"
+		"		[tx-frames-low N]\n"
+		"		[pkt-rate-high N]\n"
+		"		[rx-usecs-high N]\n"
+		"		[rx-frames-high N]\n"
+		"		[tx-usecs-high N]\n"
+		"		[tx-frames-high N]\n"
+	        "		[sample-interval N]\n" },
+    { "-g", "--show-ring", MODE_GRING, "Query RX/TX ring parameters" },
+    { "-G", "--set-ring", MODE_SRING, "Set RX/TX ring parameters",
+		"		[ rx N ]\n"
+		"		[ rx-mini N ]\n"
+		"		[ rx-jumbo N ]\n"
+	        "		[ tx N ]\n" },
+    { "-k", "--show-offload", MODE_GOFFLOAD, "Get protocol offload information" },
+    { "-K", "--offload", MODE_SOFFLOAD, "Set protocol offload",
+		"		[ rx on|off ]\n"
+		"		[ tx on|off ]\n"
+		"		[ sg on|off ]\n"
+	        "		[ tso on|off ]\n" },
+    { "-i", "--driver", MODE_GDRV, "Show driver information" }, 
+    { "-d", "--register-dump", MODE_GREGS, "Do a register dump" },
+    { "-e", "--eeprom-dump", MODE_GEEPROM, "Do a EEPROM dump",
+		"		[ raw on|off ]\n"
+		"		[ offset N ]\n"
+		"		[ length N ]\n" },
+    { "-E", "--change-eeprom", MODE_SEEPROM, "Change bytes in device EEPROM",
+		"		[ magic N ]\n"
+		"		[ offset N ]\n"
+		"		[ value N ]\n" }, 
+    { "-r", "--negotiate", MODE_NWAY_RST, "Restart N-WAY negotation" },
+    { "-p", "--identify", MODE_PHYS_ID, "Show visible port identification (e.g. blinking)",
+                "               [ TIME-IN-SECONDS ]\n" },
+    { "-t", "--test", MODE_TEST, "Execute adapter self test",
+                "               [ online | offline ]\n" },
+    { "-S", "--statistics", MODE_GSTATS, "Show adapter statistics" },
+    { "-h", "--help", MODE_HELP, "Show this help" },
+    {}
+};
+
+
+static void show_usage(int badarg)
+{
+	int i;
+	fprintf(stderr, PACKAGE " version " VERSION "\n");
+	fprintf(stderr,
+		"Usage:\n"
+		"ethtool DEVNAME\tDisplay standard information about device\n"); 
+	for (i = 0; args[i].srt; i++) {
+		fprintf(stderr, "        ethtool %s|%s DEVNAME\t%s\n%s",
+			args[i].srt, args[i].lng,			
+			args[i].help, 
+			args[i].opthelp ? args[i].opthelp : "");
+	}
+	exit(badarg);
+}
+
+static char *devname = NULL;
 
 static int goffload_changed = 0;
 static int off_csum_rx_wanted = -1;
@@ -417,46 +370,19 @@ static void parse_generic_cmdline(int argc, char **argp,
 
 static void parse_cmdline(int argc, char **argp)
 {
-	int i;
+	int i, k;
 
 	for (i = 1; i < argc; i++) {
 		switch (i) {
 		case 1:
-			if (!strcmp(argp[i], "-s"))
-				mode = MODE_SSET;
-			else if (!strcmp(argp[i], "-a"))
-				mode = MODE_GPAUSE;
-			else if (!strcmp(argp[i], "-A"))
-				mode = MODE_SPAUSE;
-			else if (!strcmp(argp[i], "-c"))
-				mode = MODE_GCOALESCE;
-			else if (!strcmp(argp[i], "-C"))
-				mode = MODE_SCOALESCE;
-			else if (!strcmp(argp[i], "-g"))
-				mode = MODE_GRING;
-			else if (!strcmp(argp[i], "-G"))
-				mode = MODE_SRING;
-			else if (!strcmp(argp[i], "-k"))
-				mode = MODE_GOFFLOAD;
-			else if (!strcmp(argp[i], "-K"))
-				mode = MODE_SOFFLOAD;
-			else if (!strcmp(argp[i], "-i"))
-				mode = MODE_GDRV;
-			else if (!strcmp(argp[i], "-d"))
-				mode = MODE_GREGS;
-			else if (!strcmp(argp[i], "-e"))
-				mode = MODE_GEEPROM;
-			else if (!strcmp(argp[i], "-E"))
-				mode = MODE_SEEPROM;
-			else if (!strcmp(argp[i], "-r"))
-				mode = MODE_NWAY_RST;
-			else if (!strcmp(argp[i], "-p"))
-				mode = MODE_PHYS_ID;
-			else if (!strcmp(argp[i], "-t"))
-				mode = MODE_TEST;
-			else if (!strcmp(argp[i], "-S"))
-				mode = MODE_GSTATS;
-			else if (!strcmp(argp[i], "-h"))
+			for (k = 0; args[k].srt; k++) 
+				if (!strcmp(argp[i], args[k].srt) ||
+				    !strcmp(argp[i], args[k].lng)) { 
+					mode = args[k].Mode;
+					break;
+				} 
+			if (mode == MODE_HELP || 
+			    (!args[k].srt && argp[i][0] == '-'))
 				show_usage(0);
 			else
 				devname = argp[i];

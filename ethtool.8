@@ -47,21 +47,21 @@ ethtool \- Display or change ethernet card settings
 .B ethtool
 .I ethX
 
-.B ethtool \-h
+.B ethtool \-h|\-\-help
 
-.B ethtool \-a
+.B ethtool \-a|\-\-show\-pause
 .I ethX
 
-.B ethtool \-A
+.B ethtool \-A|\-\-pause
 .I ethX
 .B2 autoneg on off
 .B2 rx on off
 .B2 tx on off
 
-.B ethtool \-c
+.B ethtool \-c|\-\-show\-coalesce
 .I ethX
 
-.B ethtool \-C
+.B ethtool \-C|\-\-coalesce
 .I ethX
 .B2 adaptive-rx on off
 .B2 adaptive-tx on off
@@ -106,10 +106,10 @@ ethtool \- Display or change ethernet card settings
 .RB [ sample-interval
 .IR N ]
 
-.B ethtool \-g
+.B ethtool \-g|\-\-show\-ring
 .I ethX
 
-.B ethtool \-G
+.B ethtool \-G|\-\-set\-ring
 .I ethX
 .RB [ rx
 .IR N ]
@@ -120,14 +120,14 @@ ethtool \- Display or change ethernet card settings
 .RB [ tx
 .IR N ]
 
-.B ethtool \-i
+.B ethtool \-i|\-\-driver
 .I ethX
 
-.B ethtool \-d
+.B ethtool \-d|\-\-register\-dump
 .I ethX
 .B2 raw on off
 
-.B ethtool \-e
+.B ethtool \-e|\-\-eeprom\-dump
 .I ethX
 .B2 raw on off
 .RB [ offset
@@ -135,7 +135,7 @@ ethtool \- Display or change ethernet card settings
 .RB [ length
 .IR N ]
 
-.B ethtool \-E
+.B ethtool \-E|\-\-change\-eeprom
 .I ethX
 .RB [ magic
 .IR N ]
@@ -144,27 +144,27 @@ ethtool \- Display or change ethernet card settings
 .RB [ value
 .IR N ]
 
-.B ethtool \-k
+.B ethtool \-k|\-\-show\-offload
 .I ethX
 
-.B ethtool \-K
+.B ethtool \-K\-\-offload
 .I ethX
 .B2 rx on off
 .B2 tx on off
 .B2 sg on off
 .B2 tso on off
 
-.B ethtool \-p
+.B ethtool \-p|\-\-blink
 .I ethX
 .IR [ N ]
 
-.B ethtool \-r
+.B ethtool \-r|\-\-negotiate
 .I ethX
 
-.B ethtool \-S
+.B ethtool \-S|\-\-statistics
 .I ethX
 
-.B ethtool \-t
+.B ethtool \-t|\-\-test
 .I ethX
 .B1 offline online
 
@@ -193,13 +193,13 @@ is the name of the ethernet device to work on.
 with a single argument specifying the device name prints current
 setting of the specified device.
 .TP
-.B \-h
+.B \-h \-\-help
 shows a short help message.
 .TP
-.B \-a
+.B \-a \-\-show\-pause
 queries the specified ethernet device for pause parameter information.
 .TP
-.B \-A
+.B \-A \-\-pause
 change the pause parameters of the specified ethernet device.
 .TP
 .A2 autoneg on off
@@ -211,16 +211,16 @@ Specify if RX pause is enabled.
 .A2 tx on off
 Specify if TX pause is enabled.
 .TP
-.B \-c
+.B \-c \-\-show\-coalesce
 queries the specified ethernet device for coalescing information.
 .TP
-.B \-C
+.B \-C \-\-coalesce
 change the coalescing settings of the specified ethernet device.
 .TP
-.B \-g
+.B \-g \-\-show\-ring
 queries the specified ethernet device for rx/tx ring parameter information.
 .TP
-.B \-G
+.B \-G \-\-set\-ring
 change the rx/tx ring parameters of the specified ethernet device.
 .TP
 .BI rx \ N
@@ -235,29 +235,29 @@ Change number of ring entries for the Rx Jumbo ring.
 .BI tx \ N
 Change number of ring entries for the Tx ring.
 .TP
-.B \-i
+.B \-i \-\-driver
 queries the specified ethernet device for associated driver information.
 .TP
-.B \-d
+.B \-d \-\-register\-dump
 retrieves and prints a register dump for the specified ethernet device.
 When raw is enabled, then it dumps the raw register data to stdout.
 .TP
-.B \-e
+.B \-e \-\-eeprom\-dump
 retrieves and prints an EEPROM dump for the specified ethernet device.
 When raw is enabled, then it dumps the raw EEPROM data to stdout. The
 length and offset parameters allow dumping certain portions of the EEPROM.
 Default is to dump the entire EEPROM.
 .TP
-.B \-E
+.B \-E \-\-change\-eeprom
 Changes EEPROM byte for the specified ethernet device.  offset and value
 specify which byte and it's new value.  Because of the persistent nature
 of writing to the EEPROM, a device-specific magic key must be specified
 to prevent the accidental writing to the EEPROM.
 .TP
-.B \-k
+.B \-k \-\-show\-offload
 queries the specified ethernet device for offload information.
 .TP
-.B \-K
+.B \-K \-\-offload
 change the offload parameters of the specified ethernet device.
 .TP
 .A2 rx on off
@@ -272,7 +272,7 @@ Specify if scatter-gather is enabled.
 .A2 tso on off
 Specify if tcp segmentation offload is enabled.
 .TP
-.B \-p
+.B \-p \-\-identify
 initiates adapter-specific action intended to enable an operator to
 easily identify the adapter by sight.  typically this involves
 blinking one or more LEDs on the specific ethernet port.
@@ -280,15 +280,15 @@ blinking one or more LEDs on the specific ethernet port.
 .B N
 Length of time to perform phys-id, in seconds.
 .TP
-.B \-r
+.B \-r \-\-negotiate
 restarts auto-negotiation on the specified ethernet device, if
 auto-negotiation is enabled.
 .TP
-.B \-S
+.B \-S \-\-statistics
 queries the specified ethernet device for NIC- and driver-specific
 statistics.
 .TP
-.B \-t
+.B \-t \-\-test
 executes adapter selftest on the specified ethernet device. Possible test modes are:
 .TP
 .A1 offline online
@@ -298,7 +298,7 @@ defines test type:
 .B online
 means to perform limited set of tests do not interrupting normal adapter operation.
 .TP
-.B \-s
+.B \-s \-\-change
 option allows changing some or all settings of the specified ethernet device.
 All following options only apply if
 .B \-s
@@ -376,7 +376,8 @@ Tim Hockin,
 Jakub Jelinek,
 Andre Majorel,
 Eli Kupermann,
-Scott Feldman.
+Scott Feldman,
+Andi Kleen.
 .SH AVAILABILITY
 .B ethtool
 is available over the Web on the SourceForge site at
