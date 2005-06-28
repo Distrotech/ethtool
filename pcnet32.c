@@ -57,7 +57,7 @@ int pcnet32_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	csr = i;
 	for (; i<len; i++)
 	 {
-	  if (((i-csr) & 7) == 0) printf("MII%02d:  ", i-csr);
+	  if (((i-csr) & 7) == 0) printf("MII%02d:  ", (i-csr) & 0x1f);
 		printf(" %04x ", data[i]);
 	  if (((i-csr) & 7) == 7) printf("\n");
 	 }
@@ -174,6 +174,33 @@ int pcnet32_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	printf("CSR42:  Current TX Byte Count      0x%04x\n",ptr[42]);
 	printf("CSR43:  Current TX Status          0x%04x\n",ptr[43]);
 	printf("CSR88:  Chip ID Lower              0x%04x\n",ptr[88]);
+	temp = (((ptr[89] << 16) | ptr[88]) >> 12) & 0xffff;
+	switch (temp) {
+		case 0x2420:
+			printf("  PCnet/PCI 79C970\n");
+			break;
+		case 0x2621:
+			printf("  PCnet/PCI II 79C970A\n");
+			break;
+		case 0x2623:
+			printf("  PCnet/FAST 79C971\n");
+			break;
+		case 0x2624:
+			printf("  PCnet/FAST+ 79C972\n");
+			break;
+		case 0x2625:
+			printf("  PCnet/FAST III 79C973\n");
+			break;
+		case 0x2626:
+			printf("  PCnet/Home 79C978\n");
+			break;
+		case 0x2627:
+			printf("  PCnet/FAST III 79C975\n");
+			break;
+		case 0x2628:
+			printf("  PCnet/PRO 79C976\n");
+			break;
+	}
 
 	printf("CSR89:  Chip ID Upper              0x%04x\n  ",ptr[89]);
 	temp=ptr[89];
