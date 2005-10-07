@@ -614,13 +614,10 @@ static void parse_cmdline(int argc, char **argp)
 			 duplex_wanted == DUPLEX_FULL)
 			advertising_wanted = ADVERTISED_1000baseT_Full;
 		else
-			/* auto negotiate without forcing */
-			advertising_wanted = ADVERTISED_100baseT_Full |
-				ADVERTISED_100baseT_Half |
-				ADVERTISED_10baseT_Full |
-				ADVERTISED_10baseT_Half | 
-				ADVERTISED_1000baseT_Full |
-				ADVERTISED_1000baseT_Half;
+			/* auto negotiate without forcing,
+			 * all supported speed will be assigned in do_sset()
+			 */
+			advertising_wanted = 0;
 
 	}
 
@@ -1588,8 +1585,18 @@ static int do_sset(int fd, struct ifreq *ifr)
 				ecmd.phy_address = phyad_wanted;
 			if (xcvr_wanted != -1)
 				ecmd.transceiver = xcvr_wanted;
-			if (advertising_wanted != -1)
-				ecmd.advertising = advertising_wanted;
+			if (advertising_wanted != -1) {
+				if (advertising_wanted == 0)
+					ecmd.advertising = ecmd.supported &
+						(ADVERTISED_10baseT_Half |
+						 ADVERTISED_10baseT_Full |
+						 ADVERTISED_100baseT_Half |
+						 ADVERTISED_100baseT_Full |
+						 ADVERTISED_1000baseT_Half |
+						 ADVERTISED_1000baseT_Full);
+				else
+					ecmd.advertising = advertising_wanted;
+			}
 
 			/* Try to perform the update. */
 			ecmd.cmd = ETHTOOL_SSET;
