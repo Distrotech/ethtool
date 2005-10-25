@@ -954,11 +954,14 @@ static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 			     ETHTOOL_BUSINFO_LEN))
 			return driver_list[i].func(info, regs);
 
-	fprintf(stdout, "Offset\tValue\n");
-	fprintf(stdout, "--------\t-----\n");
-	for (i = 0; i < regs->len; i++)
-		fprintf(stdout, "%02d\t0x%02x\n", i, regs->data[i]);
-	fprintf(stdout, "\n");
+	fprintf(stdout, "Offset\tValues\n");
+	fprintf(stdout, "--------\t-----");
+	for (i = 0; i < regs->len; i++) {
+		if (i%16 == 0)
+			fprintf(stdout, "\n%03x:\t", i);
+		fprintf(stdout, " %02x", regs->data[i]);
+	}
+	fprintf(stdout, "\n\n");
 	return 0;
 }
 
