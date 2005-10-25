@@ -15,6 +15,7 @@ stamp-h1
 config.*
 aclocal.m4
 configure
+*.tar.gz
 
 autom4te.cache
 .deps
