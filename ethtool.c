@@ -43,7 +43,7 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
 
-static int parse_wolopts(char *optstr, int *data);
+static int parse_wolopts(char *optstr, u32 *data);
 static char *unparse_wolopts(int wolopts);
 static int parse_sopass(char *src, unsigned char *dest);
 static int do_gdrv(int fd, struct ifreq *ifr);
@@ -913,7 +913,7 @@ static int dump_wol(struct ethtool_wolinfo *wol)
 	return 0;
 }
 
-static int parse_wolopts(char *optstr, int *data)
+static int parse_wolopts(char *optstr, u32 *data)
 {
 	*data = 0;
 	while (*optstr) {
@@ -1985,7 +1985,7 @@ static int do_gstats(int fd, struct ifreq *ifr)
 	for (i = 0; i < n_stats; i++) {
 		char s[ETH_GSTRING_LEN];
 
-		strncpy(s, &strings->data[i * ETH_GSTRING_LEN],
+		strncpy(s, (const char *) &strings->data[i * ETH_GSTRING_LEN],
 			ETH_GSTRING_LEN);
 		fprintf(stdout, "     %s: %llu\n",
 			s, stats->data[i]);
