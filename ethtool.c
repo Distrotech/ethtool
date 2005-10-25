@@ -938,6 +938,7 @@ static struct {
 	{ "amd8111e", amd8111e_dump_regs },
 	{ "pcnet32", pcnet32_dump_regs },
 	{ "fec_8xx", fec_8xx_dump_regs },
+	{ "ibm_emac", ibm_emac_dump_regs },
 };
 
 static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)

@@ -16,6 +16,8 @@ config.*
 aclocal.m4
 configure
 *.tar.gz
+push
 
+.dotest
 autom4te.cache
 .deps
