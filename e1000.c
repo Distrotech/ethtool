@@ -282,7 +282,6 @@ e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	reg = regs_buff[0];
 	fprintf(stdout,
 		"0x00000: CTRL (Device control register)  0x%08X\n"
-		"      Duplex:                            %s\n"
 		"      Endian mode (buffers):             %s\n"
 		"      Link reset:                        %s\n"
 		"      Set link up:                       %s\n"
@@ -291,7 +290,6 @@ e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		"      Transmit flow control:             %s\n"
 		"      VLAN mode:                         %s\n",
 		reg,
-		reg & E1000_CTRL_FD     ? "full"     : "half",
 		reg & E1000_CTRL_BEM    ? "big"      : "little",
 		reg & E1000_CTRL_LRST   ? "reset"    : "normal",
 		reg & E1000_CTRL_SLU    ? "1"        : "0",
