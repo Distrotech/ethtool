@@ -153,6 +153,7 @@ ethtool \- Display or change ethernet card settings
 .B2 tx on off
 .B2 sg on off
 .B2 tso on off
+.B2 ufo on off
 
 .B ethtool \-p|\-\-blink
 .I ethX
@@ -271,6 +272,9 @@ Specify if scatter-gather is enabled.
 .TP
 .A2 tso on off
 Specify if tcp segmentation offload is enabled.
+.TP
+.A2 ufo on off
+Specify if UDP fragmentation offload is enabled 
 .TP
 .B \-p \-\-identify
 initiates adapter-specific action intended to enable an operator to
