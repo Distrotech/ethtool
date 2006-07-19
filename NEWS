@@ -1,4 +1,12 @@
 
+Version 4 - July 18, 2006
+
+	* Feature: UFO support
+	* Feature: support long options
+	* Features: e1000, pcnet32, tg3 updates
+	* Feature: added PPC4xx EMAC support
+	* Feature: Use hexdump instead of single values for register dump
+
 Version 3 - January 27, 2005
 
 	* Feature: r8159 register dump support
