@@ -285,6 +285,8 @@ struct ethtool_stats {
 #define ETHTOOL_STSO		0x0000001f /* Set TSO enable (ethtool_value) */
 #define ETHTOOL_GUFO		0x00000021 /* Get UFO enable (ethtool_value) */
 #define ETHTOOL_SUFO		0x00000022 /* Set UFO enable (ethtool_value) */
+#define ETHTOOL_GGSO		0x00000023 /* Get GSO enable (ethtool_value) */
+#define ETHTOOL_SGSO		0x00000024 /* Set GSO enable (ethtool_value) */
 
 /* compatibility with older code */
 #define SPARC_ETH_GSET		ETHTOOL_GSET
