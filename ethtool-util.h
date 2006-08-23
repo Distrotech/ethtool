@@ -45,4 +45,7 @@ int ibm_emac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* Broadcom Tigon3 Ethernet controller */
 int tg3_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+/* SysKonnect Gigabit (Genesis and Yukon) */
+int skge_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 #endif

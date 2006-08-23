@@ -944,6 +944,7 @@ static struct {
 	{ "fec_8xx", fec_8xx_dump_regs },
 	{ "ibm_emac", ibm_emac_dump_regs },
 	{ "tg3", tg3_dump_regs },
+	{ "skge", skge_dump_regs },
 };
 
 static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
