@@ -88,11 +88,11 @@ static enum {
 	MODE_GSTATS,
 } mode = MODE_GSET;
 
-static struct option { 
+static struct option {
     char *srt, *lng;
     int Mode;
     char *help;
-    char *opthelp; 
+    char *opthelp;
 } args[] = {
     { "-s", "--change", MODE_SSET, "Change generic options",
 		"		[ speed 10|100|1000 ]\n"
@@ -147,7 +147,7 @@ static struct option {
 	        "		[ tso on|off ]\n"
 	        "		[ ufo on|off ]\n"
 	        "		[ gso on|off ]\n" },
-    { "-i", "--driver", MODE_GDRV, "Show driver information" }, 
+    { "-i", "--driver", MODE_GDRV, "Show driver information" },
     { "-d", "--register-dump", MODE_GREGS, "Do a register dump" },
     { "-e", "--eeprom-dump", MODE_GEEPROM, "Do a EEPROM dump",
 		"		[ raw on|off ]\n"
@@ -156,7 +156,7 @@ static struct option {
     { "-E", "--change-eeprom", MODE_SEEPROM, "Change bytes in device EEPROM",
 		"		[ magic N ]\n"
 		"		[ offset N ]\n"
-		"		[ value N ]\n" }, 
+		"		[ value N ]\n" },
     { "-r", "--negotiate", MODE_NWAY_RST, "Restart N-WAY negotation" },
     { "-p", "--identify", MODE_PHYS_ID, "Show visible port identification (e.g. blinking)",
                 "               [ TIME-IN-SECONDS ]\n" },
@@ -174,11 +174,11 @@ static void show_usage(int badarg)
 	fprintf(stderr, PACKAGE " version " VERSION "\n");
 	fprintf(stderr,
 		"Usage:\n"
-		"ethtool DEVNAME\tDisplay standard information about device\n"); 
+		"ethtool DEVNAME\tDisplay standard information about device\n");
 	for (i = 0; args[i].srt; i++) {
 		fprintf(stderr, "        ethtool %s|%s DEVNAME\t%s\n%s",
-			args[i].srt, args[i].lng,			
-			args[i].help, 
+			args[i].srt, args[i].lng,
+			args[i].help,
 			args[i].opthelp ? args[i].opthelp : "");
 	}
 	exit(badarg);
@@ -381,13 +381,13 @@ static void parse_cmdline(int argc, char **argp)
 	for (i = 1; i < argc; i++) {
 		switch (i) {
 		case 1:
-			for (k = 0; args[k].srt; k++) 
+			for (k = 0; args[k].srt; k++)
 				if (!strcmp(argp[i], args[k].srt) ||
-				    !strcmp(argp[i], args[k].lng)) { 
+				    !strcmp(argp[i], args[k].lng)) {
 					mode = args[k].Mode;
 					break;
-				} 
-			if (mode == MODE_HELP || 
+				}
+			if (mode == MODE_HELP ||
 			    (!args[k].srt && argp[i][0] == '-'))
 				show_usage(0);
 			else

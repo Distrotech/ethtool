@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2004, 2005 Zultys Technologies 
+ *  Copyright (c) 2004, 2005 Zultys Technologies
  *  Eugene Surovegin <eugene.surovegin@zultys.com> or <ebs@ebshome.net>
  */
 #include <stdio.h>
@@ -9,13 +9,13 @@
 #include "ethtool-util.h"
 
 /* Ethtool get_regs complex data.
- * we want to get not just EMAC registers, but also MAL, ZMII, RGMII, TAH 
+ * we want to get not just EMAC registers, but also MAL, ZMII, RGMII, TAH
  * when available.
- * 
- * Returned BLOB consists of the ibm_emac_ethtool_regs_hdr, 
+ *
+ * Returned BLOB consists of the ibm_emac_ethtool_regs_hdr,
  * MAL registers, EMAC registers and optional ZMII, RGMII, TAH registers.
  * Each register component is preceded with emac_ethtool_regs_subhdr.
- * Order of the optional headers follows their relative bit posititions 
+ * Order of the optional headers follows their relative bit posititions
  * in emac_ethtool_regs_hdr.components
  */
 #define EMAC_ETHTOOL_REGS_ZMII		0x00000001

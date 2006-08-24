@@ -20,7 +20,7 @@ static void dump_timer(const char *name, const void *p)
 {
 	const u8 *a = p;
 	const u32 *r = p;
-	
+
 	printf("%s\n", name);
 	printf("\tInit 0x%08X Value 0x%08X\n", r[0], r[1]);
 	printf("\tTest 0x%02X       Control 0x%02X\n", a[8], a[9]);
@@ -51,9 +51,9 @@ static void dump_queue(const char *name, const void *a, int rx)
 
 	printf("\n%s\n", name);
 	printf("---------------\n");
-	printf("Descriptor Address       0x%08X%08X\n", 
+	printf("Descriptor Address       0x%08X%08X\n",
 	       d->addr_hi, d->addr_lo);
-	printf("Address Counter          0x%08X%08X\n", 
+	printf("Address Counter          0x%08X%08X\n",
 	       d->count_hi, d->count_lo);
 	printf("Current Byte Counter             %d\n", d->byte_count);
 	printf("BMU Control/Status               0x%08X\n", d->csr);
@@ -61,17 +61,17 @@ static void dump_queue(const char *name, const void *a, int rx)
 	printf("\n");
 	printf("Control                          0x%08X\n", d->ctl);
 	printf("Next                             0x%08X\n", d->next);
-	printf("Data                     0x%08X%08X\n", 
+	printf("Data                     0x%08X%08X\n",
 	       d->data_hi, d->data_lo);
 	printf("Status                           0x%08X\n", d->status);
 	printf("Timestamp                        0x%08X\n", d->timestamp);
 	if (rx) {
-		printf("Csum1      Offset %4d Positon   %d\n", 
+		printf("Csum1      Offset %4d Positon   %d\n",
 		       d->csum1, d->csum1_start);
-		printf("Csum2      Offset %4d Positon   %d\n", 
+		printf("Csum2      Offset %4d Positon   %d\n",
 		       d->csum2, d->csum2_start);
-	} else 
-		printf("Csum Start 0x%04X Pos %4d Write %d\n", 
+	} else
+		printf("Csum Start 0x%04X Pos %4d Write %d\n",
 		       d->csum1, d->csum2_start, d->csum1_start);
 
 }
@@ -118,7 +118,7 @@ int skge_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 
 	printf("Control Registers\n");
 	printf("-----------------\n");
-	
+
 	printf("Register Access Port             0x%08X\n", r[0]);
 	printf("LED Control/Status               0x%08X\n", r[1]);
 	printf("Interrupt Source                 0x%08X\n", r[2]);
@@ -145,13 +145,13 @@ int skge_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	dump_addr(3, regs->data + 0x110);
 	printf("\n");
 
-	printf("Connector type                         0x%02X\n", 
+	printf("Connector type                         0x%02X\n",
 	       regs->data[0x118]);
-	printf("PMD type                               0x%02X\n", 
+	printf("PMD type                               0x%02X\n",
 	       regs->data[0x119]);
-	printf("Configuration                          0x%02X\n", 
+	printf("Configuration                          0x%02X\n",
 	       regs->data[0x11a]);
-	printf("Chip Revision                          0x%02X\n", 
+	printf("Chip Revision                          0x%02X\n",
 	       regs->data[0x11b]);
 
 	dump_timer("Timer", regs->data + 0x130);
