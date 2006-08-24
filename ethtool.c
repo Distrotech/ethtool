@@ -624,9 +624,10 @@ static void parse_cmdline(int argc, char **argp)
 
 	}
 
-	if (devname == NULL) {
+	if (devname == NULL)
 		show_usage(1);
-	}
+	if (strlen(devname) >= IFNAMSIZ)
+		show_usage(1);
 }
 
 static void dump_supported(struct ethtool_cmd *ep)
