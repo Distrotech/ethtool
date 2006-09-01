@@ -1,4 +1,10 @@
 
+Version 5 - September 1, 2006
+
+	* Security: Avoid potential buffer overflow
+	* Feature: GSO support
+	* Feature: skge register dump
+
 Version 4 - July 18, 2006
 
 	* Feature: UFO support
