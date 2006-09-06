@@ -176,6 +176,8 @@ ethtool \- Display or change ethernet card settings
 .B2 duplex half full
 .B4 port tp aui bnc mii fibre
 .B2 autoneg on off
+.RB [ advertise
+.IR N ]
 .RB [ phyad
 .IR N ]
 .B2 xcvr internal external
@@ -326,6 +328,28 @@ Select device port.
 .A2 autoneg on off
 Specify if autonegotiation is enabled. In the usual case it is, but might
 cause some problems with some network devices, so you can turn it off.
+.TP
+.BI advertise \ N
+Set the speed and duplex advertised by autonegotiation.  The argument is
+a hexidecimal value using one or a combination of the following values:
+.RS
+.PD 0
+.TP 3
+.BR "0x01" "    10 Half"
+.TP 3
+.BR "0x02" "    10 Full"
+.TP 3
+.BR "0x04" "    100 Half"
+.TP 3
+.BR "0x08" "    100 Full"
+.TP 3
+.BR "0x10" "    1000 Half" "(not supported by IEEE standards)"
+.TP 3
+.BR "0x20" "    1000 Full"
+.TP 3
+.BR "0x3F" "    Auto"
+.PD
+.RE
 .TP
 .BI phyad \ N
 PHY address.
