@@ -372,7 +372,7 @@ e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		"      Descriptor minimum threshold size: %s\n"
 		"      Broadcast accept mode:             %s\n"
 		"      VLAN filter:                       %s\n"
-		"      Cononical form indicator:          %s\n"
+		"      Canonical form indicator:          %s\n"
 		"      Discard pause frames:              %s\n"
 		"      Pass MAC control frames:           %s\n",
 		reg,
