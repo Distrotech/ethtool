@@ -42,6 +42,9 @@ int fec_8xx_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* PowerPC 4xx on-chip Ethernet controller */
 int ibm_emac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+/* Intel(R) PRO/10GBe Gigabit Adapter Family */
+int ixgb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 /* Broadcom Tigon3 Ethernet controller */
 int tg3_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
