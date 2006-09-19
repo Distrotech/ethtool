@@ -141,7 +141,7 @@ ixgb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	fprintf(stdout,
 		"0x00628: TIDV  (Transmit delay timer)    0x%08X\n",
 		regs_buff[59]);
-	
+
 	return 0;
 }
 
