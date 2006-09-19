@@ -99,6 +99,7 @@ static struct option {
 		"		[ duplex half|full ]\n"
 		"		[ port tp|aui|bnc|mii|fibre ]\n"
 		"		[ autoneg on|off ]\n"
+		"		[ advertise %%x ]\n"
 		"		[ phyad %%d ]\n"
 		"		[ xcvr internal|external ]\n"
 		"		[ wol p|u|m|b|a|g|s|d... ]\n"
@@ -549,6 +550,15 @@ static void parse_cmdline(int argc, char **argp)
 					show_usage(1);
 				}
 				break;
+			} else if (!strcmp(argp[i], "advertise")) {
+				gset_changed = 1;
+				i += 1;
+				if (i >= argc)
+					show_usage(1);
+				advertising_wanted = strtol(argp[i], NULL, 16);
+				if (advertising_wanted < 0)
+					show_usage(1);
+				break;
 			} else if (!strcmp(argp[i], "phyad")) {
 				gset_changed = 1;
 				i += 1;
@@ -601,7 +611,7 @@ static void parse_cmdline(int argc, char **argp)
 		}
 	}
 
-	if (autoneg_wanted == AUTONEG_ENABLE){
+	if ((autoneg_wanted == AUTONEG_ENABLE) && (advertising_wanted < 0)) {
 		if (speed_wanted == SPEED_10 && duplex_wanted == DUPLEX_HALF)
 			advertising_wanted = ADVERTISED_10baseT_Half;
 		else if (speed_wanted == SPEED_10 &&
