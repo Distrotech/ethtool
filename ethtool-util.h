@@ -51,4 +51,7 @@ int tg3_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* SysKonnect Gigabit (Genesis and Yukon) */
 int skge_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+/* SysKonnect Gigabit (Yukon2) */
+int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 #endif
