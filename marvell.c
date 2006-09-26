@@ -68,9 +68,9 @@ static void dump_queue(const char *name, const void *a, int rx)
 	printf("Status                           0x%08X\n", d->status);
 	printf("Timestamp                        0x%08X\n", d->timestamp);
 	if (rx) {
-		printf("Csum1      Offset %4d Positon   %d\n",
+		printf("Csum1      Offset %4d Position  %d\n",
 		       d->csum1, d->csum1_start);
-		printf("Csum2      Offset %4d Positon   %d\n",
+		printf("Csum2      Offset %4d Position  %d\n",
 		       d->csum2, d->csum2_start);
 	} else
 		printf("Csum Start 0x%04X Pos %4d Write %d\n",
