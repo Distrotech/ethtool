@@ -113,6 +113,31 @@ static void dump_fifo(const char *name, const void *p)
 	dump_timer("LED", p + 0x20);
 }
 
+static void dump_gmac_fifo(const void *p)
+{
+	const u32 *r = p;
+	int i;
+	static const char *regs[] = {
+		"End Address",
+		"Almost Full Thresh",
+		"Control/Test",
+		"FIFO Flush Mask",
+		"FIFO Flush Threshold",
+		"Truncation Threshold",
+		"Upper Pause Threshold",
+		"Lower Pause Threshold",
+		"VLAN Tag",
+		"FIFO Write Pointer",
+		"FIFO Write Level",
+		"FIFO Read Pointer",
+		"FIFO Read Level",
+	};
+
+	for (i = 0; i < sizeof(regs)/sizeof(regs[0]); ++i)
+		printf("%-32s 0x%08X\n", regs[i], r[i]);
+
+}
+
 static void dump_mac(const u8 *r)
 {
 	printf("\nMAC Addresses\n");
@@ -143,6 +168,7 @@ static void dump_gma(const char *name, const u8 *r)
 static void dump_gmac(const char *name, const u8 *data)
 {
 	printf("\n%s\n", name);
+
 	printf("Status                       0x%04X\n", *(u16 *) data);
 	printf("Control                      0x%04X\n", *(u16 *) (data + 4));
 	printf("Transmit                     0x%04X\n", *(u16 *) (data + 8));
@@ -294,6 +320,7 @@ int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 
 	dump_mac(regs->data);
 	dump_gmac("GMAC 1", regs->data + 0x2800);
+	dump_gmac_fifo(regs->data + 0xc40);
 
 	printf("\nStatus BMU:\n-----------\n");
 	printf("Control                                0x%08X\n",
@@ -337,6 +364,7 @@ int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		dump_ram("Sync Transmit RAMbuffer 2", regs->data+0xb00);
 		dump_ram("Async Transmit RAMbuffer 21", regs->data+0xb80);
 		dump_gmac("GMAC 2", regs->data + 0x3800);
+		dump_gmac_fifo(regs->data + 0xc40 + 128);
 	}
 
 	return 0;
