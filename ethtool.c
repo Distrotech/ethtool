@@ -255,6 +255,7 @@ static int msglvl_wanted = -1;
 static int phys_id_time = 0;
 static int gregs_changed = 0;
 static int gregs_dump_raw = 0;
+static int gregs_dump_hex = 0;
 static char *gregs_dump_file = NULL;
 static int geeprom_changed = 0;
 static int geeprom_dump_raw = 0;
@@ -285,6 +286,7 @@ struct cmdline_info {
 
 static struct cmdline_info cmdline_gregs[] = {
 	{ "raw", CMDL_BOOL, &gregs_dump_raw, NULL },
+	{ "hex", CMDL_BOOL, &gregs_dump_hex, NULL },
 	{ "file", CMDL_STR, &gregs_dump_file, NULL },
 };
 
@@ -1001,10 +1003,11 @@ static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		fclose(f);
 	}
 
-	for (i = 0; i < ARRAY_SIZE(driver_list); i++)
-		if (!strncmp(driver_list[i].name, info->driver,
-			     ETHTOOL_BUSINFO_LEN))
-			return driver_list[i].func(info, regs);
+	if (!gregs_dump_hex)
+		for (i = 0; i < ARRAY_SIZE(driver_list); i++)
+			if (!strncmp(driver_list[i].name, info->driver,
+				     ETHTOOL_BUSINFO_LEN))
+				return driver_list[i].func(info, regs);
 
 	fprintf(stdout, "Offset\tValues\n");
 	fprintf(stdout, "--------\t-----");
