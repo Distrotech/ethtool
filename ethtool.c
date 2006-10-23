@@ -29,7 +29,9 @@
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -150,7 +152,9 @@ static struct option {
 	        "		[ ufo on|off ]\n"
 	        "		[ gso on|off ]\n" },
     { "-i", "--driver", MODE_GDRV, "Show driver information" },
-    { "-d", "--register-dump", MODE_GREGS, "Do a register dump" },
+    { "-d", "--register-dump", MODE_GREGS, "Do a register dump", 
+		"		[ raw on|off ]\n"
+		"		[ file FILENAME ]\n" },
     { "-e", "--eeprom-dump", MODE_GEEPROM, "Do a EEPROM dump",
 		"		[ raw on|off ]\n"
 		"		[ offset N ]\n"
@@ -251,6 +255,7 @@ static int msglvl_wanted = -1;
 static int phys_id_time = 0;
 static int gregs_changed = 0;
 static int gregs_dump_raw = 0;
+static char *gregs_dump_file = NULL;
 static int geeprom_changed = 0;
 static int geeprom_dump_raw = 0;
 static int geeprom_offset = 0;
@@ -268,6 +273,7 @@ typedef enum {
 	CMDL_NONE,
 	CMDL_BOOL,
 	CMDL_INT,
+	CMDL_STR,
 } cmdline_type_t;
 
 struct cmdline_info {
@@ -279,6 +285,7 @@ struct cmdline_info {
 
 static struct cmdline_info cmdline_gregs[] = {
 	{ "raw", CMDL_BOOL, &gregs_dump_raw, NULL },
+	{ "file", CMDL_STR, &gregs_dump_file, NULL },
 };
 
 static struct cmdline_info cmdline_geeprom[] = {
@@ -355,20 +362,28 @@ static void parse_generic_cmdline(int argc, char **argp,
 				if (i >= argc)
 					show_usage(1);
 				p = info[idx].wanted_val;
-				if (info[idx].type == CMDL_BOOL) {
+				switch (info[idx].type) {
+				case CMDL_BOOL:
 					if (!strcmp(argp[i], "on"))
 						*p = 1;
 					else if (!strcmp(argp[i], "off"))
 						*p = 0;
 					else
 						show_usage(1);
-				} else if (info[idx].type == CMDL_INT) {
-					long v;
-					v = strtol(argp[i], NULL, 0);
+					break;
+				case CMDL_INT: {
+					long v = strtol(argp[i], NULL, 0);
 					if (v < 0)
 						show_usage(1);
 					*p = (int) v;
-				} else {
+					break;
+				}
+				case CMDL_STR: {
+					char **s = info[idx].wanted_val;
+					*s = strdup(argp[i]);
+					break;
+				}
+				default:
 					show_usage(1);
 				}
 			}
@@ -968,6 +983,22 @@ static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	if (gregs_dump_raw) {
 		fwrite(regs->data, regs->len, 1, stdout);
 		return 0;
+	}
+
+	if (gregs_dump_file) {
+		FILE *f = fopen(gregs_dump_file, "r");
+		struct stat st;
+
+		if (!f || fstat(fileno(f), &st) < 0) {
+			fprintf(stderr, "Can't open '%s': %s\n",
+				gregs_dump_file, strerror(errno));
+			return -1;
+		}
+		
+		regs = realloc(regs, sizeof(*regs) + st.st_size);
+		regs->len = st.st_size;
+		fread(regs->data, regs->len, 1, f);
+		fclose(f);
 	}
 
 	for (i = 0; i < ARRAY_SIZE(driver_list); i++)

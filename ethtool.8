@@ -126,6 +126,8 @@ ethtool \- Display or change ethernet card settings
 .B ethtool \-d|\-\-register\-dump
 .I ethX
 .B2 raw on off
+.RB [ file 
+.IR name ]
 
 .B ethtool \-e|\-\-eeprom\-dump
 .I ethX
@@ -244,7 +246,16 @@ queries the specified ethernet device for associated driver information.
 .TP
 .B \-d \-\-register\-dump
 retrieves and prints a register dump for the specified ethernet device.
-When raw is enabled, then it dumps the raw register data to stdout.
+The register format for some devices is known and decoded others
+are printed in hex.
+When 
+.I raw 
+is enabled, then it dumps the raw register data to stdout.
+If
+.I file
+is specified, then use contents of previous raw register dump, rather
+than reading from the device.
+
 .TP
 .B \-e \-\-eeprom\-dump
 retrieves and prints an EEPROM dump for the specified ethernet device.
