@@ -958,6 +958,7 @@ static struct {
 	{ "tg3", tg3_dump_regs },
 	{ "skge", skge_dump_regs },
 	{ "sky2", sky2_dump_regs },
+        { "vioc", vioc_dump_regs },
 };
 
 static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)

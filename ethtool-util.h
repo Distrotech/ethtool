@@ -54,4 +54,6 @@ int skge_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* SysKonnect Gigabit (Yukon2) */
 int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+/* Fabric7 VIOC */
+int vioc_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 #endif
