@@ -17,8 +17,6 @@ int vioc_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	unsigned int	num_regs;
 	struct regs_line *reg_info = (struct regs_line *) regs->data;
 
-	printf("%s: Enter\n", __FUNCTION__);
-
 	printf("ethtool_regs\n"
 		"%-20s = %04x\n"
 		"%-20s = %04x\n",
