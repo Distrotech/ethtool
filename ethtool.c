@@ -2023,12 +2023,10 @@ static int do_gstats(int fd, struct ifreq *ifr)
 	/* todo - pretty-print the strings per-driver */
 	fprintf(stdout, "NIC statistics:\n");
 	for (i = 0; i < n_stats; i++) {
-		char s[ETH_GSTRING_LEN];
-
-		strncpy(s, (const char *) &strings->data[i * ETH_GSTRING_LEN],
-			ETH_GSTRING_LEN);
-		fprintf(stdout, "     %s: %llu\n",
-			s, stats->data[i]);
+		fprintf(stdout, "     %.*s: %llu\n",
+			ETH_GSTRING_LEN, 
+			&strings->data[i * ETH_GSTRING_LEN],
+			stats->data[i]);
 	}
 	free(strings);
 	free(stats);
