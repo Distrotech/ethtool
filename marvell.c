@@ -183,7 +183,7 @@ static void dump_mac(const u8 *r)
  	case 0xb7:	printf("Yukon-2 FE");	break;
 	}
 
-	printf(" (rev %d)\n", r[0x11a] & 0xf);
+	printf(" (rev %d)\n", (r[0x11a] & 0xf0) >> 4);
 
 	printf("Ram Buffer                   0x%02X\n", r[0x11c]);
 	       
