@@ -172,15 +172,18 @@ static void dump_mac(const u8 *r)
 
 	id = r[0x11b];
 	printf("Chip Id                      0x%02X ", id);
+
 	switch (id) {
 	case 0x0a:	printf("Genesis");	break;
 	case 0xb0:	printf("Yukon");	break;
 	case 0xb1:	printf("Yukon-Lite");	break;
 	case 0xb2:	printf("Yukon-LP");	break;
 	case 0xb3:	printf("Yukon-2 XL");	break;
+	case 0xb5:	printf("Yukon Extreme"); break;
 	case 0xb4:	printf("Yukon-2 EC Ultra");	break;
 	case 0xb6:	printf("Yukon-2 EC");	break;
  	case 0xb7:	printf("Yukon-2 FE");	break;
+	default:	printf("(Unknown)");	break;
 	}
 
 	printf(" (rev %d)\n", (r[0x11a] & 0xf0) >> 4);
