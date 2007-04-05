@@ -98,7 +98,7 @@ static struct option {
     char *opthelp;
 } args[] = {
     { "-s", "--change", MODE_SSET, "Change generic options",
-		"		[ speed 10|100|1000 ]\n"
+		"		[ speed 10|100|1000|10000 ]\n"
 		"		[ duplex half|full ]\n"
 		"		[ port tp|aui|bnc|mii|fibre ]\n"
 		"		[ autoneg on|off ]\n"
@@ -521,6 +521,8 @@ static void parse_cmdline(int argc, char **argp)
 					speed_wanted = SPEED_100;
 				else if (!strcmp(argp[i], "1000"))
 					speed_wanted = SPEED_1000;
+				else if (!strcmp(argp[1], "10000"))
+					speed_wanted = SPEED_10000;
 				else
 					show_usage(1);
 				break;
@@ -647,6 +649,9 @@ static void parse_cmdline(int argc, char **argp)
 		else if (speed_wanted == SPEED_1000 &&
 			 duplex_wanted == DUPLEX_FULL)
 			advertising_wanted = ADVERTISED_1000baseT_Full;
+		else if (speed_wanted == SPEED_10000 &&
+			 duplex_wanted == DUPLEX_FULL)
+			advertising_wanted = ADVERTISED_10000baseT_Full;
 		else
 			/* auto negotiate without forcing,
 			 * all supported speed will be assigned in do_sset()
@@ -749,6 +754,13 @@ static void dump_advertised(struct ethtool_cmd *ep)
 	if (mask & ADVERTISED_1000baseT_Full) {
 		did1++; fprintf(stdout, "1000baseT/Full ");
 	}
+	if (did1 && (mask & ADVERTISED_10000baseT_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	                        ");
+	}
+	if (mask & ADVERTISED_10000baseT_Full) {
+		did1++; fprintf(stdout, "10000baseT/Full ");
+	}
 	if (did1 == 0)
 		 fprintf(stdout, "Not reported");
 	fprintf(stdout, "\n");
@@ -775,6 +787,9 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 		break;
 	case SPEED_1000:
 		fprintf(stdout, "1000Mb/s\n");
+		break;
+	case SPEED_10000:
+		fprintf(stdout, "10000Mb/s\n");
 		break;
 	default:
 		fprintf(stdout, "Unknown! (%i)\n", ep->speed);
@@ -1696,7 +1711,8 @@ static int do_sset(int fd, struct ifreq *ifr)
 						 ADVERTISED_100baseT_Half |
 						 ADVERTISED_100baseT_Full |
 						 ADVERTISED_1000baseT_Half |
-						 ADVERTISED_1000baseT_Full);
+						 ADVERTISED_1000baseT_Full |
+						 ADVERTISED_10000baseT_Full);
 				else
 					ecmd.advertising = advertising_wanted;
 			}
