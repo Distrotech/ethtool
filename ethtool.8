@@ -175,7 +175,7 @@ ethtool \- Display or change ethernet card settings
 
 .B ethtool \-s
 .I ethX
-.B4 speed 10 100 1000 10000
+.B4 speed 10 100 1000 2500 10000
 .B2 duplex half full
 .B4 port tp aui bnc mii fibre
 .B2 autoneg on off
@@ -326,7 +326,7 @@ All following options only apply if
 .B \-s
 was specified.
 .TP
-.A4 speed 10 100 1000 10000
+.A4 speed 10 100 1000 2500 10000
 Set speed in Mb/s.
 .B ethtool
 with just the device name as an argument will show you the supported device speeds.
@@ -359,6 +359,8 @@ a hexidecimal value using one or a combination of the following values:
 .BR "0x010" "    1000 Half" "(not supported by IEEE standards)"
 .TP 3
 .BR "0x020" "    1000 Full"
+.TP 3
+.BR "0x8000" "   2500 Full" "(not supported by IEEE standards)"
 .TP 3
 .BR "0x800" "    10000 Full"
 .TP 3

@@ -98,7 +98,7 @@ static struct option {
     char *opthelp;
 } args[] = {
     { "-s", "--change", MODE_SSET, "Change generic options",
-		"		[ speed 10|100|1000|10000 ]\n"
+		"		[ speed 10|100|1000|2500|10000 ]\n"
 		"		[ duplex half|full ]\n"
 		"		[ port tp|aui|bnc|mii|fibre ]\n"
 		"		[ autoneg on|off ]\n"
@@ -521,6 +521,8 @@ static void parse_cmdline(int argc, char **argp)
 					speed_wanted = SPEED_100;
 				else if (!strcmp(argp[i], "1000"))
 					speed_wanted = SPEED_1000;
+				else if (!strcmp(argp[i], "2500"))
+					speed_wanted = SPEED_2500;
 				else if (!strcmp(argp[1], "10000"))
 					speed_wanted = SPEED_10000;
 				else
@@ -649,6 +651,9 @@ static void parse_cmdline(int argc, char **argp)
 		else if (speed_wanted == SPEED_1000 &&
 			 duplex_wanted == DUPLEX_FULL)
 			advertising_wanted = ADVERTISED_1000baseT_Full;
+		else if (speed_wanted == SPEED_2500 &&
+			 duplex_wanted == DUPLEX_FULL)
+			advertising_wanted = ADVERTISED_2500baseX_Full;
 		else if (speed_wanted == SPEED_10000 &&
 			 duplex_wanted == DUPLEX_FULL)
 			advertising_wanted = ADVERTISED_10000baseT_Full;
@@ -712,6 +717,13 @@ static void dump_supported(struct ethtool_cmd *ep)
 	if (mask & SUPPORTED_1000baseT_Full) {
 		did1++; fprintf(stdout, "1000baseT/Full ");
 	}
+	if (did1 && (mask & SUPPORTED_2500baseX_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	                        ");
+	}
+	if (mask & SUPPORTED_2500baseX_Full) {
+		did1++; fprintf(stdout, "2500baseX/Full ");
+	}
 	fprintf(stdout, "\n");
 
 	fprintf(stdout, "	Supports auto-negotiation: ");
@@ -754,6 +766,13 @@ static void dump_advertised(struct ethtool_cmd *ep)
 	if (mask & ADVERTISED_1000baseT_Full) {
 		did1++; fprintf(stdout, "1000baseT/Full ");
 	}
+	if (did1 && (mask & ADVERTISED_2500baseX_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	                        ");
+	}
+	if (mask & ADVERTISED_2500baseX_Full) {
+		did1++; fprintf(stdout, "2500baseX/Full ");
+	}
 	if (did1 && (mask & ADVERTISED_10000baseT_Full)) {
 		fprintf(stdout, "\n");
 		fprintf(stdout, "	                        ");
@@ -787,6 +806,9 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 		break;
 	case SPEED_1000:
 		fprintf(stdout, "1000Mb/s\n");
+		break;
+	case SPEED_2500:
+		fprintf(stdout, "2500Mb/s\n");
 		break;
 	case SPEED_10000:
 		fprintf(stdout, "10000Mb/s\n");
@@ -1712,6 +1734,7 @@ static int do_sset(int fd, struct ifreq *ifr)
 						 ADVERTISED_100baseT_Full |
 						 ADVERTISED_1000baseT_Half |
 						 ADVERTISED_1000baseT_Full |
+						 ADVERTISED_2500baseX_Full |
 						 ADVERTISED_10000baseT_Full);
 				else
 					ecmd.advertising = advertising_wanted;
