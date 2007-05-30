@@ -46,6 +46,7 @@ static struct chip_info {
 	{ "RTL-8139C+",		HW_REVID(1, 1, 1, 0, 1, 1, 0) },
 	{ "RTL-8101",		HW_REVID(1, 1, 1, 0, 1, 1, 1) },
 	{ "RTL-8168B/8111B",	HW_REVID(0, 1, 1, 1, 0, 0, 0) },
+	{ "RTL-8101E",		HW_REVID(0, 1, 1, 0, 1, 0, 0) },
 	{ "RTL-8169",		HW_REVID(0, 0, 0, 0, 0, 0, 0) },
 	{ "RTL-8169s",		HW_REVID(0, 0, 0, 0, 1, 0, 0) },
 	{ "RTL-8110",		HW_REVID(0, 0, 1, 0, 0, 0, 0) },
