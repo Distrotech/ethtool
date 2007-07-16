@@ -13,6 +13,7 @@
  * ixgb support by Nicholas Nunley <Nicholas.d.nunley@intel.com>
  * amd8111e support by Reeja John <reeja.john@amd.com>
  * long arguments by Andi Kleen.
+ * SMSC LAN911x support by Steve Glendinning <steve.glendinning@smsc.com>
  *
  * TODO:
  *   * no-args => summary of each device (mii-tool style)
@@ -1013,6 +1014,7 @@ static struct {
 	{ "skge", skge_dump_regs },
 	{ "sky2", sky2_dump_regs },
         { "vioc", vioc_dump_regs },
+        { "smsc911x", smsc911x_dump_regs },
 };
 
 static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)

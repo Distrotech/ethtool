@@ -7,7 +7,8 @@ sbin_PROGRAMS = ethtool
 ethtool_SOURCES = ethtool.c ethtool-copy.h ethtool-util.h	\
 		  amd8111e.c de2104x.c e100.c e1000.c		\
 		  fec_8xx.c ibm_emac.c ixgb.c natsemi.c		\
-		  pcnet32.c realtek.c tg3.c marvell.c vioc.c
+		  pcnet32.c realtek.c tg3.c marvell.c vioc.c	\
+		  smsc911x.c
 
 dist-hook:
 	cp $(top_srcdir)/ethtool.spec $(distdir)
