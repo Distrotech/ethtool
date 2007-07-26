@@ -153,7 +153,7 @@ static struct option {
 	        "		[ ufo on|off ]\n"
 	        "		[ gso on|off ]\n" },
     { "-i", "--driver", MODE_GDRV, "Show driver information" },
-    { "-d", "--register-dump", MODE_GREGS, "Do a register dump", 
+    { "-d", "--register-dump", MODE_GREGS, "Do a register dump",
 		"		[ raw on|off ]\n"
 		"		[ file FILENAME ]\n" },
     { "-e", "--eeprom-dump", MODE_GEEPROM, "Do a EEPROM dump",
@@ -1035,7 +1035,7 @@ static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 				gregs_dump_file, strerror(errno));
 			return -1;
 		}
-		
+
 		regs = realloc(regs, sizeof(*regs) + st.st_size);
 		regs->len = st.st_size;
 		fread(regs->data, regs->len, 1, f);
@@ -2065,7 +2065,7 @@ static int do_gstats(int fd, struct ifreq *ifr)
 	fprintf(stdout, "NIC statistics:\n");
 	for (i = 0; i < n_stats; i++) {
 		fprintf(stdout, "     %.*s: %llu\n",
-			ETH_GSTRING_LEN, 
+			ETH_GSTRING_LEN,
 			&strings->data[i * ETH_GSTRING_LEN],
 			stats->data[i]);
 	}

@@ -84,7 +84,7 @@ int smsc911x_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	fprintf(stdout, "index 30, Interrupt Mask Register = 0x%04X\n",*smsc_reg++);
 	fprintf(stdout, "index 31, PHY Special Control/Status Register = 0x%04X\n",*smsc_reg++);
 	fprintf(stdout, "\n");
-	
+
 	return 0;
 }
 

@@ -164,7 +164,7 @@ static void dump_mac(const u8 *r)
 	dump_addr(3, r + 0x110);
 	printf("\n");
 
-	printf("Connector type               0x%02X (%c)\n", 
+	printf("Connector type               0x%02X (%c)\n",
 	       r[0x118], (char)r[0x118]);
 	printf("PMD type                     0x%02X (%c)\n",
 	       r[0x119], (char)r[0x119]);
@@ -189,9 +189,9 @@ static void dump_mac(const u8 *r)
 	printf(" (rev %d)\n", (r[0x11a] & 0xf0) >> 4);
 
 	printf("Ram Buffer                   0x%02X\n", r[0x11c]);
-	       
+
 }
-	
+
 static void dump_gma(const char *name, const u8 *r)
 {
 	int i;
