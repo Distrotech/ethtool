@@ -1,4 +1,23 @@
 
+Version 6 - July 26, 2007
+
+	* Fix/security: Fix handling of statistics where the label
+	  is exactly 32 bytes (ETH_GSTRING_LEN).
+	* Feature: Add ability to change the advertised speed/duplex
+	  to a different range of values, rather than all-or-one.
+	* Feature: ixgb register dump support
+	* Feature: sky2 register dump support
+	* Feature: Fabric7 VIOC register dump support
+	* Feature: Decode raw register dump stored in a file
+	* Feature: Add ability to force hex register dump, if desired
+	* Feature: update e1000 register dump
+	* Feature: Additional 10Gbps support
+	* Feature: Add 2.5G support
+	* Feature: Update r8169 register dump
+	* Feature: SMSC LAN911x/LAN921x register dump support
+	* Cleanup: Update internal ethtool.h copy to match upstream
+	  kernel 2.6.23-rc1 version of ethtool.h.
+
 Version 5 - September 1, 2006
 
 	* Security: Avoid potential buffer overflow
