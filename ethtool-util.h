@@ -30,6 +30,8 @@ int de2104x_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* Intel(R) PRO/1000 Gigabit Adapter Family */
 int e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+int igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 /* RealTek PCI */
 int realtek_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
