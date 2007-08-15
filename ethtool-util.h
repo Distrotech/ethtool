@@ -56,6 +56,8 @@ int ibm_emac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* Intel(R) PRO/10GBe Gigabit Adapter Family */
 int ixgb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+int ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 /* Broadcom Tigon3 Ethernet controller */
 int tg3_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 

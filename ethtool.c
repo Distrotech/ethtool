@@ -1005,6 +1005,7 @@ static struct {
 	{ "e1000", e1000_dump_regs },
 	{ "igb", igb_dump_regs },
 	{ "ixgb", ixgb_dump_regs },
+	{ "ixgbe", ixgbe_dump_regs },
 	{ "natsemi", natsemi_dump_regs },
 	{ "e100", e100_dump_regs },
 	{ "amd8111e", amd8111e_dump_regs },
