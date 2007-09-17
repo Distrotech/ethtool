@@ -183,6 +183,7 @@ static void dump_mac(const u8 *r)
 	case 0xb4:	printf("Yukon-2 EC Ultra");	break;
 	case 0xb6:	printf("Yukon-2 EC");	break;
  	case 0xb7:	printf("Yukon-2 FE");	break;
+	case 0xb8:	printf("Yukon-2 FE Plus"); break;
 	default:	printf("(Unknown)");	break;
 	}
 
@@ -247,6 +248,12 @@ static void dump_control(u8 *r)
 	printf("Interrupt Mask                   0x%08X\n", *(u32 *) (r + 0xc));
 	printf("Interrupt Hardware Error Source  0x%08X\n", *(u32 *) (r + 0x10));
 	printf("Interrupt Hardware Error Mask    0x%08X\n", *(u32 *) (r + 0x14));
+	printf("Interrupt Control                0x%08X\n", *(u32 *) (r + 0x2c));
+	printf("Interrupt Moderation Mask        0x%08X\n", *(u32 *) (r + 0x14c));
+	printf("Hardware Moderation Mask         0x%08X\n", *(u32 *) (r + 0x150));
+	dump_timer("Moderation Timer", r + 0x140);
+
+	printf("General Purpose  I/O             0x%08X\n", *(u32 *) (r + 0x15c));
 }
 
 int skge_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
@@ -273,7 +280,6 @@ int skge_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	dump_gmac("GMAC 1", regs->data + 0x2800);
 
 	dump_timer("Timer", regs->data + 0x130);
-	dump_timer("IRQ Moderation", regs->data +0x140);
 	dump_timer("Blink Source", regs->data +0x170);
 
 	dump_queue("Receive Queue 1", regs->data +0x400, 1);
@@ -342,13 +348,32 @@ static void dump_queue2(const char *name, void *a, int rx)
 	printf("Request                          0x%08X%08X\n",
 	       d->req_hi, d->req_lo);
 	if (rx) {
-		printf("Csum1      Offset %4d Position   %d\n",
+		printf("Csum1      Offset %4d Position  %d\n",
 		       d->csum1, d->csum1_start);
 		printf("Csum2      Offset %4d Position  %d\n",
 		       d->csum2, d->csum2_start);
 	} else
 		printf("Csum Start 0x%04X Pos %4d Write %d\n",
 		       d->csum1, d->csum2_start, d->csum1_start);
+}
+
+static void dump_prefetch(const char *name, const void *r)
+{
+	const u32 *reg = r;
+
+	printf("\n%s Prefetch\n", name);
+	printf("Control               0x%08X\n", reg[0]);
+	printf("Last Index            %u\n", reg[1]);
+	printf("Start Address         0x%08x%08x\n", reg[3], reg[2]);
+	if (*name == 'S') { /* Status unit */
+		printf("TX1 report            %u\n", reg[4]);
+		printf("TX2 report            %u\n", reg[5]);
+		printf("TX threshold          %u\n", reg[6]);
+		printf("Put Index             %u\n", reg[7]);
+	} else {
+		printf("Get Index             %u\n", reg[4]);
+		printf("Put Index             %u\n", reg[5]);
+	}
 }
 
 int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
@@ -375,23 +400,14 @@ int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 
 	dump_mac(regs->data);
 
-	printf("\nStatus BMU:\n-----------\n");
-	printf("Control                                0x%08X\n",
-	       *(u32 *) (regs->data + 0x0e80));
-	printf("Last Index                             0x%04X\n",
-	       *(u16 *) (regs->data + 0x0e84));
-	printf("Put Index                              0x%04X\n",
-	       *(u16 *) (regs->data + 0x0e9c));
-	printf("List Address                           0x%08X%08X\n",
-	       *(u32 *) (regs->data + 0x0e8c),
-	       *(u32 *) (regs->data + 0x0e88));
-	printf("Transmit 1 done index                  0x%04X\n",
-	       *(u16 *) (regs->data + 0x0e90));
-	if (dual)
-		printf("Transmit 2 done index                  0x%04X\n",
-		       *(u16 *) (regs->data + 0x0e94));
-	printf("Transmit index threshold               0x%04X\n",
-	       *(u16 *) (regs->data + 0x0e98));
+	dump_prefetch("Status", regs->data + 0xe80);
+	dump_prefetch("Receive 1", regs->data + 0x450);
+	dump_prefetch("Transmit 1", regs->data + 0x450 + 0x280);
+
+	if (dual) {
+		dump_prefetch("Receive 2", regs->data + 0x450 + 0x80);
+		dump_prefetch("Transmit 2", regs->data + 0x450 + 0x380);
+	}
 
 	printf("\nStatus FIFO\n");
   	printf("\tWrite Pointer            0x%02X\n", regs->data[0xea0]);
@@ -399,6 +415,7 @@ int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
   	printf("\tLevel                    0x%02X\n", regs->data[0xea8]);
   	printf("\tWatermark                0x%02X\n", regs->data[0xeac]);
   	printf("\tISR Watermark            0x%02X\n", regs->data[0xead]);
+
 	dump_timer("Status level", regs->data + 0xeb0);
 	dump_timer("TX status", regs->data + 0xec0);
 	dump_timer("ISR", regs->data + 0xed0);
@@ -414,7 +431,6 @@ int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	dump_queue2("Receive Queue 1", regs->data +0x400, 1);
 	dump_queue("Sync Transmit Queue 1", regs->data +0x600, 0);
 	dump_queue2("Async Transmit Queue 1", regs->data +0x680, 0);
-
 
 	dump_ram("Receive RAMbuffer 1", regs->data+0x800);
 	dump_ram("Sync Transmit RAMbuffer 1", regs->data+0xa00);
