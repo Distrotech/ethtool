@@ -1003,6 +1003,7 @@ static struct {
 	{ "r8169", realtek_dump_regs },
 	{ "de2104x", de2104x_dump_regs },
 	{ "e1000", e1000_dump_regs },
+	{ "e1000e", e1000_dump_regs },
 	{ "igb", igb_dump_regs },
 	{ "ixgb", ixgb_dump_regs },
 	{ "ixgbe", ixgbe_dump_regs },
