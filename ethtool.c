@@ -725,6 +725,13 @@ static void dump_supported(struct ethtool_cmd *ep)
 	if (mask & SUPPORTED_2500baseX_Full) {
 		did1++; fprintf(stdout, "2500baseX/Full ");
 	}
+	if (did1 && (mask & SUPPORTED_10000baseT_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	                        ");
+	}
+	if (mask & SUPPORTED_10000baseT_Full) {
+		did1++; fprintf(stdout, "10000baseT/Full ");
+	}
 	fprintf(stdout, "\n");
 
 	fprintf(stdout, "	Supports auto-negotiation: ");
