@@ -1477,7 +1477,7 @@ static int do_scoalesce(int fd, struct ifreq *ifr)
 		       &changed);
 
 	if (!changed) {
-		fprintf(stderr, "no ring parameters changed, aborting\n");
+		fprintf(stderr, "no coalesce parameters changed, aborting\n");
 		return 80;
 	}
 
@@ -1485,7 +1485,7 @@ static int do_scoalesce(int fd, struct ifreq *ifr)
 	ifr->ifr_data = (caddr_t)&ecoal;
 	err = ioctl(fd, SIOCETHTOOL, ifr);
 	if (err) {
-		perror("Cannot set device ring parameters");
+		perror("Cannot set device coalesce parameters");
 		return 81;
 	}
 
