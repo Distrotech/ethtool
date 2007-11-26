@@ -524,7 +524,7 @@ static void parse_cmdline(int argc, char **argp)
 					speed_wanted = SPEED_1000;
 				else if (!strcmp(argp[i], "2500"))
 					speed_wanted = SPEED_2500;
-				else if (!strcmp(argp[1], "10000"))
+				else if (!strcmp(argp[i], "10000"))
 					speed_wanted = SPEED_10000;
 				else
 					show_usage(1);
