@@ -152,6 +152,8 @@ ethtool \- Display or change ethernet card settings
 .IR N ]
 .RB [ offset
 .IR N ]
+.RB [ length
+.IR N ]
 .RB [ value
 .IR N ]
 
@@ -289,10 +291,12 @@ length and offset parameters allow dumping certain portions of the EEPROM.
 Default is to dump the entire EEPROM.
 .TP
 .B \-E \-\-change\-eeprom
-Changes EEPROM byte for the specified ethernet device.  offset and value
-specify which byte and it's new value.  Because of the persistent nature
-of writing to the EEPROM, a device-specific magic key must be specified
-to prevent the accidental writing to the EEPROM.
+If value is specified, changes EEPROM byte for the specified ethernet device.
+offset and value specify which byte and it's new value. If value is not
+specified, stdin is read and written to the EEPROM. The length and offset
+parameters allow writing to certain portions of the EEPROM.
+Because of the persistent nature of writing to the EEPROM, a device-specific
+magic key must be specified to prevent the accidental writing to the EEPROM.
 .TP
 .B \-k \-\-show\-offload
 Queries the specified ethernet device for offload information.

@@ -180,6 +180,7 @@ static struct option {
     { "-E", "--change-eeprom", MODE_SEEPROM, "Change bytes in device EEPROM",
 		"		[ magic N ]\n"
 		"		[ offset N ]\n"
+		"		[ length N ]\n"
 		"		[ value N ]\n" },
     { "-r", "--negotiate", MODE_NWAY_RST, "Restart N-WAY negotation" },
     { "-p", "--identify", MODE_PHYS_ID, "Show visible port identification (e.g. blinking)",
@@ -304,8 +305,9 @@ static int geeprom_offset = 0;
 static int geeprom_length = -1;
 static int seeprom_changed = 0;
 static int seeprom_magic = 0;
-static int seeprom_offset = -1;
-static int seeprom_value = 0;
+static int seeprom_length = -1;
+static int seeprom_offset = 0;
+static int seeprom_value = EOF;
 static int rx_fhash_get = 0;
 static int rx_fhash_set = 0;
 static u32 rx_fhash_val = 0;
@@ -347,6 +349,7 @@ static struct cmdline_info cmdline_geeprom[] = {
 static struct cmdline_info cmdline_seeprom[] = {
 	{ "magic", CMDL_INT, &seeprom_magic, NULL },
 	{ "offset", CMDL_INT, &seeprom_offset, NULL },
+	{ "length", CMDL_INT, &seeprom_length, NULL },
 	{ "value", CMDL_INT, &seeprom_value, NULL },
 };
 
@@ -2232,22 +2235,49 @@ static int do_geeprom(int fd, struct ifreq *ifr)
 static int do_seeprom(int fd, struct ifreq *ifr)
 {
 	int err;
-	struct {
-		struct ethtool_eeprom eeprom;
-		u8 data;
-	} edata;
+	struct ethtool_drvinfo drvinfo;
+	struct ethtool_eeprom *eeprom;
 
-	edata.eeprom.cmd = ETHTOOL_SEEPROM;
-	edata.eeprom.len = 1;
-	edata.eeprom.offset = seeprom_offset;
-	edata.eeprom.magic = seeprom_magic;
-	edata.data = seeprom_value;
-	ifr->ifr_data = (caddr_t)&edata.eeprom;
+	drvinfo.cmd = ETHTOOL_GDRVINFO;
+	ifr->ifr_data = (caddr_t)&drvinfo;
+	err = send_ioctl(fd, ifr);
+	if (err < 0) {
+		perror("Cannot get driver information");
+		return 74;
+	}
+
+	if (seeprom_value != EOF)
+		seeprom_length = 1;
+
+	if (seeprom_length <= 0)
+		seeprom_length = drvinfo.eedump_len;
+
+	if (drvinfo.eedump_len < seeprom_offset + seeprom_length)
+		seeprom_length = drvinfo.eedump_len - seeprom_offset;
+
+	eeprom = calloc(1, sizeof(*eeprom)+seeprom_length);
+	if (!eeprom) {
+		perror("Cannot allocate memory for EEPROM data");
+		return 75;
+	}
+
+	eeprom->cmd = ETHTOOL_SEEPROM;
+	eeprom->len = seeprom_length;
+	eeprom->offset = seeprom_offset;
+	eeprom->magic = seeprom_magic;
+	eeprom->data[0] = seeprom_value;
+
+	/* Multi-byte write: read input from stdin */
+	if (seeprom_value == EOF)
+		eeprom->len = fread(eeprom->data, 1, eeprom->len, stdin);
+
+	ifr->ifr_data = (caddr_t)eeprom;
 	err = send_ioctl(fd, ifr);
 	if (err < 0) {
 		perror("Cannot set EEPROM data");
-		return 87;
+		err = 87;
 	}
+	free(eeprom);
 
 	return err;
 }
