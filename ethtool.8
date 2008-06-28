@@ -40,6 +40,14 @@
 .\"	\(*WO - wol flags
 .\"
 .ds WO \fBp\fP|\fBu\fP|\fBm\fP|\fBb\fP|\fBa\fP|\fBg\fP|\fBs\fP|\fBd\fP...
+.\"
+.\"	\(*FL - flow type values
+.\"
+.ds FL \fBtcp4\fP|\fBudp4\fP|\fBah4\fP|\fBsctp4\fP|\fBtcp6\fP|\fBudp6\fP|\fBah6\fP|\fBsctp6\fP
+.\"
+.\"	\(*HO - hash options
+.\"
+.ds HO \fBp\fP|\fm\fP|\fBv\fP|\fBt\fP|\fBs\fP|\fBd\fP|\fBf\fP|\fBn\fP|\fBr\fP...
 .TH ETHTOOL 8 "July 2007" "Ethtool version 6"
 .SH NAME
 ethtool \- Display or change ethernet card settings
@@ -188,6 +196,15 @@ ethtool \- Display or change ethernet card settings
 .RB [ sopass \ \*(MA]
 .RB [ msglvl
 .IR N ]
+
+.B ethtool \-n
+.I ethX
+.RB [ rx-flow-hash \ \*(FL]
+
+.B ethtool \-N
+.I ethX
+.RB [ rx-flow-hash \ \*(FL
+.RB \ \*(HO]
 .SH DESCRIPTION
 .BI ethtool
 is used for querying settings of an ethernet device and changing them.
@@ -413,6 +430,69 @@ bytes in ethernet MAC hex format (\*(MA).
 .TP
 .BI msglvl \ N
 Sets the driver message level. Meanings differ per driver.
+.TP
+.B \-n \-\-show-nfc
+Retrieves the receive network flow classification configurations.
+.TP
+.BR rx-flow-hash \ \*(FL
+Retrieves the hash options for the specified network traffic type.
+.RS
+.PD 0
+.TP 3
+.BR "tcp4" "    TCP over IPv4"
+.TP 3
+.BR "udp4" "    UDP over IPv4"
+.TP 3
+.BR "ah4" "     IPSEC AH/ESP over IPv4"
+.TP 3
+.BR "sctp4" "   SCTP over IPv4"
+.TP 3
+.BR "tcp6" "    TCP over IPv6"
+.TP 3
+.BR "udp6" "    UDP over IPv6"
+.TP 3
+.BR "ah6" "     IPSEC AH/ESP over IPv6"
+.TP 3
+.BR "sctp6" "   SCTP over IPv6"
+.PD
+.RE
+.TP
+.B \-N \-\-config-nfc
+Configures the receive network flow classification.
+.TP
+.BR rx-flow-hash \ \*(FL \ \*(HO
+Configures the hash options for the specified network traffic type.
+.RS
+.PD 0
+.TP 3
+.B p
+Hash on the device port number on which the packet was received.
+.TP 3
+.B m
+Hash on the Layer 2 destination address of the rx packet.
+.TP 3
+.B v
+Hash on the VLAN tag of the rx packet.
+.TP 3
+.B t
+Hash on the Layer 3 protocol field of the rx packet.
+.TP 3
+.B s
+Hash on the IP source address of the rx packet.
+.TP 3
+.B d
+Hash on the IP destination address of the rx packet.
+.TP 3
+.B f
+Hash on bytes 0 and 1 of the Layer 4 header of the rx packet.
+.TP 3
+.B n
+Hash on bytes 2 and 3 of the Layer 4 header of the rx packet.
+.TP 3
+.B r
+Discard all packets of this flow type. When this option is set, all other options are ignored.
+.PD
+.RE
 .SH BUGS
 Not supported (in part or whole) on all ethernet drivers.
 .SH AUTHOR

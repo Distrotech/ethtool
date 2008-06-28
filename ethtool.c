@@ -69,6 +69,12 @@ static int do_scoalesce(int fd, struct ifreq *ifr);
 static int do_goffload(int fd, struct ifreq *ifr);
 static int do_soffload(int fd, struct ifreq *ifr);
 static int do_gstats(int fd, struct ifreq *ifr);
+static int rxflow_str_to_type(const char *str);
+static int parse_rxfhashopts(char *optstr, u32 *data);
+static char *unparse_rxfhashopts(u64 opts);
+static int dump_rxfhash(int fhash, u64 val);
+static int do_srxclass(int fd, struct ifreq *ifr);
+static int do_grxclass(int fd, struct ifreq *ifr);
 
 static enum {
 	MODE_HELP = -1,
@@ -90,6 +96,8 @@ static enum {
 	MODE_GOFFLOAD,
 	MODE_SOFFLOAD,
 	MODE_GSTATS,
+	MODE_GNFC,
+	MODE_SNFC,
 } mode = MODE_GSET;
 
 static struct option {
@@ -170,6 +178,14 @@ static struct option {
     { "-t", "--test", MODE_TEST, "Execute adapter self test",
                 "               [ online | offline ]\n" },
     { "-S", "--statistics", MODE_GSTATS, "Show adapter statistics" },
+    { "-n", "--show-nfc", MODE_GNFC, "Show Rx network flow classification"
+		"options",
+		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
+		"tcp6|udp6|ah6|sctp6 ]\n" },
+    { "-N", "--config-nfc", MODE_SNFC, "Configure Rx network flow "
+		"classification options",
+		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
+		"tcp6|udp6|ah6|sctp6 p|m|v|t|s|d|f|n|r... ]\n" },
     { "-h", "--help", MODE_HELP, "Show this help" },
     {}
 };
@@ -266,6 +282,10 @@ static int seeprom_changed = 0;
 static int seeprom_magic = 0;
 static int seeprom_offset = -1;
 static int seeprom_value = 0;
+static int rx_fhash_get = 0;
+static int rx_fhash_set = 0;
+static u32 rx_fhash_val = 0;
+static int rx_fhash_changed = 0;
 static enum {
 	ONLINE=0,
 	OFFLINE,
@@ -394,6 +414,30 @@ static void parse_generic_cmdline(int argc, char **argp,
 	}
 }
 
+static int rxflow_str_to_type(const char *str)
+{
+	int flow_type = 0;
+
+	if (!strcmp(str, "tcp4"))
+		flow_type = TCP_V4_FLOW;
+	else if (!strcmp(str, "udp4"))
+		flow_type = UDP_V4_FLOW;
+	else if (!strcmp(str, "ah4"))
+		flow_type = AH_ESP_V4_FLOW;
+	else if (!strcmp(str, "sctp4"))
+		flow_type = SCTP_V4_FLOW;
+	else if (!strcmp(str, "tcp6"))
+		flow_type = TCP_V6_FLOW;
+	else if (!strcmp(str, "udp6"))
+		flow_type = UDP_V6_FLOW;
+	else if (!strcmp(str, "ah6"))
+		flow_type = AH_ESP_V6_FLOW;
+	else if (!strcmp(str, "sctp6"))
+		flow_type = SCTP_V6_FLOW;
+
+	return flow_type;
+}
+
 static void parse_cmdline(int argc, char **argp)
 {
 	int i, k;
@@ -430,6 +474,8 @@ static void parse_cmdline(int argc, char **argp)
 			    (mode == MODE_GOFFLOAD) ||
 			    (mode == MODE_SOFFLOAD) ||
 			    (mode == MODE_GSTATS) ||
+			    (mode == MODE_GNFC) ||
+			    (mode == MODE_SNFC) ||
 			    (mode == MODE_PHYS_ID)) {
 				devname = argp[i];
 				break;
@@ -507,6 +553,48 @@ static void parse_cmdline(int argc, char **argp)
 			      		cmdline_offload,
 			      		ARRAY_SIZE(cmdline_offload));
 				i = argc;
+				break;
+			}
+			if (mode == MODE_GNFC) {
+				if (!strcmp(argp[i], "rx-flow-hash")) {
+					i += 1;
+					if (i >= argc) {
+						show_usage(1);
+						break;
+					}
+					rx_fhash_get =
+						rxflow_str_to_type(argp[i]);
+					if (!rx_fhash_get)
+						show_usage(1);
+				} else
+					show_usage(1);
+				break;
+			}
+			if (mode == MODE_SNFC) {
+				if (!strcmp(argp[i], "rx-flow-hash")) {
+					i += 1;
+					if (i >= argc) {
+						show_usage(1);
+						break;
+					}
+					rx_fhash_set =
+						rxflow_str_to_type(argp[i]);
+					if (!rx_fhash_set) {
+						show_usage(1);
+						break;
+					}
+					i += 1;
+					if (i >= argc) {
+						show_usage(1);
+						break;
+					}
+					if (parse_rxfhashopts(argp[i],
+						&rx_fhash_val) < 0)
+						show_usage(1);
+					else
+						rx_fhash_changed = 1;
+				} else
+					show_usage(1);
 				break;
 			}
 			if (mode != MODE_SSET)
@@ -1000,6 +1088,84 @@ static int parse_sopass(char *src, unsigned char *dest)
 	return 0;
 }
 
+static int parse_rxfhashopts(char *optstr, u32 *data)
+{
+	*data = 0;
+	while (*optstr) {
+		switch (*optstr) {
+			case 'p':
+				*data |= RXH_DEV_PORT;
+				break;
+			case 'm':
+				*data |= RXH_L2DA;
+				break;
+			case 'v':
+				*data |= RXH_VLAN;
+				break;
+			case 't':
+				*data |= RXH_L3_PROTO;
+				break;
+			case 's':
+				*data |= RXH_IP_SRC;
+				break;
+			case 'd':
+				*data |= RXH_IP_DST;
+				break;
+			case 'f':
+				*data |= RXH_L4_B_0_1;
+				break;
+			case 'n':
+				*data |= RXH_L4_B_2_3;
+				break;
+			case 'r':
+				*data |= RXH_DISCARD;
+				break;
+			default:
+				return -1;
+		}
+		optstr++;
+	}
+	return 0;
+}
+
+static char *unparse_rxfhashopts(u64 opts)
+{
+	static char buf[300];
+
+	memset(buf, 0, sizeof(buf));
+
+	if (opts) {
+		if (opts & RXH_DEV_PORT) {
+			strcat(buf, "Dev port\n");
+		}
+		if (opts & RXH_L2DA) {
+			strcat(buf, "L2DA\n");
+		}
+		if (opts & RXH_VLAN) {
+			strcat(buf, "VLAN tag\n");
+		}
+		if (opts & RXH_L3_PROTO) {
+			strcat(buf, "L3 proto\n");
+		}
+		if (opts & RXH_IP_SRC) {
+			strcat(buf, "IP SA\n");
+		}
+		if (opts & RXH_IP_DST) {
+			strcat(buf, "IP DA\n");
+		}
+		if (opts & RXH_L4_B_0_1) {
+			strcat(buf, "L4 bytes 0 & 1 [TCP/UDP src port]\n");
+		}
+		if (opts & RXH_L4_B_2_3) {
+			strcat(buf, "L4 bytes 2 & 3 [TCP/UDP dst port]\n");
+		}
+	} else {
+		sprintf(buf, "None");
+	}
+
+	return buf;
+}
+
 static struct {
 	const char *name;
 	int (*func)(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
@@ -1236,6 +1402,48 @@ static int dump_offload (int rx, int tx, int sg, int tso, int ufo, int gso)
 	return 0;
 }
 
+static int dump_rxfhash(int fhash, u64 val)
+{
+	switch (fhash) {
+	case TCP_V4_FLOW:
+		fprintf(stdout, "TCP over IPV4 flows");
+		break;
+	case UDP_V4_FLOW:
+		fprintf(stdout, "UDP over IPV4 flows");
+		break;
+	case SCTP_V4_FLOW:
+		fprintf(stdout, "SCTP over IPV4 flows");
+		break;
+	case AH_ESP_V4_FLOW:
+		fprintf(stdout, "IPSEC AH over IPV4 flows");
+		break;
+	case TCP_V6_FLOW:
+		fprintf(stdout, "TCP over IPV6 flows");
+		break;
+	case UDP_V6_FLOW:
+		fprintf(stdout, "UDP over IPV6 flows");
+		break;
+	case SCTP_V6_FLOW:
+		fprintf(stdout, "SCTP over IPV6 flows");
+		break;
+	case AH_ESP_V6_FLOW:
+		fprintf(stdout, "IPSEC AH over IPV6 flows");
+		break;
+	default:
+		break;
+	}
+
+	if (val & RXH_DISCARD) {
+		fprintf(stdout, " - All matching flows discarded on RX\n");
+		return 0;
+	}
+	fprintf(stdout, " use these fields for computing Hash flow key:\n");
+
+	fprintf(stdout, "%s\n", unparse_rxfhashopts(val));
+		
+	return 0;
+}
+
 static int doit(void)
 {
 	struct ifreq ifr;
@@ -1289,6 +1497,10 @@ static int doit(void)
 		return do_soffload(fd, &ifr);
 	} else if (mode == MODE_GSTATS) {
 		return do_gstats(fd, &ifr);
+	} else if (mode == MODE_GNFC) {
+		return do_grxclass(fd, &ifr);
+	} else if (mode == MODE_SNFC) {
+		return do_srxclass(fd, &ifr);
 	}
 
 	return 69;
@@ -2081,6 +2293,48 @@ static int do_gstats(int fd, struct ifreq *ifr)
 	}
 	free(strings);
 	free(stats);
+
+	return 0;
+}
+
+
+static int do_srxclass(int fd, struct ifreq *ifr)
+{
+	int err;
+
+	if (rx_fhash_changed) {
+		struct ethtool_rxnfc nfccmd;
+
+		nfccmd.cmd = ETHTOOL_SRXFH;
+		nfccmd.flow_type = rx_fhash_set;
+		nfccmd.data = rx_fhash_val;
+
+		ifr->ifr_data = (caddr_t)&nfccmd;
+		err = ioctl(fd, SIOCETHTOOL, ifr);
+		if (err < 0)
+			perror("Cannot change RX network flow hashing options");
+
+	}
+
+	return 0;
+}
+
+static int do_grxclass(int fd, struct ifreq *ifr)
+{
+	int err;
+
+	if (rx_fhash_get) {
+		struct ethtool_rxnfc nfccmd;
+
+		nfccmd.cmd = ETHTOOL_GRXFH;
+		nfccmd.flow_type = rx_fhash_get;
+		ifr->ifr_data = (caddr_t)&nfccmd;
+		err = ioctl(fd, SIOCETHTOOL, ifr);
+		if (err < 0)
+			perror("Cannot get RX network flow hashing options");
+		else
+			dump_rxfhash(rx_fhash_get, nfccmd.data);
+	}
 
 	return 0;
 }
