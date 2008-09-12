@@ -805,7 +805,7 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 	dump_advertised(ep);
 
 	fprintf(stdout, "	Speed: ");
-	switch (ep->speed) {
+	switch (ethtool_cmd_speed(ep)) {
 	case SPEED_10:
 		fprintf(stdout, "10Mb/s\n");
 		break;
@@ -822,7 +822,7 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 		fprintf(stdout, "10000Mb/s\n");
 		break;
 	default:
-		fprintf(stdout, "Unknown! (%i)\n", ep->speed);
+		fprintf(stdout, "Unknown! (%i)\n", ethtool_cmd_speed(ep));
 		break;
 	};
 
@@ -1726,7 +1726,7 @@ static int do_sset(int fd, struct ifreq *ifr)
 		} else {
 			/* Change everything the user specified. */
 			if (speed_wanted != -1)
-				ecmd.speed = speed_wanted;
+				ethtool_cmd_speed_set(&ecmd, speed_wanted);
 			if (duplex_wanted != -1)
 				ecmd.duplex = duplex_wanted;
 			if (port_wanted != -1)

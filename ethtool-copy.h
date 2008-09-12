@@ -12,7 +12,6 @@
 #ifndef _LINUX_ETHTOOL_H
 #define _LINUX_ETHTOOL_H
 
-
 /* This should work for both 32 and 64 bit userland. */
 struct ethtool_cmd {
 	__u32	cmd;
@@ -26,8 +25,23 @@ struct ethtool_cmd {
 	__u8	autoneg;	/* Enable or disable autonegotiation */
 	__u32	maxtxpkt;	/* Tx pkts before generating tx int */
 	__u32	maxrxpkt;	/* Rx pkts before generating rx int */
-	__u32	reserved[4];
+	__u16	speed_hi;
+	__u16	reserved2;
+	__u32	reserved[3];
 };
+
+static inline void ethtool_cmd_speed_set(struct ethtool_cmd *ep,
+						__u32 speed)
+{
+
+	ep->speed = (__u16)speed;
+	ep->speed_hi = (__u16)(speed >> 16);
+}
+
+static inline __u32 ethtool_cmd_speed(struct ethtool_cmd *ep)
+{
+	return (ep->speed_hi << 16) | ep->speed;
+}
 
 #define ETHTOOL_BUSINFO_LEN	32
 /* these strings are set to whatever the driver author decides... */
@@ -39,7 +53,8 @@ struct ethtool_drvinfo {
 	char	bus_info[ETHTOOL_BUSINFO_LEN];	/* Bus info for this IF. */
 				/* For PCI devices, use pci_name(pci_dev). */
 	char	reserved1[32];
-	char	reserved2[16];
+	char	reserved2[12];
+	__u32	n_priv_flags;	/* number of flags valid in ETHTOOL_GPFLAGS */
 	__u32	n_stats;	/* number of u64's from ETHTOOL_GSTATS */
 	__u32	testinfo_len;
 	__u32	eedump_len;	/* Size of data from ETHTOOL_GEEPROM (bytes) */
@@ -219,6 +234,7 @@ struct ethtool_pauseparam {
 enum ethtool_stringset {
 	ETH_SS_TEST		= 0,
 	ETH_SS_STATS,
+	ETH_SS_PRIV_FLAGS,
 };
 
 /* for passing string sets for data tagging */
@@ -256,125 +272,24 @@ struct ethtool_perm_addr {
 	__u8	data[0];
 };
 
-#ifdef __KERNEL__
-
-struct net_device;
-
-/* Some generic methods drivers may use in their ethtool_ops */
-u32 ethtool_op_get_link(struct net_device *dev);
-u32 ethtool_op_get_tx_csum(struct net_device *dev);
-int ethtool_op_set_tx_csum(struct net_device *dev, u32 data);
-int ethtool_op_set_tx_hw_csum(struct net_device *dev, u32 data);
-int ethtool_op_set_tx_ipv6_csum(struct net_device *dev, u32 data);
-u32 ethtool_op_get_sg(struct net_device *dev);
-int ethtool_op_set_sg(struct net_device *dev, u32 data);
-u32 ethtool_op_get_tso(struct net_device *dev);
-int ethtool_op_set_tso(struct net_device *dev, u32 data);
-int ethtool_op_get_perm_addr(struct net_device *dev, 
-			     struct ethtool_perm_addr *addr, u8 *data);
-u32 ethtool_op_get_ufo(struct net_device *dev);
-int ethtool_op_set_ufo(struct net_device *dev, u32 data);
-
-/**
- * &ethtool_ops - Alter and report network device settings
- * get_settings: Get device-specific settings
- * set_settings: Set device-specific settings
- * get_drvinfo: Report driver information
- * get_regs: Get device registers
- * get_wol: Report whether Wake-on-Lan is enabled
- * set_wol: Turn Wake-on-Lan on or off
- * get_msglevel: Report driver message level
- * set_msglevel: Set driver message level
- * nway_reset: Restart autonegotiation
- * get_link: Get link status
- * get_eeprom: Read data from the device EEPROM
- * set_eeprom: Write data to the device EEPROM
- * get_coalesce: Get interrupt coalescing parameters
- * set_coalesce: Set interrupt coalescing parameters
- * get_ringparam: Report ring sizes
- * set_ringparam: Set ring sizes
- * get_pauseparam: Report pause parameters
- * set_pauseparam: Set pause paramters
- * get_rx_csum: Report whether receive checksums are turned on or off
- * set_rx_csum: Turn receive checksum on or off
- * get_tx_csum: Report whether transmit checksums are turned on or off
- * set_tx_csum: Turn transmit checksums on or off
- * get_sg: Report whether scatter-gather is enabled
- * set_sg: Turn scatter-gather on or off
- * get_tso: Report whether TCP segmentation offload is enabled
- * set_tso: Turn TCP segmentation offload on or off
- * get_ufo: Report whether UDP fragmentation offload is enabled
- * set_ufo: Turn UDP fragmentation offload on or off
- * self_test: Run specified self-tests
- * get_strings: Return a set of strings that describe the requested objects 
- * phys_id: Identify the device
- * get_stats: Return statistics about the device
- * get_perm_addr: Gets the permanent hardware address
- * 
- * Description:
+/* boolean flags controlling per-interface behavior characteristics.
+ * When reading, the flag indicates whether or not a certain behavior
+ * is enabled/present.  When writing, the flag indicates whether
+ * or not the driver should turn on (set) or off (clear) a behavior.
  *
- * get_settings:
- *	@get_settings is passed an &ethtool_cmd to fill in.  It returns
- *	an negative errno or zero.
- *
- * set_settings:
- *	@set_settings is passed an &ethtool_cmd and should attempt to set
- *	all the settings this device supports.  It may return an error value
- *	if something goes wrong (otherwise 0).
- *
- * get_eeprom:
- *	Should fill in the magic field.  Don't need to check len for zero
- *	or wraparound.  Fill in the data argument with the eeprom values
- *	from offset to offset + len.  Update len to the amount read.
- *	Returns an error or zero.
- *
- * set_eeprom:
- *	Should validate the magic field.  Don't need to check len for zero
- *	or wraparound.  Update len to the amount written.  Returns an error
- *	or zero.
+ * Some behaviors may read-only (unconditionally absent or present).
+ * If such is the case, return EINVAL in the set-flags operation if the
+ * flag differs from the read-only value.
  */
-struct ethtool_ops {
-	int	(*get_settings)(struct net_device *, struct ethtool_cmd *);
-	int	(*set_settings)(struct net_device *, struct ethtool_cmd *);
-	void	(*get_drvinfo)(struct net_device *, struct ethtool_drvinfo *);
-	int	(*get_regs_len)(struct net_device *);
-	void	(*get_regs)(struct net_device *, struct ethtool_regs *, void *);
-	void	(*get_wol)(struct net_device *, struct ethtool_wolinfo *);
-	int	(*set_wol)(struct net_device *, struct ethtool_wolinfo *);
-	u32	(*get_msglevel)(struct net_device *);
-	void	(*set_msglevel)(struct net_device *, u32);
-	int	(*nway_reset)(struct net_device *);
-	u32	(*get_link)(struct net_device *);
-	int	(*get_eeprom_len)(struct net_device *);
-	int	(*get_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);
-	int	(*set_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);
-	int	(*get_coalesce)(struct net_device *, struct ethtool_coalesce *);
-	int	(*set_coalesce)(struct net_device *, struct ethtool_coalesce *);
-	void	(*get_ringparam)(struct net_device *, struct ethtool_ringparam *);
-	int	(*set_ringparam)(struct net_device *, struct ethtool_ringparam *);
-	void	(*get_pauseparam)(struct net_device *, struct ethtool_pauseparam*);
-	int	(*set_pauseparam)(struct net_device *, struct ethtool_pauseparam*);
-	u32	(*get_rx_csum)(struct net_device *);
-	int	(*set_rx_csum)(struct net_device *, u32);
-	u32	(*get_tx_csum)(struct net_device *);
-	int	(*set_tx_csum)(struct net_device *, u32);
-	u32	(*get_sg)(struct net_device *);
-	int	(*set_sg)(struct net_device *, u32);
-	u32	(*get_tso)(struct net_device *);
-	int	(*set_tso)(struct net_device *, u32);
-	int	(*self_test_count)(struct net_device *);
-	void	(*self_test)(struct net_device *, struct ethtool_test *, u64 *);
-	void	(*get_strings)(struct net_device *, u32 stringset, u8 *);
-	int	(*phys_id)(struct net_device *, u32);
-	int	(*get_stats_count)(struct net_device *);
-	void	(*get_ethtool_stats)(struct net_device *, struct ethtool_stats *, u64 *);
-	int	(*get_perm_addr)(struct net_device *, struct ethtool_perm_addr *, u8 *);
-	int	(*begin)(struct net_device *);
-	void	(*complete)(struct net_device *);
-	u32     (*get_ufo)(struct net_device *);
-	int     (*set_ufo)(struct net_device *, u32);
+enum ethtool_flags {
+	ETH_FLAG_LRO		= (1 << 15),	/* LRO is enabled */
 };
-#endif /* __KERNEL__ */
+
+struct ethtool_rxnfc {
+	__u32		cmd;
+	__u32		flow_type;
+	__u64		data;
+};
 
 /* CMDs currently supported */
 #define ETHTOOL_GSET		0x00000001 /* Get settings. */
@@ -414,6 +329,13 @@ struct ethtool_ops {
 #define ETHTOOL_SUFO		0x00000022 /* Set UFO enable (ethtool_value) */
 #define ETHTOOL_GGSO		0x00000023 /* Get GSO enable (ethtool_value) */
 #define ETHTOOL_SGSO		0x00000024 /* Set GSO enable (ethtool_value) */
+#define ETHTOOL_GFLAGS		0x00000025 /* Get flags bitmap(ethtool_value) */
+#define ETHTOOL_SFLAGS		0x00000026 /* Set flags bitmap(ethtool_value) */
+#define ETHTOOL_GPFLAGS		0x00000027 /* Get driver-private flags bitmap */
+#define ETHTOOL_SPFLAGS		0x00000028 /* Set driver-private flags bitmap */
+
+#define	ETHTOOL_GRXFH		0x00000029 /* Get RX flow hash configuration */
+#define	ETHTOOL_SRXFH		0x0000002a /* Set RX flow hash configuration */
 
 /* compatibility with older code */
 #define SPARC_ETH_GSET		ETHTOOL_GSET
@@ -500,5 +422,27 @@ struct ethtool_ops {
 #define WAKE_ARP		(1 << 4)
 #define WAKE_MAGIC		(1 << 5)
 #define WAKE_MAGICSECURE	(1 << 6) /* only meaningful if WAKE_MAGIC */
+
+/* L3-L4 network traffic flow types */
+#define	TCP_V4_FLOW	0x01
+#define	UDP_V4_FLOW	0x02
+#define	SCTP_V4_FLOW	0x03
+#define	AH_ESP_V4_FLOW	0x04
+#define	TCP_V6_FLOW	0x05
+#define	UDP_V6_FLOW	0x06
+#define	SCTP_V6_FLOW	0x07
+#define	AH_ESP_V6_FLOW	0x08
+
+/* L3-L4 network traffic flow hash options */
+#define	RXH_DEV_PORT	(1 << 0)
+#define	RXH_L2DA	(1 << 1)
+#define	RXH_VLAN	(1 << 2)
+#define	RXH_L3_PROTO	(1 << 3)
+#define	RXH_IP_SRC	(1 << 4)
+#define	RXH_IP_DST	(1 << 5)
+#define	RXH_L4_B_0_1	(1 << 6) /* src port in case of TCP/UDP/SCTP */
+#define	RXH_L4_B_2_3	(1 << 7) /* dst port in case of TCP/UDP/SCTP */
+#define	RXH_DISCARD	(1 << 31)
+
 
 #endif /* _LINUX_ETHTOOL_H */
