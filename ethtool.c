@@ -197,15 +197,24 @@ static struct option {
 static void show_usage(int badarg)
 {
 	int i;
-	fprintf(stderr, PACKAGE " version " VERSION "\n");
-	fprintf(stderr,
+	if (badarg != 0) {
+		fprintf(stderr,
+			"ethtool: bad command line argument(s)\n"
+			"For more information run ethtool -h\n"
+		);
+	}
+	else {
+		/* ethtool -h */
+		fprintf(stdout, PACKAGE " version " VERSION "\n");
+		fprintf(stdout,
 		"Usage:\n"
 		"ethtool DEVNAME\tDisplay standard information about device\n");
-	for (i = 0; args[i].srt; i++) {
-		fprintf(stderr, "        ethtool %s|%s DEVNAME\t%s\n%s",
-			args[i].srt, args[i].lng,
-			args[i].help,
-			args[i].opthelp ? args[i].opthelp : "");
+		for (i = 0; args[i].srt; i++) {
+			fprintf(stdout, "        ethtool %s|%s DEVNAME\t%s\n%s",
+				args[i].srt, args[i].lng,
+				args[i].help,
+				args[i].opthelp ? args[i].opthelp : "");
+		}
 	}
 	exit(badarg);
 }
