@@ -110,7 +110,7 @@ static struct option {
     char *opthelp;
 } args[] = {
     { "-s", "--change", MODE_SSET, "Change generic options",
-		"		[ speed 10|100|1000|2500|10000 ]\n"
+		"		[ speed %%d ]\n"
 		"		[ duplex half|full ]\n"
 		"		[ port tp|aui|bnc|mii|fibre ]\n"
 		"		[ autoneg on|off ]\n"
@@ -623,17 +623,8 @@ static void parse_cmdline(int argc, char **argp)
 				i += 1;
 				if (i >= argc)
 					show_usage(1);
-				if (!strcmp(argp[i], "10"))
-					speed_wanted = SPEED_10;
-				else if (!strcmp(argp[i], "100"))
-					speed_wanted = SPEED_100;
-				else if (!strcmp(argp[i], "1000"))
-					speed_wanted = SPEED_1000;
-				else if (!strcmp(argp[i], "2500"))
-					speed_wanted = SPEED_2500;
-				else if (!strcmp(argp[i], "10000"))
-					speed_wanted = SPEED_10000;
-				else
+				speed_wanted = strtol(argp[i], NULL, 10);
+				if (speed_wanted <= 0)
 					show_usage(1);
 				break;
 			} else if (!strcmp(argp[i], "duplex")) {
@@ -908,30 +899,17 @@ static void dump_advertised(struct ethtool_cmd *ep)
 
 static int dump_ecmd(struct ethtool_cmd *ep)
 {
+	u32 speed;
+
 	dump_supported(ep);
 	dump_advertised(ep);
 
 	fprintf(stdout, "	Speed: ");
-	switch (ethtool_cmd_speed(ep)) {
-	case SPEED_10:
-		fprintf(stdout, "10Mb/s\n");
-		break;
-	case SPEED_100:
-		fprintf(stdout, "100Mb/s\n");
-		break;
-	case SPEED_1000:
-		fprintf(stdout, "1000Mb/s\n");
-		break;
-	case SPEED_2500:
-		fprintf(stdout, "2500Mb/s\n");
-		break;
-	case SPEED_10000:
-		fprintf(stdout, "10000Mb/s\n");
-		break;
-	default:
-		fprintf(stdout, "Unknown! (%i)\n", ethtool_cmd_speed(ep));
-		break;
-	};
+	speed = ethtool_cmd_speed(ep);
+	if (speed == 0 || speed == (u16)(-1) || speed == (u32)(-1))
+		fprintf(stdout, "Unknown!\n");
+	else
+		fprintf(stdout, "%uMb/s\n", speed);
 
 	fprintf(stdout, "	Duplex: ");
 	switch (ep->duplex) {
