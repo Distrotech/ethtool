@@ -46,7 +46,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	reg,
 	reg & IXGBE_LINKS_UP      ? "up"       : "down",
 	reg & IXGBE_LINKS_SPEED   ? "10G"      : "1G");
-	
+
 	reg = regs_buff[515];
 	fprintf(stdout,
 	"0x05080: FCTRL (Filter Control register)              0x%08X\n"
@@ -67,7 +67,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	reg & IXGBE_FCTRL_UPE     ? "enabled"  : "disabled",
 	reg & IXGBE_FCTRL_MPE     ? "enabled"  : "disabled",
 	reg & IXGBE_FCTRL_SBP     ? "enabled"  : "disabled");
-	
+
 	reg = regs_buff[516];
 	fprintf(stdout,
 	"0x05088: VLNCTRL (VLAN Control register)              0x%08X\n"
@@ -76,14 +76,14 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	reg,
 	reg & IXGBE_VLNCTRL_VME   ? "enabled"  : "disabled",
 	reg & IXGBE_VLNCTRL_VFE   ? "enabled"  : "disabled");
-	
+
 	reg = regs_buff[437];
 	fprintf(stdout,
 	"0x02100: SRRCTL0 (Split and Replic Rx Control 0)      0x%08X\n"
 	"       Receive Buffer Size:                           %uKB\n",
 	reg,
 	(reg & IXGBE_SRRCTL_BSIZEPKT_MASK) <= 0x10 ? (reg & IXGBE_SRRCTL_BSIZEPKT_MASK) : 0x10);
-	
+
 	reg = regs_buff[829];
 	fprintf(stdout,
 	"0x03D00: RMCS (Receive Music Control register)        0x%08X\n"
@@ -92,7 +92,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	reg,
 	reg & IXGBE_RMCS_TFCE_802_3X     ? "enabled"  : "disabled",
 	reg & IXGBE_RMCS_TFCE_PRIORITY   ? "enabled"  : "disabled");
-	
+
 	reg = regs_buff[1047];
 	fprintf(stdout,
 	"0x04250: HLREG0 (Highlander Control 0 register)       0x%08X\n"
@@ -107,7 +107,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	reg & IXGBE_HLREG0_JUMBOEN   ? "enabled"  : "disabled",
 	reg & IXGBE_HLREG0_TXPADEN   ? "enabled"  : "disabled",
 	reg & IXGBE_HLREG0_LPBK      ? "enabled"  : "disabled");
-	
+
 	/* General Registers */
 	fprintf(stdout,
 		"0x00000: CTRL        (Device Control)                 0x%08X\n",

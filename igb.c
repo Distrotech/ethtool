@@ -254,7 +254,7 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	fprintf(stdout,
 		"0x00038: VET         (VLAN Ether type)                0x%08X\n",
 		regs_buff[6]);
-	
+
 	fprintf(stdout,
 		"0x00E00: LEDCTL      (LED control)                    0x%08X\n",
 		regs_buff[7]);
@@ -262,11 +262,11 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	fprintf(stdout,
 		"0x01000: PBA         (Packet buffer allocation)       0x%08X\n",
 		regs_buff[8]);
-	
+
 	fprintf(stdout,
 		"0x01008: PBS         (Packet buffer size)             0x%08X\n",
 		regs_buff[9]);
-	
+
 	fprintf(stdout,
 		"0x01048: FRTIMER     (Free running timer)             0x%08X\n",
 		regs_buff[10]);
@@ -286,51 +286,51 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	fprintf(stdout,
 		"0x01520: EICS        (Extended interrupt cause set)   0x%08X\n",
 		regs_buff[14]);
-	
+
 	fprintf(stdout,
 		"0x01524: EIMS        (Extended interrup set/read)     0x%08X\n",
 		regs_buff[15]);
-	
+
 	fprintf(stdout,
 		"0x01528: EIMC        (Extended interrupt mask clear)  0x%08X\n",
 		regs_buff[16]);
-	
+
 	fprintf(stdout,
 		"0x0152C: EIAC        (Extended interrupt auto clear)  0x%08X\n",
 		regs_buff[17]);
-	
+
 	fprintf(stdout,
 		"0x01530: EIAM        (Extended interrupt auto mask)   0x%08X\n",
 		regs_buff[18]);
-	
+
 	fprintf(stdout,
 		"0x01500: ICR         (Interrupt cause read)           0x%08X\n",
 		regs_buff[19]);
-	
+
 	fprintf(stdout,
 		"0x01504: ICS         (Interrupt cause set)            0x%08X\n",
 		regs_buff[20]);
-	
+
 	fprintf(stdout,
 		"0x01508: IMS         (Interrupt mask set/read)        0x%08X\n",
 		regs_buff[21]);
-	
+
 	fprintf(stdout,
 		"0x0150C: IMC         (Interrupt mask clear)           0x%08X\n",
 		regs_buff[22]);
-	
+
 	fprintf(stdout,
 		"0x04100: IAC         (Interrupt assertion count)      0x%08X\n",
 		regs_buff[23]);
-	
+
 	fprintf(stdout,
 		"0x01510: IAM         (Interr acknowledge auto-mask)   0x%08X\n",
 		regs_buff[24]);
-	
+
 	fprintf(stdout,
 		"0x05AC0: IMIRVP      (Immed interr rx VLAN priority)  0x%08X\n",
 		regs_buff[25]);
-	
+
 	fprintf(stdout,
 		"0x00028: FCAL        (Flow control address low)       0x%08X\n",
 		regs_buff[26]);
@@ -562,7 +562,7 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	fprintf(stdout,
 		"0x0408C: GORCH       (Good octets rx count upper)     0x%08X\n",
 		regs_buff[85]);
-	
+
 	fprintf(stdout,
 		"0x04090: GOTCL       (Good octets tx count lower)     0x%08X\n",
 		regs_buff[86]);
@@ -642,97 +642,97 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	fprintf(stdout,
 		"0x040E4: PTC511      (Packets tx (256-511 B) count)   0x%08X\n",
 		regs_buff[105]);
-	
+
 	fprintf(stdout,
 		"0x040E8: PTC1023     (Packets tx (512-1023 B) count)  0x%08X\n",
 		regs_buff[106]);
-	
+
 	fprintf(stdout,
 		"0x040EC: PTC1522     (Packets tx (> 1024 B) count)    0x%08X\n",
 		regs_buff[107]);
-	
+
 	fprintf(stdout,
 		"0x040F0: MPTC        (Multicast packets tx count)     0x%08X\n",
 		regs_buff[108]);
-	
+
 	fprintf(stdout,
 		"0x040F4: BPTC        (Broadcast packets tx count)     0x%08X\n",
 		regs_buff[109]);
-	
+
 	fprintf(stdout,
 		"0x040F8: TSCTC       (TCP segment context tx count)   0x%08X\n",
 		regs_buff[110]);
-	
+
 	fprintf(stdout,
 		"0x04100: IAC         (Interrupt assertion count)      0x%08X\n",
 		regs_buff[111]);
-	
+
 	fprintf(stdout,
 		"0x04104: RPTHC       (Rx packets to host count)       0x%08X\n",
 		regs_buff[112]);
-	
+
 	fprintf(stdout,
 		"0x04118: HGPTC       (Host good packets tx count)     0x%08X\n",
 		regs_buff[113]);
-	
+
 	fprintf(stdout,
 		"0x04128: HGORCL      (Host good octets rx cnt lower)  0x%08X\n",
 		regs_buff[114]);
-	
+
 	fprintf(stdout,
 		"0x0412C: HGORCH      (Host good octets rx cnt upper)  0x%08X\n",
 		regs_buff[115]);
-	
+
 	fprintf(stdout,
 		"0x04130: HGOTCL      (Host good octets tx cnt lower)  0x%08X\n",
 		regs_buff[116]);
-	
+
 	fprintf(stdout,
 		"0x04134: HGOTCH      (Host good octets tx cnt upper)  0x%08X\n",
 		regs_buff[117]);
-	
+
 	fprintf(stdout,
 		"0x04138: LENNERS     (Length error count)             0x%08X\n",
 		regs_buff[118]);
-	
+
 	fprintf(stdout,
 		"0x04228: SCVPC       (SerDes/SGMII code viol pkt cnt) 0x%08X\n",
 		regs_buff[119]);
-	
+
 	fprintf(stdout,
 		"0x0A018: HRMPC       (Header redir missed pkt count)  0x%08X\n",
 		regs_buff[120]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: SRRCTL%d     (Split and replic rx ctl%d)       0x%08X\n",
 		0x0280C + (0x100 * i), i, i, regs_buff[121 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: PSRTYPE%d    (Packet split receive type%d)     0x%08X\n",
 		0x05480 + (0x4 * i), i, i, regs_buff[125 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: RDBAL%d      (Rx desc base addr low%d)         0x%08X\n",
 		0x02800 + (0x100 * i), i, i, regs_buff[129 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: RDBAH%d      (Rx desc base addr high%d)        0x%08X\n",
 		0x02804 + (0x100 * i), i, i, regs_buff[133 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: RDLEN%d      (Rx descriptor length%d)          0x%08X\n",
 		0x02808 + (0x100 * i), i, i, regs_buff[137 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: RDH%d        (Rx descriptor head%d)            0x%08X\n",
 		0x02810 + (0x100 * i), i, i, regs_buff[141 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: RDT%d        (Rx descriptor tail%d)            0x%08X\n",
@@ -742,57 +742,57 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		fprintf(stdout,
 		"0x0%02X: RXDCTL%d     (Rx descriptor control%d)         0x%08X\n",
 		0x02828 + (0x100 * i), i, i, regs_buff[149 + i]);
-	
+
 	for (i = 0; i < 10; i++)
 		fprintf(stdout,
 		"0x0%02X: EITR%d       (Interrupt throttle%d)            0x%08X\n",
 		0x01680 + (0x4 * i), i, i, regs_buff[153 + i]);
-	
+
 	for (i = 0; i < 8; i++)
 		fprintf(stdout,
 		"0x0%02X: IMIR%d       (Immediate interrupt Rx%d)        0x%08X\n",
 		0x05A80 + (0x4 * i), i, i, regs_buff[163 + i]);
-	
+
 	for (i = 0; i < 8; i++)
 		fprintf(stdout,
 		"0x0%02X: IMIREXT%d    (Immediate interr Rx extended%d)  0x%08X\n",
 		0x05AA0 + (0x4 * i), i, i, regs_buff[171 + i]);
-	
+
 	for (i = 0; i < 16; i++)
 		fprintf(stdout,
 		"0x0%02X: RAL%02d       (Receive address low%02d)          0x%08X\n",
 		0x05400 + (0x8 * i), i,i, regs_buff[179 + i]);
-	
+
 	for (i = 0; i < 16; i++)
 		fprintf(stdout,
 		"0x0%02X: RAH%02d       (Receive address high%02d)         0x%08X\n",
 		0x05404 + (0x8 * i), i, i, regs_buff[195 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: TDBAL%d      (Tx desc base address low%d)      0x%08X\n",
 		0x03800 + (0x100 * i), i, i, regs_buff[211 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: TDBAH%d      (Tx desc base address high%d)     0x%08X\n",
 		0x03804 + (0x100 * i), i, i, regs_buff[215 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: TDLEN%d      (Tx descriptor length%d)          0x%08X\n",
 		0x03808 + (0x100 * i), i, i, regs_buff[219 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: TDH%d        (Transmit descriptor head%d)      0x%08X\n",
 		0x03810 + (0x100 * i), i, i, regs_buff[223 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: TDT%d        (Transmit descriptor tail%d)      0x%08X\n",
 		0x03818 + (0x100 * i), i, i, regs_buff[227 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: TXDCTL%d     (Transmit descriptor control%d)   0x%08X\n",
@@ -812,49 +812,49 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		fprintf(stdout,
 		"0x0%02X: DCA_TXCTRL%d (Tx DCA control%d)                0x%08X\n",
 		0x03814 + (0x100 * i), i, i, regs_buff[243 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: IP4AT%d      (IPv4 address table%d)            0x%08X\n",
 		0x05840 + (0x8 * i), i, i, regs_buff[247 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: IP6AT%d      (IPv6 address table%d)            0x%08X\n",
 		0x05880 + (0x4 * i), i, i, regs_buff[251 + i]);
-	
+
 	for (i = 0; i < 32; i++)
 		fprintf(stdout,
 		"0x0%02X: WUPM%02d      (Wake up packet memory%02d)        0x%08X\n",
 		0x05A00 + (0x4 * i), i, i, regs_buff[255 + i]);
-	
+
 	for (i = 0; i < 128; i++)
 		fprintf(stdout,
 		"0x0%02X: FFMT%03d     (Flexible filter mask table%03d)  0x%08X\n",
 		0x09000 + (0x8 * i), i, i, regs_buff[287 + i]);
-	
+
 	for (i = 0; i < 128; i++)
 		fprintf(stdout,
 		"0x0%02X: FFVT%03d     (Flexible filter value table%03d) 0x%08X\n",
 		0x09800 + (0x8 * i), i, i, regs_buff[415 + i]);
-	
+
 	for (i = 0; i < 4; i++)
 		fprintf(stdout,
 		"0x0%02X: FFLT%d       (Flexible filter length table%d)  0x%08X\n",
 		0x05F00 + (0x8 * i), i, i, regs_buff[543 + i]);
-	
+
 	fprintf(stdout,
 		"0x03410: TDFH        (Tx data FIFO head)              0x%08X\n",
 		regs_buff[547]);
-	
+
 	fprintf(stdout,
 		"0x03418: TDFT        (Tx data FIFO tail)              0x%08X\n",
 		regs_buff[548]);
-	
+
 	fprintf(stdout,
 		"0x03420: TDFHS       (Tx data FIFO head saved)        0x%08X\n",
 		regs_buff[549]);
-	
+
 	fprintf(stdout,
 		"0x03430: TDFPC       (Tx data FIFO packet count)      0x%08X\n",
 		regs_buff[550]);
