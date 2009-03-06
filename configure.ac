@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(ethtool, 6, [Jeff Garzik <jgarzik@pobox.com>])
+AC_INIT(ethtool, 6git, [Jeff Garzik <jgarzik@pobox.com>])
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR([ethtool.c])
 AM_INIT_AUTOMAKE([gnu])
