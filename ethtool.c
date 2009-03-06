@@ -160,7 +160,8 @@ static struct option {
 	        "		[ tso on|off ]\n"
 	        "		[ ufo on|off ]\n"
 		"		[ gso on|off ]\n"
-		"               [ lro on|off ]\n"
+		"		[ gro on|off ]\n"
+		"		[ lro on|off ]\n"
     },
     { "-i", "--driver", MODE_GDRV, "Show driver information" },
     { "-d", "--register-dump", MODE_GREGS, "Do a register dump",
@@ -219,6 +220,7 @@ static int off_tso_wanted = -1;
 static int off_ufo_wanted = -1;
 static int off_gso_wanted = -1;
 static int off_lro_wanted = -1;
+static int off_gro_wanted = -1;
 
 static struct ethtool_pauseparam epause;
 static int gpause_changed = 0;
@@ -334,6 +336,7 @@ static struct cmdline_info cmdline_offload[] = {
 	{ "ufo", CMDL_BOOL, &off_ufo_wanted, NULL },
 	{ "gso", CMDL_BOOL, &off_gso_wanted, NULL },
 	{ "lro", CMDL_BOOL, &off_lro_wanted, NULL },
+	{ "gro", CMDL_BOOL, &off_gro_wanted, NULL },
 };
 
 static struct cmdline_info cmdline_pause[] = {
@@ -1387,22 +1390,25 @@ static int dump_coalesce(void)
 	return 0;
 }
 
-static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso, int lro)
+static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso,
+			int gro, int lro)
 {
 	fprintf(stdout,
 		"rx-checksumming: %s\n"
 		"tx-checksumming: %s\n"
 		"scatter-gather: %s\n"
-		"tcp segmentation offload: %s\n"
-		"udp fragmentation offload: %s\n"
-		"generic segmentation offload: %s\n"
-		"large receive offload: %s\n",
+		"tcp-segmentation-offload: %s\n"
+		"udp-fragmentation-offload: %s\n"
+		"generic-segmentation-offload: %s\n"
+		"generic-receive-offload: %s\n"
+		"large-receive-offload: %s\n",
 		rx ? "on" : "off",
 		tx ? "on" : "off",
 		sg ? "on" : "off",
 		tso ? "on" : "off",
 		ufo ? "on" : "off",
 		gso ? "on" : "off",
+		gro ? "on" : "off",
 		lro ? "on" : "off");
 
 	return 0;
@@ -1714,7 +1720,7 @@ static int do_goffload(int fd, struct ifreq *ifr)
 {
 	struct ethtool_value eval;
 	int err, allfail = 1, rx = 0, tx = 0, sg = 0;
-	int tso = 0, ufo = 0, gso = 0, lro = 0;
+	int tso = 0, ufo = 0, gso = 0, gro = 0, lro = 0;
 
 	fprintf(stdout, "Offload parameters for %s:\n", devname);
 
@@ -1788,12 +1794,22 @@ static int do_goffload(int fd, struct ifreq *ifr)
 		allfail = 0;
 	}
 
+	eval.cmd = ETHTOOL_GGRO;
+	ifr->ifr_data = (caddr_t)&eval;
+	err = ioctl(fd, SIOCETHTOOL, ifr);
+	if (err)
+		perror("Cannot get device GRO settings");
+	else {
+		gro = eval.data;
+		allfail = 0;
+	}
+
 	if (allfail) {
 		fprintf(stdout, "no offload info available\n");
 		return 83;
 	}
 
-	return dump_offload(rx, tx, sg, tso, ufo, gso, lro);
+	return dump_offload(rx, tx, sg, tso, ufo, gso, gro, lro);
 }
 
 static int do_soffload(int fd, struct ifreq *ifr)
@@ -1891,6 +1907,17 @@ static int do_soffload(int fd, struct ifreq *ifr)
 		if (err) {
 			perror("Cannot set large receive offload settings");
 			return 92;
+		}
+	}
+	if (off_gro_wanted >= 0) {
+		changed = 1;
+		eval.cmd = ETHTOOL_SGRO;
+		eval.data = (off_gro_wanted == 1);
+		ifr->ifr_data = (caddr_t)&eval;
+		err = ioctl(fd, SIOCETHTOOL, ifr);
+		if (err) {
+			perror("Cannot set device GRO settings");
+			return 93;
 		}
 	}
 

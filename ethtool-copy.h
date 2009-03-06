@@ -336,6 +336,8 @@ struct ethtool_rxnfc {
 
 #define	ETHTOOL_GRXFH		0x00000029 /* Get RX flow hash configuration */
 #define	ETHTOOL_SRXFH		0x0000002a /* Set RX flow hash configuration */
+#define ETHTOOL_GGRO		0x0000002b /* Get GRO enable (ethtool_value) */
+#define ETHTOOL_SGRO		0x0000002c /* Set GRO enable (ethtool_value) */
 
 /* compatibility with older code */
 #define SPARC_ETH_GSET		ETHTOOL_GSET
