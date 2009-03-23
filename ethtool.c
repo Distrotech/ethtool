@@ -213,8 +213,9 @@ static void show_usage(int badarg)
 		"Usage:\n"
 		"ethtool DEVNAME\tDisplay standard information about device\n");
 		for (i = 0; args[i].srt; i++) {
-			fprintf(stdout, "        ethtool %s|%s DEVNAME\t%s\n%s",
+			fprintf(stdout, "        ethtool %s|%s %s\t%s\n%s",
 				args[i].srt, args[i].lng,
+				strstr(args[i].srt, "-h") ? "\t" : "DEVNAME",
 				args[i].help,
 				args[i].opthelp ? args[i].opthelp : "");
 		}
