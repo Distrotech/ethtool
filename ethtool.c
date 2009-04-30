@@ -840,12 +840,13 @@ static void dump_supported(struct ethtool_cmd *ep)
 		fprintf(stdout, "No\n");
 }
 
-static void dump_advertised(struct ethtool_cmd *ep)
+static void dump_advertised(struct ethtool_cmd *ep,
+			    const char *prefix, u_int32_t mask)
 {
-	u_int32_t mask = ep->advertising;
+	int indent = strlen(prefix) + 14;
 	int did1;
 
-	fprintf(stdout, "	Advertised link modes:  ");
+	fprintf(stdout, "	%s link modes:  ", prefix);
 	did1 = 0;
 	if (mask & ADVERTISED_10baseT_Half) {
 		did1++; fprintf(stdout, "10baseT/Half ");
@@ -855,7 +856,7 @@ static void dump_advertised(struct ethtool_cmd *ep)
 	}
 	if (did1 && (mask & (ADVERTISED_100baseT_Half|ADVERTISED_100baseT_Full))) {
 		fprintf(stdout, "\n");
-		fprintf(stdout, "	                        ");
+		fprintf(stdout, "	%*s", indent, "");
 	}
 	if (mask & ADVERTISED_100baseT_Half) {
 		did1++; fprintf(stdout, "100baseT/Half ");
@@ -865,7 +866,7 @@ static void dump_advertised(struct ethtool_cmd *ep)
 	}
 	if (did1 && (mask & (ADVERTISED_1000baseT_Half|ADVERTISED_1000baseT_Full))) {
 		fprintf(stdout, "\n");
-		fprintf(stdout, "	                        ");
+		fprintf(stdout, "	%*s", indent, "");
 	}
 	if (mask & ADVERTISED_1000baseT_Half) {
 		did1++; fprintf(stdout, "1000baseT/Half ");
@@ -875,14 +876,14 @@ static void dump_advertised(struct ethtool_cmd *ep)
 	}
 	if (did1 && (mask & ADVERTISED_2500baseX_Full)) {
 		fprintf(stdout, "\n");
-		fprintf(stdout, "	                        ");
+		fprintf(stdout, "	%*s", indent, "");
 	}
 	if (mask & ADVERTISED_2500baseX_Full) {
 		did1++; fprintf(stdout, "2500baseX/Full ");
 	}
 	if (did1 && (mask & ADVERTISED_10000baseT_Full)) {
 		fprintf(stdout, "\n");
-		fprintf(stdout, "	                        ");
+		fprintf(stdout, "	%*s", indent, "");
 	}
 	if (mask & ADVERTISED_10000baseT_Full) {
 		did1++; fprintf(stdout, "10000baseT/Full ");
@@ -891,7 +892,7 @@ static void dump_advertised(struct ethtool_cmd *ep)
 		 fprintf(stdout, "Not reported");
 	fprintf(stdout, "\n");
 
-	fprintf(stdout, "	Advertised auto-negotiation: ");
+	fprintf(stdout, "	%s auto-negotiation: ", prefix);
 	if (mask & ADVERTISED_Autoneg)
 		fprintf(stdout, "Yes\n");
 	else
@@ -903,7 +904,8 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 	u32 speed;
 
 	dump_supported(ep);
-	dump_advertised(ep);
+	dump_advertised(ep, "Advertised", ep->advertising);
+	dump_advertised(ep, "Link partner advertised", ep->lp_advertising);
 
 	fprintf(stdout, "	Speed: ");
 	speed = ethtool_cmd_speed(ep);
