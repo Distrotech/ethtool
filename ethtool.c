@@ -191,7 +191,7 @@ static struct option {
     { "-N", "--config-nfc", MODE_SNFC, "Configure Rx network flow "
 		"classification options",
 		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
-		"tcp6|udp6|ah6|sctp6 p|m|v|t|s|d|f|n|r... ]\n" },
+		"tcp6|udp6|ah6|sctp6 m|v|t|s|d|f|n|r... ]\n" },
     { "-h", "--help", MODE_HELP, "Show this help" },
     {}
 };
@@ -1091,9 +1091,6 @@ static int parse_rxfhashopts(char *optstr, u32 *data)
 	*data = 0;
 	while (*optstr) {
 		switch (*optstr) {
-			case 'p':
-				*data |= RXH_DEV_PORT;
-				break;
 			case 'm':
 				*data |= RXH_L2DA;
 				break;
@@ -1133,9 +1130,6 @@ static char *unparse_rxfhashopts(u64 opts)
 	memset(buf, 0, sizeof(buf));
 
 	if (opts) {
-		if (opts & RXH_DEV_PORT) {
-			strcat(buf, "Dev port\n");
-		}
 		if (opts & RXH_L2DA) {
 			strcat(buf, "L2DA\n");
 		}
