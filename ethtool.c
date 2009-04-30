@@ -892,6 +892,19 @@ static void dump_advertised(struct ethtool_cmd *ep,
 		 fprintf(stdout, "Not reported");
 	fprintf(stdout, "\n");
 
+	fprintf(stdout, "	%s pause frame use: ", prefix);
+	if (mask & ADVERTISED_Pause) {
+		fprintf(stdout, "Symmetric");
+		if (mask & ADVERTISED_Asym_Pause)
+			fprintf(stdout, " Receive-only");
+		fprintf(stdout, "\n");
+	} else {
+		if (mask & ADVERTISED_Asym_Pause)
+			fprintf(stdout, "Transmit-only\n");
+		else
+			fprintf(stdout, "No\n");
+	}
+
 	fprintf(stdout, "	%s auto-negotiation: ", prefix);
 	if (mask & ADVERTISED_Autoneg)
 		fprintf(stdout, "Yes\n");
