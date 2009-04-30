@@ -942,6 +942,9 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 	case PORT_FIBRE:
 		fprintf(stdout, "FIBRE\n");
 		break;
+	case PORT_OTHER:
+		fprintf(stdout, "Other\n");
+		break;
 	default:
 		fprintf(stdout, "Unknown! (%i)\n", ep->port);
 		break;
