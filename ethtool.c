@@ -38,6 +38,7 @@
 #include <errno.h>
 #include <net/if.h>
 #include <sys/utsname.h>
+#include <limits.h>
 
 #include <linux/sockios.h>
 #include "ethtool-util.h"
@@ -112,16 +113,16 @@ static struct option {
     char *opthelp;
 } args[] = {
     { "-s", "--change", MODE_SSET, "Change generic options",
-		"		[ speed %%d ]\n"
+		"		[ speed %d ]\n"
 		"		[ duplex half|full ]\n"
 		"		[ port tp|aui|bnc|mii|fibre ]\n"
 		"		[ autoneg on|off ]\n"
-		"		[ advertise %%x ]\n"
-		"		[ phyad %%d ]\n"
+		"		[ advertise %x ]\n"
+		"		[ phyad %d ]\n"
 		"		[ xcvr internal|external ]\n"
 		"		[ wol p|u|m|b|a|g|s|d... ]\n"
-		"		[ sopass %%x:%%x:%%x:%%x:%%x:%%x ]\n"
-		"		[ msglvl %%d ] \n" },
+		"		[ sopass %x:%x:%x:%x:%x:%x ]\n"
+		"		[ msglvl %d ] \n" },
     { "-a", "--show-pause", MODE_GPAUSE, "Show pause options" },
     { "-A", "--pause", MODE_SPAUSE, "Set pause options",
       "		[ autoneg on|off ]\n"
@@ -398,16 +399,33 @@ static struct cmdline_info cmdline_coalesce[] = {
 	{ "tx-frames-high", CMDL_INT, &coal_tx_frames_high_wanted, &ecoal.tx_max_coalesced_frames_high },
 };
 
+static int get_int(char *str, int base)
+{
+	unsigned long v;
+	char *endp;
+
+	if (!str)
+		show_usage(1);
+	errno = 0;
+	v = strtoul(str, &endp, base);
+	if ( errno || *endp || v > INT_MAX)
+		show_usage(1);
+	return (int)v;
+}
+
 static void parse_generic_cmdline(int argc, char **argp,
 				  int first_arg, int *changed,
 				  struct cmdline_info *info,
 				  unsigned int n_info)
 {
 	int i, idx, *p;
+	int found;
 
 	for (i = first_arg; i < argc; i++) {
+		found = 0;
 		for (idx = 0; idx < n_info; idx++) {
 			if (!strcmp(info[idx].name, argp[i])) {
+				found = 1;
 				*changed = 1;
 				i += 1;
 				if (i >= argc)
@@ -423,10 +441,7 @@ static void parse_generic_cmdline(int argc, char **argp,
 						show_usage(1);
 					break;
 				case CMDL_INT: {
-					long v = strtol(argp[i], NULL, 0);
-					if (v < 0)
-						show_usage(1);
-					*p = (int) v;
+					*p = get_int(argp[i],0);
 					break;
 				}
 				case CMDL_STR: {
@@ -437,8 +452,11 @@ static void parse_generic_cmdline(int argc, char **argp,
 				default:
 					show_usage(1);
 				}
+				break;
 			}
 		}
+		if( !found)
+			show_usage(1);
 	}
 }
 
@@ -521,9 +539,7 @@ static void parse_cmdline(int argc, char **argp)
 				}
 				break;
 			} else if (mode == MODE_PHYS_ID) {
-				phys_id_time = strtol(argp[i], NULL, 0);
-				if (phys_id_time < 0)
-					show_usage(1);
+				phys_id_time = get_int(argp[i],0);
 				break;
 			} else if (mode == MODE_FLASHDEV) {
 				flash_file = argp[i];
@@ -643,9 +659,7 @@ static void parse_cmdline(int argc, char **argp)
 				i += 1;
 				if (i >= argc)
 					show_usage(1);
-				speed_wanted = strtol(argp[i], NULL, 10);
-				if (speed_wanted <= 0)
-					show_usage(1);
+				speed_wanted = get_int(argp[i],10);
 				break;
 			} else if (!strcmp(argp[i], "duplex")) {
 				gset_changed = 1;
@@ -696,18 +710,14 @@ static void parse_cmdline(int argc, char **argp)
 				i += 1;
 				if (i >= argc)
 					show_usage(1);
-				advertising_wanted = strtol(argp[i], NULL, 16);
-				if (advertising_wanted < 0)
-					show_usage(1);
+				advertising_wanted = get_int(argp[i], 16);
 				break;
 			} else if (!strcmp(argp[i], "phyad")) {
 				gset_changed = 1;
 				i += 1;
 				if (i >= argc)
 					show_usage(1);
-				phyad_wanted = strtol(argp[i], NULL, 0);
-				if (phyad_wanted < 0)
-					show_usage(1);
+				phyad_wanted = get_int(argp[i], 0);
 				break;
 			} else if (!strcmp(argp[i], "xcvr")) {
 				gset_changed = 1;
@@ -743,9 +753,7 @@ static void parse_cmdline(int argc, char **argp)
 				i++;
 				if (i >= argc)
 					show_usage(1);
-				msglvl_wanted = strtol(argp[i], NULL, 0);
-				if (msglvl_wanted < 0)
-					show_usage(1);
+				msglvl_wanted = get_int(argp[i], 0);
 				break;
 			}
 			show_usage(1);
