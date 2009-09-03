@@ -77,6 +77,7 @@ static char *unparse_rxfhashopts(u64 opts);
 static int dump_rxfhash(int fhash, u64 val);
 static int do_srxclass(int fd, struct ifreq *ifr);
 static int do_grxclass(int fd, struct ifreq *ifr);
+static int do_flash(int fd, struct ifreq *ifr);
 static int send_ioctl(int fd, struct ifreq *ifr);
 
 static enum {
@@ -101,6 +102,7 @@ static enum {
 	MODE_GSTATS,
 	MODE_GNFC,
 	MODE_SNFC,
+	MODE_FLASHDEV,
 } mode = MODE_GSET;
 
 static struct option {
@@ -188,6 +190,9 @@ static struct option {
 		"options",
 		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
 		"tcp6|udp6|ah6|sctp6 ]\n" },
+    { "-f", "--flash", MODE_FLASHDEV, "FILENAME " "Flash firmware image "
+    		"from the specified file to a region on the device",
+		"               [ REGION-NUMBER-TO-FLASH ]\n" },
     { "-N", "--config-nfc", MODE_SNFC, "Configure Rx network flow "
 		"classification options",
 		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
@@ -304,6 +309,9 @@ static int rx_fhash_get = 0;
 static int rx_fhash_set = 0;
 static u32 rx_fhash_val = 0;
 static int rx_fhash_changed = 0;
+static char *flash_file = NULL;
+static int flash = -1;
+static int flash_region = -1;
 static enum {
 	ONLINE=0,
 	OFFLINE,
@@ -496,7 +504,8 @@ static void parse_cmdline(int argc, char **argp)
 			    (mode == MODE_GSTATS) ||
 			    (mode == MODE_GNFC) ||
 			    (mode == MODE_SNFC) ||
-			    (mode == MODE_PHYS_ID)) {
+			    (mode == MODE_PHYS_ID) ||
+			    (mode == MODE_FLASHDEV)) {
 				devname = argp[i];
 				break;
 			}
@@ -515,6 +524,10 @@ static void parse_cmdline(int argc, char **argp)
 				phys_id_time = strtol(argp[i], NULL, 0);
 				if (phys_id_time < 0)
 					show_usage(1);
+				break;
+			} else if (mode == MODE_FLASHDEV) {
+				flash_file = argp[i];
+				flash = 1;
 				break;
 			}
 			/* fallthrough */
@@ -587,6 +600,12 @@ static void parse_cmdline(int argc, char **argp)
 					if (!rx_fhash_get)
 						show_usage(1);
 				} else
+					show_usage(1);
+				break;
+			}
+			if (mode == MODE_FLASHDEV) {
+				flash_region = strtol(argp[i], NULL, 0);
+				if ((flash_region < 0))
 					show_usage(1);
 				break;
 			}
@@ -1516,6 +1535,8 @@ static int doit(void)
 		return do_grxclass(fd, &ifr);
 	} else if (mode == MODE_SNFC) {
 		return do_srxclass(fd, &ifr);
+	} else if (mode == MODE_FLASHDEV) {
+		return do_flash(fd, &ifr);
 	}
 
 	return 69;
@@ -2408,6 +2429,38 @@ static int do_grxclass(int fd, struct ifreq *ifr)
 	}
 
 	return 0;
+}
+
+static int do_flash(int fd, struct ifreq *ifr)
+{
+	struct ethtool_flash efl;
+	int err;
+
+	if (flash < 0) {
+		fprintf(stdout, "Missing filename argument\n");
+		show_usage(1);
+		return 98;
+	}
+
+	if (strlen(flash_file) > ETHTOOL_FLASH_MAX_FILENAME - 1) {
+		fprintf(stdout, "Filename too long\n");
+		return 99;
+	}
+
+	efl.cmd = ETHTOOL_FLASHDEV;
+	strcpy(efl.data, flash_file);
+
+	if (flash_region < 0)
+		efl.region = ETHTOOL_FLASH_ALL_REGIONS;
+	else
+		efl.region = flash_region;
+
+	ifr->ifr_data = (caddr_t)&efl;
+	err = send_ioctl(fd, ifr);
+	if (err < 0)
+		perror("Flashing failed");
+
+	return err;
 }
 
 static int send_ioctl(int fd, struct ifreq *ifr)

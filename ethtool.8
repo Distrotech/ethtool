@@ -207,6 +207,11 @@ ethtool \- Display or change ethernet card settings
 .I ethX
 .RB [ rx-flow-hash \ \*(FL
 .RB \ \*(HO]
+
+.B ethtool \-f|\-\-flash
+.I ethX
+.RI FILE
+.RI [ N ]
 .SH DESCRIPTION
 .BI ethtool
 is used for querying settings of an ethernet device and changing them.
@@ -496,6 +501,16 @@ Hash on bytes 2 and 3 of the Layer 4 header of the rx packet.
 .TP 3
 .B r
 Discard all packets of this flow type. When this option is set, all other options are ignored.
+.PD
+.RE
+.TP
+.B \-f \-\-flash \ FILE
+Flash firmware image from the specified file to a region on the adapter.
+By default this will flash all the regions on the adapter.
+.TP
+.B N
+A number to identify flash region where the image should be flashed.
+Default region is 0 which denotes all regions in the flash.
 .PD
 .RE
 .SH BUGS
