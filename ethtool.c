@@ -965,6 +965,12 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 	case DUPLEX_FULL:
 		fprintf(stdout, "Full\n");
 		break;
+	case PORT_DA:
+		fprintf(stdout, "Direct Attach Copper\n");
+		break;
+	case PORT_NONE:
+		fprintf(stdout, "None\n");
+		break;
 	default:
 		fprintf(stdout, "Unknown! (%i)\n", ep->duplex);
 		break;
