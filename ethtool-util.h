@@ -5,19 +5,13 @@
 
 #include <sys/types.h>
 
-/* hack, so we may include kernel's ethtool.h */
-typedef unsigned long long __u64;
-typedef __uint32_t __u32;         /* ditto */
-typedef __uint16_t __u16;         /* ditto */
-typedef __uint8_t __u8;           /* ditto */
+#include "ethtool-copy.h"
 
 /* historical: we used to use kernel-like types; remove these once cleaned */
 typedef unsigned long long u64;
 typedef __uint32_t u32;         /* ditto */
 typedef __uint16_t u16;         /* ditto */
 typedef __uint8_t u8;           /* ditto */
-
-#include "ethtool-copy.h"
 
 /* National Semiconductor DP83815, DP83816 */
 int natsemi_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
