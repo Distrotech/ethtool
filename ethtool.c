@@ -1018,6 +1018,22 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 	fprintf(stdout, "	Auto-negotiation: %s\n",
 		(ep->autoneg == AUTONEG_DISABLE) ?
 		"off" : "on");
+
+	if (ep->port == PORT_TP) {
+		fprintf(stdout, "	MDI-X: ");
+		switch (ep->eth_tp_mdix) {
+		case ETH_TP_MDI:
+			fprintf(stdout, "off\n");
+			break;
+		case ETH_TP_MDI_X:
+			fprintf(stdout, "on\n");
+			break;
+		default:
+			fprintf(stdout, "Unknown\n");
+			break;
+		}
+	}
+
 	return 0;
 }
 
