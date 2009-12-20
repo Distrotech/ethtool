@@ -948,7 +948,9 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 
 	dump_supported(ep);
 	dump_advertised(ep, "Advertised", ep->advertising);
-	dump_advertised(ep, "Link partner advertised", ep->lp_advertising);
+	if (ep->lp_advertising)
+		dump_advertised(ep, "Link partner advertised",
+				ep->lp_advertising);
 
 	fprintf(stdout, "	Speed: ");
 	speed = ethtool_cmd_speed(ep);
