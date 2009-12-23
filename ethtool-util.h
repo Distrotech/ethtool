@@ -67,4 +67,6 @@ int vioc_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* SMSC LAN911x/LAN921x embedded ethernet controller */
 int smsc911x_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+int at76c50x_usb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 #endif
