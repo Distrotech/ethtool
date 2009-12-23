@@ -1,4 +1,26 @@
 
+Version 2.6.33 (in progress)
+
+	This version introduces a new release numbering scheme, based
+	on the latest upstream kernel interface supported.
+
+	* Fix: several man page corrections
+	* Feature: rx flow hash configuration
+	* Feature: report 10000baseT support, where available
+	* Feature: report MDI-X status, pause auto-neg, link partner adverts
+	* Feature: support additional port types
+	* Feature: support arbitrary speeds, faster than 65535 Mb
+	* Feature: large and generic receive offload (LRO, GRO) support
+	* Feature: option to flash firmware image from specified file
+	* Feature: support for block writing of EEPROMs
+	* Feature: marvell register dump update
+	* Feature: at76c50x-usb, e1000e, igb, ixgbe, r8169 register dump support
+	* Cleanup: remove support for RX hasing by port (was removed in
+	  kernel by 59089d8d162ddcb5c434672e915331964d38a754)
+	* Doc: Explicitly ship GPLv2 license, rather than relying
+	  on autotools to supply it for us (autotools started auto-installed
+	  GPLv3 recently)
+
 Version 6 - July 26, 2007
 
 	* Fix/security: Fix handling of statistics where the label
