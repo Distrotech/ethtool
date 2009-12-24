@@ -324,6 +324,7 @@ typedef enum {
 	CMDL_NONE,
 	CMDL_BOOL,
 	CMDL_INT,
+	CMDL_UINT,
 	CMDL_STR,
 } cmdline_type_t;
 
@@ -404,6 +405,20 @@ static struct cmdline_info cmdline_coalesce[] = {
 
 static int get_int(char *str, int base)
 {
+	long v;
+	char *endp;
+
+	if (!str)
+		show_usage(1);
+	errno = 0;
+	v = strtol(str, &endp, base);
+	if ( errno || *endp || v > INT_MAX)
+		show_usage(1);
+	return (int)v;
+}
+
+static int get_uint(char *str, int base)
+{
 	unsigned long v;
 	char *endp;
 
@@ -411,9 +426,9 @@ static int get_int(char *str, int base)
 		show_usage(1);
 	errno = 0;
 	v = strtoul(str, &endp, base);
-	if ( errno || *endp || v > INT_MAX)
+	if ( errno || *endp || v > UINT_MAX)
 		show_usage(1);
-	return (int)v;
+	return v;
 }
 
 static void parse_generic_cmdline(int argc, char **argp,
@@ -445,6 +460,10 @@ static void parse_generic_cmdline(int argc, char **argp,
 					break;
 				case CMDL_INT: {
 					*p = get_int(argp[i],0);
+					break;
+				}
+				case CMDL_UINT: {
+					*p = get_uint(argp[i],0);
 					break;
 				}
 				case CMDL_STR: {
