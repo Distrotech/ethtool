@@ -365,20 +365,8 @@ struct ethtool_rxnfc {
 	__u32				rule_locs[0];
 };
 
-#define ETHTOOL_FLASH_MAX_FILENAME	128
-enum ethtool_flash_op_type {
-	ETHTOOL_FLASH_ALL_REGIONS	= 0,
-};
-
-/* for passing firmware flashing related parameters */
-struct ethtool_flash {
-	__u32	cmd;
-	__u32	region;
-	char	data[ETHTOOL_FLASH_MAX_FILENAME];
-};
-
 struct ethtool_rx_ntuple_flow_spec {
-	int		flow_type;
+	__u32		 flow_type;
 	union {
 		struct ethtool_tcpip4_spec		tcp_ip4_spec;
 		struct ethtool_tcpip4_spec		udp_ip4_spec;
@@ -397,7 +385,7 @@ struct ethtool_rx_ntuple_flow_spec {
 	__u64		data_mask; /* user-defined flow spec mask */
 
 	/* signed to distinguish between queue and actions (DROP) */
-	int		action;
+	__s32		action;
 #define ETHTOOL_RXNTUPLE_ACTION_DROP -1
 };
 
@@ -406,6 +394,18 @@ struct ethtool_rx_ntuple_flow_spec {
 struct ethtool_rx_ntuple {
 	__u32					cmd;
 	struct ethtool_rx_ntuple_flow_spec	fs;
+};
+
+#define ETHTOOL_FLASH_MAX_FILENAME	128
+enum ethtool_flash_op_type {
+	ETHTOOL_FLASH_ALL_REGIONS	= 0,
+};
+
+/* for passing firmware flashing related parameters */
+struct ethtool_flash {
+	__u32	cmd;
+	__u32	region;
+	char	data[ETHTOOL_FLASH_MAX_FILENAME];
 };
 
 /* CMDs currently supported */
