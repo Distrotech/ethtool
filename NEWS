@@ -1,5 +1,5 @@
 
-Version 2.6.33 (in progress)
+Version 2.6.33 - February 24, 2010
 
 	This version introduces a new release numbering scheme, based
 	on the latest upstream kernel interface supported.
@@ -18,7 +18,7 @@ Version 2.6.33 (in progress)
 	* Cleanup: remove support for RX hasing by port (was removed in
 	  kernel by 59089d8d162ddcb5c434672e915331964d38a754)
 	* Doc: Explicitly ship GPLv2 license, rather than relying
-	  on autotools to supply it for us (autotools started auto-installed
+	  on autotools to supply it for us (autotools started auto-installing
 	  GPLv3 recently)
 
 Version 6 - July 26, 2007
