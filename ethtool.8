@@ -214,6 +214,40 @@ ethtool \- Display or change ethernet card settings
 .I ethX
 .RI FILE
 .RI [ N ]
+
+.B ethtool \-u|\-\-show\-ntuple
+.I ethX
+
+.B ethtool \-U|\-\-config\-ntuple
+.I ethX
+.RB [ flow-type
+.RB tcp4|udp4|sctp4 ]
+.RB [ src-ip
+.IR addr ]
+.RB [ src-ip-mask
+.IR mask ]
+.RB [ dst-ip
+.IR addr ]
+.RB [ dst-ip-mask
+.IR mask ]
+.RB [ src-port
+.IR port ]
+.RB [ src-port-mask
+.IR mask ]
+.RB [ dst-port
+.IR port ]
+.RB [ dst-port-mask
+.IR mask ]
+.RB [ vlan
+.IR VLAN-tag ]
+.RB [ vlan-mask
+.IR mask ]
+.RB [ user-def
+.IR data ]
+.RB [ user-def-mask
+.IR mask ]
+.RB [ action
+.IR queue\ or\ drop ]
 .SH DESCRIPTION
 .BI ethtool
 is used for querying settings of an ethernet device and changing them.
@@ -515,6 +549,74 @@ By default this will flash all the regions on the adapter.
 .B N
 A number to identify flash region where the image should be flashed.
 Default region is 0 which denotes all regions in the flash.
+.PD
+.RE
+.TP
+.B \-u \-\-show-ntuple
+Get Rx ntuple filters and actions, then display them to the user.
+.PD
+.RE
+.TP
+.B \-U \-\-config-ntuple
+Configure Rx ntuple filters and actions
+.TP
+.B flow-type tcp4|udp4|sctp4
+.RS
+.PD 0
+.TP 3
+.BR "tcp4" "    TCP over IPv4"
+.TP 3
+.BR "udp4" "    UDP over IPv4"
+.TP 3
+.BR "sctp4" "   SCTP over IPv4"
+.PD
+.RE
+.TP
+.BI src-ip \ addr
+Includes the source IP address, specified in hex.
+.TP
+.BI src-ip-mask \ mask
+Specify a mask for the source IP address, specified in hex.
+.TP
+.BI dst-ip \ addr
+Includes the destination IP address, specified in hex.
+.TP
+.BI dst-ip-mask \ mask
+Specify a mask for the destination IP address, specified in hex.
+.TP
+.BI src-port \ port
+Includes the source port, specified in decimal.
+.TP
+.BI src-port-mask \ mask
+Specify a mask for the source port, specified in hex.
+.TP
+.BI dst-port \ port
+Includes the destination port, specified in decimal.
+.TP
+.BI dst-port-mask \ mask
+Specify a mask for the destination port, specified in hex.
+.TP
+.BI vlan \ VLAN-tag
+Includes the VLAN tag, specified in hex.
+.TP
+.BI vlan-mask \ mask
+Specify a mask for the VLAN tag, specified in hex.
+.TP
+.BI user-def \ data
+Includes 64-bits of user-specific data, specified in hex.
+.TP
+.BI user-def-mask \ mask
+Specify a mask for the user-specific data, specified in hex.
+.TP
+.BI action \ N
+Specifies either the Rx queue to send packets to, or to drop
+the matched flow.
+.RS
+.PD 0
+.TP 3
+.BR "-1" "             Drop the matched flow"
+.TP 3
+.BR "0 or higher" "    Rx queue to route the flow"
 .PD
 .RE
 .SH BUGS
