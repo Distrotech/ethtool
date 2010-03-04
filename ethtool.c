@@ -2657,11 +2657,24 @@ static int do_srxntuple(int fd, struct ifreq *ifr)
 
 static int do_grxntuple(int fd, struct ifreq *ifr)
 {
+	struct ethtool_sset_info *sset_info;
 	struct ethtool_gstrings *strings;
 	int sz_str, n_strings, err, i;
 
-	n_strings = ETHTOOL_MAX_NTUPLE_LIST_ENTRY *
-	            ETHTOOL_MAX_NTUPLE_STRING_PER_ENTRY;
+	sset_info = malloc(sizeof(struct ethtool_sset_info) + sizeof(u32));
+	sset_info->cmd = ETHTOOL_GSSET_INFO;
+	sset_info->sset_mask = (1ULL << ETH_SS_NTUPLE_FILTERS);
+	ifr->ifr_data = (caddr_t)sset_info;
+	err = send_ioctl(fd, ifr);
+
+	if ((err < 0) ||
+	    (!(sset_info->sset_mask & (1ULL << ETH_SS_NTUPLE_FILTERS)))) {
+		perror("Cannot get driver strings info");
+		return 100;
+	}
+
+	n_strings = sset_info->data[0];
+	free(sset_info);
 	sz_str = n_strings * ETH_GSTRING_LEN;
 
 	strings = calloc(1, sz_str + sizeof(struct ethtool_gstrings));
@@ -2678,7 +2691,7 @@ static int do_grxntuple(int fd, struct ifreq *ifr)
 	if (err < 0) {
 		perror("Cannot get Rx n-tuple information");
 		free(strings);
-		return 100;
+		return 101;
 	}
 
 	n_strings = strings->len;
