@@ -170,6 +170,7 @@ ethtool \- Display or change ethernet card settings
 .B2 gso on off
 .B2 gro on off
 .B2 lro on off
+.B2 rxhash on off
 
 .B ethtool \-p|\-\-identify
 .I ethX
@@ -361,6 +362,9 @@ Specifies whether generic receive offload should be enabled
 .TP
 .A2 lro on off
 Specifies whether large receive offload should be enabled
+.TP
+.A2 rxhash on off
+Specifies whether receive hashing offload should be enabled
 .TP
 .B \-p \-\-identify
 Initiates adapter-specific action intended to enable an operator to

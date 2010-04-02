@@ -173,6 +173,7 @@ static struct option {
 		"		[ gro on|off ]\n"
 		"		[ lro on|off ]\n"
 		"		[ ntuple on|off ]\n"
+		"		[ rxhash on|off ]\n"
     },
     { "-i", "--driver", MODE_GDRV, "Show driver information" },
     { "-d", "--register-dump", MODE_GREGS, "Do a register dump",
@@ -257,6 +258,7 @@ static int off_gso_wanted = -1;
 static int off_lro_wanted = -1;
 static int off_gro_wanted = -1;
 static int off_ntuple_wanted = -1;
+static int off_rxhash_wanted = -1;
 
 static struct ethtool_pauseparam epause;
 static int gpause_changed = 0;
@@ -382,6 +384,7 @@ static struct cmdline_info cmdline_offload[] = {
 	{ "lro", CMDL_BOOL, &off_lro_wanted, NULL },
 	{ "gro", CMDL_BOOL, &off_gro_wanted, NULL },
 	{ "ntuple", CMDL_BOOL, &off_ntuple_wanted, NULL },
+	{ "rxhash", CMDL_BOOL, &off_rxhash_wanted, NULL },
 };
 
 static struct cmdline_info cmdline_pause[] = {
@@ -1526,7 +1529,7 @@ static int dump_coalesce(void)
 }
 
 static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso,
-			int gro, int lro, int ntuple)
+			int gro, int lro, int ntuple, int rxhash)
 {
 	fprintf(stdout,
 		"rx-checksumming: %s\n"
@@ -1537,7 +1540,8 @@ static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso,
 		"generic-segmentation-offload: %s\n"
 		"generic-receive-offload: %s\n"
 		"large-receive-offload: %s\n"
-		"ntuple-filters: %s\n",
+		"ntuple-filters: %s\n"
+		"receive-hashing: %s\n",
 		rx ? "on" : "off",
 		tx ? "on" : "off",
 		sg ? "on" : "off",
@@ -1546,7 +1550,8 @@ static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso,
 		gso ? "on" : "off",
 		gro ? "on" : "off",
 		lro ? "on" : "off",
-		ntuple ? "on" : "off");
+		ntuple ? "on" : "off",
+		rxhash ? "on" : "off");
 
 	return 0;
 }
@@ -1863,7 +1868,7 @@ static int do_goffload(int fd, struct ifreq *ifr)
 {
 	struct ethtool_value eval;
 	int err, allfail = 1, rx = 0, tx = 0, sg = 0;
-	int tso = 0, ufo = 0, gso = 0, gro = 0, lro = 0, ntuple = 0;
+	int tso = 0, ufo = 0, gso = 0, gro = 0, lro = 0, ntuple = 0, rxhash = 0;
 
 	fprintf(stdout, "Offload parameters for %s:\n", devname);
 
@@ -1935,6 +1940,7 @@ static int do_goffload(int fd, struct ifreq *ifr)
 	} else {
 		lro = (eval.data & ETH_FLAG_LRO) != 0;
 		ntuple = (eval.data & ETH_FLAG_NTUPLE) != 0;
+		rxhash = (eval.data & ETH_FLAG_RXHASH) != 0;
 		allfail = 0;
 	}
 
@@ -1953,7 +1959,7 @@ static int do_goffload(int fd, struct ifreq *ifr)
 		return 83;
 	}
 
-	return dump_offload(rx, tx, sg, tso, ufo, gso, gro, lro, ntuple);
+	return dump_offload(rx, tx, sg, tso, ufo, gso, gro, lro, ntuple, rxhash);
 }
 
 static int do_soffload(int fd, struct ifreq *ifr)
@@ -2084,6 +2090,29 @@ static int do_soffload(int fd, struct ifreq *ifr)
 		err = ioctl(fd, SIOCETHTOOL, ifr);
 		if (err) {
 			perror("Cannot set n-tuple filter settings");
+			return 93;
+		}
+	}
+	if (off_rxhash_wanted >= 0) {
+		changed = 1;
+		eval.cmd = ETHTOOL_GFLAGS;
+		eval.data = 0;
+		ifr->ifr_data = (caddr_t)&eval;
+		err = ioctl(fd, SIOCETHTOOL, ifr);
+		if (err) {
+			perror("Cannot get device flag settings");
+			return 91;
+		}
+
+		eval.cmd = ETHTOOL_SFLAGS;
+		if (off_rxhash_wanted)
+			eval.data |= ETH_FLAG_RXHASH;
+		else
+			eval.data &= ~ETH_FLAG_RXHASH;
+
+		err = ioctl(fd, SIOCETHTOOL, ifr);
+		if (err) {
+			perror("Cannot set receive hash settings");
 			return 93;
 		}
 	}
