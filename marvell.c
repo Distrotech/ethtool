@@ -184,6 +184,9 @@ static void dump_mac(const u8 *r)
 	case 0xb6:	printf("Yukon-2 EC");	break;
  	case 0xb7:	printf("Yukon-2 FE");	break;
 	case 0xb8:	printf("Yukon-2 FE Plus"); break;
+	case 0xb9:	printf("Yukon Supreme"); break;
+	case 0xba:	printf("Yukon Ultra 2"); break;
+	case 0xbc:	printf("Yukon Optima"); break;
 	default:	printf("(Unknown)");	break;
 	}
 
