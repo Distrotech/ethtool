@@ -1,4 +1,10 @@
 
+Version 2.6.34 - May 26, 2010
+
+	* Feature: Support n-tuple filter programming
+	* Feature: Support rx hashing, v2 (targetted for 2.6.35)
+	* Feature: Add names of newer Marvell chips
+
 Version 2.6.33 - February 24, 2010
 
 	This version introduces a new release numbering scheme, based
@@ -15,7 +21,7 @@ Version 2.6.33 - February 24, 2010
 	* Feature: support for block writing of EEPROMs
 	* Feature: marvell register dump update
 	* Feature: at76c50x-usb, e1000e, igb, ixgbe, r8169 register dump support
-	* Cleanup: remove support for RX hasing by port (was removed in
+	* Cleanup: remove support for RX hashing by port (was removed in
 	  kernel by 59089d8d162ddcb5c434672e915331964d38a754)
 	* Doc: Explicitly ship GPLv2 license, rather than relying
 	  on autotools to supply it for us (autotools started auto-installing
