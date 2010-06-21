@@ -1336,6 +1336,7 @@ static struct {
         { "vioc", vioc_dump_regs },
         { "smsc911x", smsc911x_dump_regs },
         { "at76c50x-usb", at76c50x_usb_dump_regs },
+        { "sfc", sfc_dump_regs },
 };
 
 static int dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)

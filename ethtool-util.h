@@ -69,4 +69,7 @@ int smsc911x_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
 int at76c50x_usb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+/* Solarflare Solarstorm controllers */
+int sfc_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 #endif
