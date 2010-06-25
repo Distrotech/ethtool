@@ -220,6 +220,8 @@ static struct option {
 };
 
 
+static void show_usage(int badarg) __attribute__((noreturn));
+
 static void show_usage(int badarg)
 {
 	int i;
