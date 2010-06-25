@@ -352,14 +352,21 @@ typedef enum {
 	CMDL_BE16,
 	CMDL_BE32,
 	CMDL_STR,
+	CMDL_FLAG,
 } cmdline_type_t;
 
 struct cmdline_info {
 	const char *name;
 	cmdline_type_t type;
-	/* Points to int (BOOL), s32, u16, u32, u64 or char * (STR) */
+	/* Points to int (BOOL), s32, u16, u32 (U32/FLAG), u64 or
+	 * char * (STR).  For FLAG, the value accumulates all flags
+	 * to be set. */
 	void *wanted_val;
 	void *ioctl_val;
+	/* For FLAG, the flag value to be set/cleared */
+	u32 flag_val;
+	/* For FLAG, accumulates all flags to be cleared */
+	u32 *unwanted_val;
 };
 
 static struct cmdline_info cmdline_gregs[] = {
@@ -550,6 +557,17 @@ static void parse_generic_cmdline(int argc, char **argp,
 							       0xffffffff));
 					break;
 				}
+				case CMDL_FLAG: {
+					u32 *p;
+					if (!strcmp(argp[i], "on"))
+						p = info[idx].wanted_val;
+					else if (!strcmp(argp[i], "off"))
+						p = info[idx].unwanted_val;
+					else
+						show_usage(1);
+					*p |= info[idx].flag_val;
+					break;
+				}
 				case CMDL_STR: {
 					char **s = info[idx].wanted_val;
 					*s = strdup(argp[i]);
@@ -564,6 +582,26 @@ static void parse_generic_cmdline(int argc, char **argp,
 		if( !found)
 			show_usage(1);
 	}
+}
+
+static void
+print_flags(const struct cmdline_info *info, unsigned int n_info, u32 value)
+{
+	const char *sep = "";
+
+	while (n_info) {
+		if (info->type == CMDL_FLAG && value & info->flag_val) {
+			printf("%s%s", sep, info->name);
+			sep = " ";
+			value &= ~info->flag_val;
+		}
+		++info;
+		--n_info;
+	}
+
+	/* Print any unrecognised flags in hex */
+	if (value)
+		printf("%s%#x", sep, value);
 }
 
 static int rxflow_str_to_type(const char *str)
