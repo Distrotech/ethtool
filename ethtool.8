@@ -200,7 +200,10 @@ ethtool \- Display or change ethernet card settings
 .RB [ wol \ \*(WO]
 .RB [ sopass \ \*(MA]
 .RB [ msglvl
-.IR N ]
+.IR N \ |
+.BI msglvl \ type
+.A1 on off
+.RB ...]
 
 .B ethtool \-n
 .I ethX
@@ -482,9 +485,66 @@ Disable (wake on nothing).  This option clears all previous options.
 .B sopass \*(MA\c
 Sets the SecureOn(tm) password.  The argument to this option must be 6
 bytes in ethernet MAC hex format (\*(MA).
-.TP
+.PP
 .BI msglvl \ N
-Sets the driver message level. Meanings differ per driver.
+.br
+.BI msglvl \ type
+.A1 on off
+.RB ...
+.RS
+Sets the driver message type flags by name or number. \fItype\fR
+names the type of message to enable or disable; \fIN\fR specifies the
+new flags numerically. The defined type names and numbers are:
+.PD 0
+.TP 12
+.B drv
+0x0001  General driver status
+.TP 12
+.B probe
+0x0002  Hardware probing
+.TP 12
+.B link
+0x0004  Link state
+.TP 12
+.B timer
+0x0008  Periodic status check
+.TP 12
+.B ifdown
+0x0010  Interface being brought down
+.TP 12
+.B ifup
+0x0020  Interface being brought up
+.TP 12
+.B rx_err
+0x0040  Receive error
+.TP 12
+.B tx_err
+0x0080  Transmit error
+.TP 12
+.B tx_queued
+0x0100  Transmit queueing
+.TP 12
+.B intr
+0x0200  Interrupt handling
+.TP 12
+.B tx_done
+0x0400  Transmit completion
+.TP 12
+.B rx_status
+0x0800  Receive completion
+.TP 12
+.B pktdata
+0x1000  Packet contents
+.TP 12
+.B hw
+0x2000  Hardware status
+.TP 12
+.B wol
+0x4000  Wake-on-LAN status
+.PP
+The precise meanings of these type flags differ between drivers.
+.PD
+.RE
 .TP
 .B \-n \-\-show-nfc
 Retrieves the receive network flow classification configurations.
