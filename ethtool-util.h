@@ -4,14 +4,35 @@
 #define ETHTOOL_UTIL_H__
 
 #include <sys/types.h>
+#include <endian.h>
 
 #include "ethtool-copy.h"
 
-/* historical: we used to use kernel-like types; remove these once cleaned */
 typedef unsigned long long u64;
-typedef __uint32_t u32;         /* ditto */
-typedef __uint16_t u16;         /* ditto */
-typedef __uint8_t u8;           /* ditto */
+typedef __uint32_t u32;
+typedef __uint16_t u16;
+typedef __uint8_t u8;
+typedef __int32_t s32;
+
+#if __BYTE_ORDER == __BIG_ENDIAN
+static inline u16 cpu_to_be16(u16 value)
+{
+    return value;
+}
+static inline u32 cpu_to_be32(u32 value)
+{
+    return value;
+}
+#else
+static inline u16 cpu_to_be16(u16 value)
+{
+	return (value >> 8) | (value << 8);
+}
+static inline u32 cpu_to_be32(u32 value)
+{
+	return cpu_to_be16(value >> 16) | (cpu_to_be16(value) << 16);
+}
+#endif
 
 /* National Semiconductor DP83815, DP83816 */
 int natsemi_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
