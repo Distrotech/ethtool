@@ -214,6 +214,17 @@ ethtool \- Display or change ethernet card settings
 .RB [ rx-flow-hash \ \*(FL
 .RB \ \*(HO]
 
+.B ethtool \-x|\-\-show\-rxfh\-indir
+.I ethX
+
+.B ethtool \-X|\-\-set\-rxfh\-indir
+.I ethX
+.RB [\  equal
+.IR N \ |
+.BI weight\  W0
+.IR W1
+.RB ...\ ]
+
 .B ethtool \-f|\-\-flash
 .I ethX
 .RI FILE
@@ -605,6 +616,21 @@ Hash on bytes 2 and 3 of the Layer 4 header of the rx packet.
 Discard all packets of this flow type. When this option is set, all other options are ignored.
 .PD
 .RE
+.TP
+.B \-x \-\-show\-rxfh\-indir
+Retrieves the receive flow hash indirection table.
+.TP
+.B \-X \-\-set\-rxfh\-indir
+Configures the receive flow hash indirection table.
+.TP
+.BI equal\  N
+Sets the receive flow hash indirection table to spread flows evenly
+between the first \fIN\fR receive queues.
+.TP
+\fBweight\fR \fIW0 W1\fR ...
+Sets the receive flow hash indirection table to spread flows between
+receive queues according to the given weights.  The sum of the weights
+must be non-zero and must not exceed the size of the indirection table.
 .TP
 .B \-f \-\-flash \ FILE
 Flash firmware image from the specified file to a region on the adapter.
