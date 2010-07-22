@@ -40,6 +40,10 @@
 #include <limits.h>
 #include <ctype.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include <linux/sockios.h>
 #include "ethtool-util.h"
 
@@ -383,7 +387,7 @@ typedef enum {
 	CMDL_U32,
 	CMDL_U64,
 	CMDL_BE16,
-	CMDL_BE32,
+	CMDL_IP4,
 	CMDL_STR,
 	CMDL_FLAG,
 } cmdline_type_t;
@@ -391,7 +395,7 @@ typedef enum {
 struct cmdline_info {
 	const char *name;
 	cmdline_type_t type;
-	/* Points to int (BOOL), s32, u16, u32 (U32/FLAG), u64 or
+	/* Points to int (BOOL), s32, u16, u32 (U32/FLAG/IP4), u64 or
 	 * char * (STR).  For FLAG, the value accumulates all flags
 	 * to be set. */
 	void *wanted_val;
@@ -476,10 +480,10 @@ static struct cmdline_info cmdline_coalesce[] = {
 };
 
 static struct cmdline_info cmdline_ntuple[] = {
-	{ "src-ip", CMDL_BE32, &ntuple_fs.h_u.tcp_ip4_spec.ip4src, NULL },
-	{ "src-ip-mask", CMDL_BE32, &ntuple_fs.m_u.tcp_ip4_spec.ip4src, NULL },
-	{ "dst-ip", CMDL_BE32, &ntuple_fs.h_u.tcp_ip4_spec.ip4dst, NULL },
-	{ "dst-ip-mask", CMDL_BE32, &ntuple_fs.m_u.tcp_ip4_spec.ip4dst, NULL },
+	{ "src-ip", CMDL_IP4, &ntuple_fs.h_u.tcp_ip4_spec.ip4src, NULL },
+	{ "src-ip-mask", CMDL_IP4, &ntuple_fs.m_u.tcp_ip4_spec.ip4src, NULL },
+	{ "dst-ip", CMDL_IP4, &ntuple_fs.h_u.tcp_ip4_spec.ip4dst, NULL },
+	{ "dst-ip-mask", CMDL_IP4, &ntuple_fs.m_u.tcp_ip4_spec.ip4dst, NULL },
 	{ "src-port", CMDL_BE16, &ntuple_fs.h_u.tcp_ip4_spec.psrc, NULL },
 	{ "src-port-mask", CMDL_BE16, &ntuple_fs.m_u.tcp_ip4_spec.psrc, NULL },
 	{ "dst-port", CMDL_BE16, &ntuple_fs.h_u.tcp_ip4_spec.pdst, NULL },
@@ -624,11 +628,12 @@ static void parse_generic_cmdline(int argc, char **argp,
 							       0xffff));
 					break;
 				}
-				case CMDL_BE32: {
+				case CMDL_IP4: {
 					u32 *p = info[idx].wanted_val;
-					*p = cpu_to_be32(
-						get_uint_range(argp[i], 0,
-							       0xffffffff));
+					struct in_addr in;
+					if (!inet_aton(argp[i], &in))
+						show_usage(1);
+					*p = in.s_addr;
 					break;
 				}
 				case CMDL_FLAG: {
