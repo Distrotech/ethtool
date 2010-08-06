@@ -2899,7 +2899,7 @@ static int do_srxfhindir(int fd, struct ifreq *ifr)
 
 		j = -1;
 		for (i = 0; i < indir->size; i++) {
-			if (i >= indir->size * partial / sum) {
+			while (i >= indir->size * partial / sum) {
 				j += 1;
 				weight = get_u32(rxfhindir_weight[j], 0);
 				partial += weight;
