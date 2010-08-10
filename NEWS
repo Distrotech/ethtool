@@ -1,4 +1,12 @@
 
+Version 2.6.35 - August 10, 2010
+
+	* Feature: sfc register dump support
+	* Feature: improve cmd line parsing of ints, IPv4 addresses
+	* Feature: support ethtool named flags, messaging types
+	* Feature: minor man page fixes
+	* Feature: control RX flow hash indirection
+
 Version 2.6.34 - May 26, 2010
 
 	* Feature: Support n-tuple filter programming
