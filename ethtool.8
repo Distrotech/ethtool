@@ -235,34 +235,33 @@ ethtool \- Display or change ethernet card settings
 
 .B ethtool \-U|\-\-config\-ntuple
 .I ethX
-.RB [ flow-type
-.RB tcp4|udp4|sctp4 ]
+.A3 flow-type tcp4 udp4 sctp4
 .RB [ src-ip
-.IR addr ]
+.IR addr
 .RB [ src-ip-mask
-.IR mask ]
+.IR mask ]]
 .RB [ dst-ip
-.IR addr ]
+.IR addr
 .RB [ dst-ip-mask
-.IR mask ]
+.IR mask ]]
 .RB [ src-port
-.IR port ]
+.IR port
 .RB [ src-port-mask
-.IR mask ]
+.IR mask ]]
 .RB [ dst-port
-.IR port ]
+.IR port
 .RB [ dst-port-mask
-.IR mask ]
+.IR mask ]]
 .RB [ vlan
-.IR VLAN-tag ]
+.IR VLAN-tag
 .RB [ vlan-mask
-.IR mask ]
+.IR mask ]]
 .RB [ user-def
-.IR data ]
+.IR data
 .RB [ user-def-mask
-.IR mask ]
-.RB [ action
-.IR queue\ or\ drop ]
+.IR mask ]]
+.RI action \ N
+
 .SH DESCRIPTION
 .BI ethtool
 is used for querying settings of an ethernet device and changing them.
