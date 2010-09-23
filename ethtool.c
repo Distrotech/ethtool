@@ -14,6 +14,8 @@
  * amd8111e support by Reeja John <reeja.john@amd.com>
  * long arguments by Andi Kleen.
  * SMSC LAN911x support by Steve Glendinning <steve.glendinning@smsc.com>
+ * Various features by Ben Hutchings <bhutchings@solarflare.com>;
+ *	Copyright 2009, 2010 Solarflare Communications
  *
  * TODO:
  *   * no-args => summary of each device (mii-tool style)
