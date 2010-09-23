@@ -77,7 +77,7 @@ enum {
 
 static int parse_wolopts(char *optstr, u32 *data);
 static char *unparse_wolopts(int wolopts);
-static int parse_sopass(char *src, unsigned char *dest);
+static void get_mac_addr(char *src, unsigned char *dest);
 static int do_gdrv(int fd, struct ifreq *ifr);
 static int do_gset(int fd, struct ifreq *ifr);
 static int do_sset(int fd, struct ifreq *ifr);
@@ -405,14 +405,15 @@ typedef enum {
 	CMDL_IP4,
 	CMDL_STR,
 	CMDL_FLAG,
+	CMDL_MAC,
 } cmdline_type_t;
 
 struct cmdline_info {
 	const char *name;
 	cmdline_type_t type;
-	/* Points to int (BOOL), s32, u16, u32 (U32/FLAG/IP4), u64 or
-	 * char * (STR).  For FLAG, the value accumulates all flags
-	 * to be set. */
+	/* Points to int (BOOL), s32, u16, u32 (U32/FLAG/IP4), u64,
+	 * char * (STR) or u8[6] (MAC).  For FLAG, the value accumulates
+	 * all flags to be set. */
 	void *wanted_val;
 	void *ioctl_val;
 	/* For FLAG, the flag value to be set/cleared */
@@ -668,6 +669,10 @@ static void parse_generic_cmdline(int argc, char **argp,
 					*p = in.s_addr;
 					break;
 				}
+				case CMDL_MAC:
+					get_mac_addr(argp[i],
+						     info[idx].wanted_val);
+					break;
 				case CMDL_FLAG: {
 					u32 *p;
 					p = info[idx].seen_val;
@@ -1044,8 +1049,7 @@ static void parse_cmdline(int argc, char **argp)
 				i++;
 				if (i >= argc)
 					show_usage(1);
-				if (parse_sopass(argp[i], sopass_wanted) < 0)
-					show_usage(1);
+				get_mac_addr(argp[i], sopass_wanted);
 				sopass_change = 1;
 				break;
 			} else if (!strcmp(argp[i], "msglvl")) {
@@ -1449,22 +1453,20 @@ static char *unparse_wolopts(int wolopts)
 	return buf;
 }
 
-static int parse_sopass(char *src, unsigned char *dest)
+static void get_mac_addr(char *src, unsigned char *dest)
 {
 	int count;
 	int i;
-	int buf[SOPASS_MAX];
+	int buf[ETH_ALEN];
 
 	count = sscanf(src, "%2x:%2x:%2x:%2x:%2x:%2x",
 		&buf[0], &buf[1], &buf[2], &buf[3], &buf[4], &buf[5]);
-	if (count != SOPASS_MAX) {
-		return -1;
-	}
+	if (count != ETH_ALEN)
+		show_usage(1);
 
 	for (i = 0; i < count; i++) {
 		dest[i] = buf[i];
 	}
-	return 0;
 }
 
 static int parse_rxfhashopts(char *optstr, u32 *data)
