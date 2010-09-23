@@ -233,8 +233,9 @@ ethtool \- Display or change ethernet card settings
 .B ethtool \-u|\-\-show\-ntuple
 .I ethX
 
-.B ethtool \-U|\-\-config\-ntuple
-.I ethX
+.TP
+.BI ethtool\ \-U|\-\-config\-ntuple \ ethX
+.RB {
 .A3 flow-type tcp4 udp4 sctp4
 .RB [ src-ip
 .IR addr
@@ -252,6 +253,21 @@ ethtool \- Display or change ethernet card settings
 .IR port
 .RB [ dst-port-mask
 .IR mask ]]
+.br
+.RB | \ flow-type\ ether
+.RB [ src
+.IR mac-addr
+.RB [ src-mask
+.IR mask ]]
+.RB [ dst
+.IR mac-addr
+.RB [ dst-mask
+.IR mask ]]
+.RB [ proto
+.IR N
+.RB [ proto-mask
+.IR mask ]]\ }
+.br
 .RB [ vlan
 .IR VLAN-tag
 .RB [ vlan-mask
@@ -649,7 +665,7 @@ Get Rx ntuple filters and actions, then display them to the user.
 .B \-U \-\-config-ntuple
 Configure Rx ntuple filters and actions
 .TP
-.B flow-type tcp4|udp4|sctp4
+.B flow-type tcp4|udp4|sctp4|ether
 .RS
 .PD 0
 .TP 3
@@ -658,6 +674,8 @@ Configure Rx ntuple filters and actions
 .BR "udp4" "    UDP over IPv4"
 .TP 3
 .BR "sctp4" "   SCTP over IPv4"
+.TP 3
+.BR "ether" "   Ethernet"
 .PD
 .RE
 .TP
@@ -686,6 +704,25 @@ Includes the destination port.
 .BI dst-port-mask \ mask
 Specify a mask for the destination port.
 .TP
+.BI src \ mac-addr
+Includes the source MAC address, specified as 6 bytes in hexadecimal
+separated by colons.
+.TP
+.BI src-mask \ mask
+Specify a mask for the source MAC address.
+.TP
+.BI dst \ mac-addr
+Includes the destination MAC address.
+.TP
+.BI dst-mask \ mask
+Specify a mask for the destination MAC address.
+.TP
+.BI proto \ N
+Includes the Ethernet protocol number (ethertype).
+.TP
+.BI proto-mask \ mask
+Specify a mask for the Ethernet protocol number.
+.TP
 .BI vlan \ VLAN-tag
 Includes the VLAN tag.
 .TP
@@ -699,10 +736,11 @@ Includes 64-bits of user-specific data.
 Specify a mask for the user-specific data.
 .TP
 .BI action \ N
-Specifies either the Rx queue to send packets to, or to drop
-the matched flow.
+Specifies the Rx queue to send packets to, or some other action.
 .RS
 .PD 0
+.TP 3
+.BR "-2" "             Clear the filter"
 .TP 3
 .BR "-1" "             Drop the matched flow"
 .TP 3
