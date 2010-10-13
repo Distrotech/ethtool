@@ -93,4 +93,8 @@ int at76c50x_usb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *re
 /* Solarflare Solarstorm controllers */
 int sfc_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+/* STMMAC embedded ethernet controller */
+int st_mac100_dump_regs(struct ethtool_drvinfo *info,
+			struct ethtool_regs *regs);
+int st_gmac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 #endif
