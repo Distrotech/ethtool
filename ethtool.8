@@ -176,6 +176,9 @@ ethtool \- Display or change ethernet card settings
 .I ethX
 .RI [ N ]
 
+.B ethtool \-P|\-\-show-permaddr
+.I ethX
+
 .B ethtool \-r|\-\-negotiate
 .I ethX
 
@@ -402,6 +405,9 @@ blinking one or more LEDs on the specific ethernet port.
 .TP
 .B N
 Length of time to perform phys-id, in seconds.
+.TP
+.B \-P \-\-show-permaddr
+Queries the specified ethernet device for permanent hardware address.
 .TP
 .B \-r \-\-negotiate
 Restarts auto-negotiation on the specified ethernet device, if

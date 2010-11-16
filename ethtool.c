@@ -53,6 +53,9 @@
 #ifndef SIOCETHTOOL
 #define SIOCETHTOOL     0x8946
 #endif
+#ifndef MAX_ADDR_LEN
+#define MAX_ADDR_LEN	32
+#endif
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
@@ -110,6 +113,8 @@ static int do_srxfhindir(int fd, struct ifreq *ifr);
 static int do_srxntuple(int fd, struct ifreq *ifr);
 static int do_grxntuple(int fd, struct ifreq *ifr);
 static int do_flash(int fd, struct ifreq *ifr);
+static int do_permaddr(int fd, struct ifreq *ifr);
+
 static int send_ioctl(int fd, struct ifreq *ifr);
 
 static enum {
@@ -139,6 +144,7 @@ static enum {
 	MODE_SNTUPLE,
 	MODE_GNTUPLE,
 	MODE_FLASHDEV,
+	MODE_PERMADDR,
 } mode = MODE_GSET;
 
 static struct option {
@@ -256,6 +262,8 @@ static struct option {
 		"		action N\n" },
     { "-u", "--show-ntuple", MODE_GNTUPLE,
 		"Get Rx ntuple filters and actions\n" },
+    { "-P", "--show-permaddr", MODE_PERMADDR,
+		"Show permanent hardware address" },
     { "-h", "--help", MODE_HELP, "Show this help" },
     {}
 };
@@ -826,7 +834,8 @@ static void parse_cmdline(int argc, char **argp)
 			    (mode == MODE_SNTUPLE) ||
 			    (mode == MODE_GNTUPLE) ||
 			    (mode == MODE_PHYS_ID) ||
-			    (mode == MODE_FLASHDEV)) {
+			    (mode == MODE_FLASHDEV) ||
+			    (mode == MODE_PERMADDR)) {
 				devname = argp[i];
 				break;
 			}
@@ -1997,6 +2006,8 @@ static int doit(void)
 		return do_grxntuple(fd, &ifr);
 	} else if (mode == MODE_FLASHDEV) {
 		return do_flash(fd, &ifr);
+	} else if (mode == MODE_PERMADDR) {
+		return do_permaddr(fd, &ifr);
 	}
 
 	return 69;
@@ -3075,6 +3086,31 @@ static int do_flash(int fd, struct ifreq *ifr)
 	err = send_ioctl(fd, ifr);
 	if (err < 0)
 		perror("Flashing failed");
+
+	return err;
+}
+
+static int do_permaddr(int fd, struct ifreq *ifr)
+{
+	int i, err;
+	struct ethtool_perm_addr *epaddr;
+
+	epaddr = malloc(sizeof(struct ethtool_perm_addr) + MAX_ADDR_LEN);
+	epaddr->cmd = ETHTOOL_GPERMADDR;
+	epaddr->size = MAX_ADDR_LEN;
+	ifr->ifr_data = (caddr_t)epaddr;
+
+	err = send_ioctl(fd, ifr);
+	if (err < 0)
+		perror("Cannot read permanent address");
+	else {
+		printf("Permanent address:");
+		for (i = 0; i < epaddr->size; i++)
+			printf("%c%02x", (i == 0) ? ' ' : ':',
+			       epaddr->data[i]);
+		printf("\n");
+	}
+	free(epaddr);
 
 	return err;
 }
