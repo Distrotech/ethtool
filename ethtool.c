@@ -209,6 +209,8 @@ static struct option {
 		"		[ gso on|off ]\n"
 		"		[ gro on|off ]\n"
 		"		[ lro on|off ]\n"
+		"		[ rxvlan on|off ]\n"
+		"		[ txvlan on|off ]\n"
 		"		[ ntuple on|off ]\n"
 		"		[ rxhash on|off ]\n"
     },
@@ -473,6 +475,10 @@ static struct cmdline_info cmdline_offload[] = {
 	{ "lro", CMDL_FLAG, &off_flags_wanted, NULL,
 	  ETH_FLAG_LRO, &off_flags_mask },
 	{ "gro", CMDL_BOOL, &off_gro_wanted, NULL },
+	{ "rxvlan", CMDL_FLAG, &off_flags_wanted, NULL,
+	  ETH_FLAG_RXVLAN, &off_flags_mask },
+	{ "txvlan", CMDL_FLAG, &off_flags_wanted, NULL,
+	  ETH_FLAG_TXVLAN, &off_flags_mask },
 	{ "ntuple", CMDL_FLAG, &off_flags_wanted, NULL,
 	  ETH_FLAG_NTUPLE, &off_flags_mask },
 	{ "rxhash", CMDL_FLAG, &off_flags_wanted, NULL,
@@ -1870,7 +1876,8 @@ static int dump_coalesce(void)
 }
 
 static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso,
-			int gro, int lro, int ntuple, int rxhash)
+			int gro, int lro, int rxvlan, int txvlan, int ntuple,
+			int rxhash)
 {
 	fprintf(stdout,
 		"rx-checksumming: %s\n"
@@ -1881,6 +1888,8 @@ static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso,
 		"generic-segmentation-offload: %s\n"
 		"generic-receive-offload: %s\n"
 		"large-receive-offload: %s\n"
+		"rx-vlan-offload: %s\n"
+		"tx-vlan-offload: %s\n"
 		"ntuple-filters: %s\n"
 		"receive-hashing: %s\n",
 		rx ? "on" : "off",
@@ -1891,6 +1900,8 @@ static int dump_offload(int rx, int tx, int sg, int tso, int ufo, int gso,
 		gso ? "on" : "off",
 		gro ? "on" : "off",
 		lro ? "on" : "off",
+		rxvlan ? "on" : "off",
+		txvlan ? "on" : "off",
 		ntuple ? "on" : "off",
 		rxhash ? "on" : "off");
 
@@ -2215,7 +2226,8 @@ static int do_goffload(int fd, struct ifreq *ifr)
 {
 	struct ethtool_value eval;
 	int err, allfail = 1, rx = 0, tx = 0, sg = 0;
-	int tso = 0, ufo = 0, gso = 0, gro = 0, lro = 0, ntuple = 0, rxhash = 0;
+	int tso = 0, ufo = 0, gso = 0, gro = 0, lro = 0, rxvlan = 0, txvlan = 0,
+	    ntuple = 0, rxhash = 0;
 
 	fprintf(stdout, "Offload parameters for %s:\n", devname);
 
@@ -2286,6 +2298,8 @@ static int do_goffload(int fd, struct ifreq *ifr)
 		perror("Cannot get device flags");
 	} else {
 		lro = (eval.data & ETH_FLAG_LRO) != 0;
+		rxvlan = (eval.data & ETH_FLAG_RXVLAN) != 0;
+		txvlan = (eval.data & ETH_FLAG_TXVLAN) != 0;
 		ntuple = (eval.data & ETH_FLAG_NTUPLE) != 0;
 		rxhash = (eval.data & ETH_FLAG_RXHASH) != 0;
 		allfail = 0;
@@ -2306,7 +2320,8 @@ static int do_goffload(int fd, struct ifreq *ifr)
 		return 83;
 	}
 
-	return dump_offload(rx, tx, sg, tso, ufo, gso, gro, lro, ntuple, rxhash);
+	return dump_offload(rx, tx, sg, tso, ufo, gso, gro, lro, rxvlan, txvlan,
+			    ntuple, rxhash);
 }
 
 static int do_soffload(int fd, struct ifreq *ifr)
