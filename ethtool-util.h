@@ -6,6 +6,12 @@
 #include <sys/types.h>
 #include <endian.h>
 
+/* ethtool.h expects these to be defined by <linux/types.h> */
+#ifndef HAVE_BE_TYPES
+typedef __uint16_t __be16;
+typedef __uint32_t __be32;
+#endif
+
 #include "ethtool-copy.h"
 
 typedef unsigned long long u64;
