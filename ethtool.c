@@ -20,8 +20,6 @@
  * TODO:
  *   * no-args => summary of each device (mii-tool style)
  *   * better man page (steal from mii-tool?)
- *   * fall back on SIOCMII* ioctl()s and possibly SIOCDEVPRIVATE*
- *   * abstract ioctls to allow for fallback modes of data gathering
  */
 
 #ifdef HAVE_CONFIG_H
