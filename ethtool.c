@@ -19,7 +19,6 @@
  *
  * TODO:
  *   * no-args => summary of each device (mii-tool style)
- *   * better man page (steal from mii-tool?)
  */
 
 #ifdef HAVE_CONFIG_H
