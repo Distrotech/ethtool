@@ -18,7 +18,7 @@
  *	Copyright 2009, 2010 Solarflare Communications
  *
  * TODO:
- *   * no-args => summary of each device (mii-tool style)
+ *   * show settings for all devices
  */
 
 #ifdef HAVE_CONFIG_H
