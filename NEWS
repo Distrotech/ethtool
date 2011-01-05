@@ -1,3 +1,8 @@
+Version 2.6.37 - January 5, 2011
+
+	* Fix: Build fix for distributions with kernel headers from
+	  Linux 2.6.9 or earlier
+
 Version 2.6.36 - November 16, 2010
 
 	* Fix: RX n-tuple masks and documentation
