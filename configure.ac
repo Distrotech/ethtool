@@ -29,5 +29,5 @@ dnl Checks for library functions.
 AC_HEADER_STDC
 AC_CHECK_FUNCS(socket strtol)
 
-AC_CONFIG_FILES([Makefile ethtool.spec])
+AC_CONFIG_FILES([Makefile ethtool.spec ethtool.8])
 AC_OUTPUT

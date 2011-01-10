@@ -85,7 +85,7 @@
 .  hy \\n(HY
 ..
 
-.TH ETHTOOL 8 "January 2011" "Ethtool version 2.6.37"
+.TH ETHTOOL 8 "January 2011" "Ethtool version @VERSION@"
 .SH NAME
 ethtool \- Display or change ethernet card settings
 .SH SYNOPSIS
