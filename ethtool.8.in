@@ -491,12 +491,12 @@ Selects device port.
 .TP
 .A2 autoneg on off
 Specifies whether autonegotiation should be enabled. Autonegotiation 
-is enabled by deafult, but in some network devices may have trouble
+is enabled by default, but in some network devices may have trouble
 with it, so you can disable it if really necessary. 
 .TP
 .BI advertise \ N
 Sets the speed and duplex advertised by autonegotiation.  The argument is
-a hexidecimal value using one or a combination of the following values:
+a hexadecimal value using one or a combination of the following values:
 .RS
 .PD 0
 .TP 3
