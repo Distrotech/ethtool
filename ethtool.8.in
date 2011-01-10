@@ -337,10 +337,10 @@ settings of the specified device.
 Shows a short help message.
 .TP
 .B \-a \-\-show\-pause
-Queries the specified ethernet device for pause parameter information.
+Queries the specified Ethernet device for pause parameter information.
 .TP
 .B \-A \-\-pause
-Changes the pause parameters of the specified ethernet device.
+Changes the pause parameters of the specified Ethernet device.
 .TP
 .A2 autoneg on off
 Specifies whether pause autonegotiation should be enabled.
@@ -456,7 +456,7 @@ Length of time to perform phys-id, in seconds.
 Queries the specified network device for permanent hardware address.
 .TP
 .B \-r \-\-negotiate
-Restarts auto-negotiation on the specified ethernet device, if
+Restarts auto-negotiation on the specified Ethernet device, if
 auto-negotiation is enabled.
 .TP
 .B \-S \-\-statistics
@@ -535,7 +535,7 @@ this option is a string of characters specifying which options to enable.
 .PD 0
 .TP 3
 .B p
-Wake on phy activity
+Wake on PHY activity
 .TP 3
 .B u
 Wake on unicast messages
@@ -550,10 +550,10 @@ Wake on broadcast messages
 Wake on ARP
 .TP 3
 .B g
-Wake on MagicPacket(tm)
+Wake on MagicPacket\[tm]
 .TP 3
 .B s
-Enable SecureOn(tm) password for MagicPacket(tm)
+Enable SecureOn\[tm] password for MagicPacket\[tm]
 .TP 3
 .B d
 Disable (wake on nothing).  This option clears all previous options.
@@ -561,8 +561,8 @@ Disable (wake on nothing).  This option clears all previous options.
 .RE
 .TP
 .B sopass \*(MA\c
-Sets the SecureOn(tm) password.  The argument to this option must be 6
-bytes in ethernet MAC hex format (\*(MA).
+Sets the SecureOn\[tm] password.  The argument to this option must be 6
+bytes in Ethernet MAC hex format (\*(MA).
 .PP
 .BI msglvl \ N
 .br
