@@ -224,13 +224,13 @@ static struct option {
 		"		[ offset N ]\n"
 		"		[ length N ]\n"
 		"		[ value N ]\n" },
-    { "-r", "--negotiate", MODE_NWAY_RST, "Restart N-WAY negotation" },
+    { "-r", "--negotiate", MODE_NWAY_RST, "Restart N-WAY negotiation" },
     { "-p", "--identify", MODE_PHYS_ID, "Show visible port identification (e.g. blinking)",
                 "               [ TIME-IN-SECONDS ]\n" },
     { "-t", "--test", MODE_TEST, "Execute adapter self test",
                 "               [ online | offline ]\n" },
     { "-S", "--statistics", MODE_GSTATS, "Show adapter statistics" },
-    { "-n", "--show-nfc", MODE_GNFC, "Show Rx network flow classification"
+    { "-n", "--show-nfc", MODE_GNFC, "Show Rx network flow classification "
 		"options",
 		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
 		"tcp6|udp6|ah6|sctp6 ]\n" },
