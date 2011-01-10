@@ -87,7 +87,7 @@
 
 .TH ETHTOOL 8 "January 2011" "Ethtool version @VERSION@"
 .SH NAME
-ethtool \- Display or change network driver and hardware settings
+ethtool \- query or control network driver and hardware settings
 .SH SYNOPSIS
 .B ethtool
 .I ethX
@@ -322,8 +322,8 @@ ethtool \- Display or change network driver and hardware settings
 
 .SH DESCRIPTION
 .BI ethtool
-is used for querying and changing settings of a network device driver
-and hardware, particularly for wired Ethernet devices.
+is used to query and control network device driver and hardware
+settings, particularly for wired Ethernet devices.
 
 .I ethX
 is the name of the network device on which ethtool should operate.
