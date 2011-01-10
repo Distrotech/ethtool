@@ -1,6 +1,7 @@
 .\" -*- nroff -*-
 .\" Copyright 1999 by David S. Miller.  All Rights Reserved.
 .\" Portions Copyright 2001 Sun Microsystems
+.\" Portions Copyright 2007, 2009 Free Software Foundation, Inc.
 .\" This file may be copied under the terms of the GNU Public License.
 .\" 
 .\"	.An - list of n alternative values as in "flav vanilla|strawberry"
@@ -48,7 +49,43 @@
 .\"	\(*HO - hash options
 .\"
 .ds HO \fBm\fP|\fBv\fP|\fBt\fP|\fBs\fP|\fBd\fP|\fBf\fP|\fBn\fP|\fBr\fP...
-.TH ETHTOOL 8 "July 2007" "Ethtool version 6"
+.\" Start URL.
+.de UR
+.  ds m1 \\$1\"
+.  nh
+.  if \\n(mH \{\
+.    \" Start diversion in a new environment.
+.    do ev URL-div
+.    do di URL-div
+.  \}
+..
+.\" End URL.
+.de UE
+.  ie \\n(mH \{\
+.    br
+.    di
+.    ev
+.
+.    \" Has there been one or more input lines for the link text?
+.    ie \\n(dn \{\
+.      do HTML-NS "<a href=""\\*(m1"">"
+.      \" Yes, strip off final newline of diversion and emit it.
+.      do chop URL-div
+.      do URL-div
+\c
+.      do HTML-NS </a>
+.    \}
+.    el \
+.      do HTML-NS "<a href=""\\*(m1"">\\*(m1</a>"
+\&\\$*\"
+.  \}
+.  el \
+\\*(la\\*(m1\\*(ra\\$*\"
+.
+.  hy \\n(HY
+..
+
+.TH ETHTOOL 8 "January 2011" "Ethtool version 2.6.37"
 .SH NAME
 ethtool \- Display or change ethernet card settings
 .SH SYNOPSIS
@@ -777,6 +814,6 @@ Scott Feldman,
 Andi Kleen.
 .SH AVAILABILITY
 .B ethtool
-is available over the Web on the SourceForge site at
-http://sourceforge.net/projects/gkernel/
-
+is available from
+.UR http://www.kernel.org/pub/software/network/ethtool/
+.UE
