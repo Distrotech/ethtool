@@ -1126,7 +1126,7 @@ static void parse_cmdline(int argc, char **argp)
 		}
 	}
 
-	if ((autoneg_wanted == AUTONEG_ENABLE) && (advertising_wanted < 0)) {
+	if (advertising_wanted < 0) {
 		if (speed_wanted == SPEED_10 && duplex_wanted == DUPLEX_HALF)
 			advertising_wanted = ADVERTISED_10baseT_Half;
 		else if (speed_wanted == SPEED_10 &&
@@ -2528,19 +2528,36 @@ static int do_sset(int fd, struct ifreq *ifr)
 				ecmd.phy_address = phyad_wanted;
 			if (xcvr_wanted != -1)
 				ecmd.transceiver = xcvr_wanted;
-			if (advertising_wanted != -1) {
-				if (advertising_wanted == 0)
-					ecmd.advertising = ecmd.supported &
-						(ADVERTISED_10baseT_Half |
-						 ADVERTISED_10baseT_Full |
-						 ADVERTISED_100baseT_Half |
-						 ADVERTISED_100baseT_Full |
-						 ADVERTISED_1000baseT_Half |
-						 ADVERTISED_1000baseT_Full |
-						 ADVERTISED_2500baseX_Full |
-						 ADVERTISED_10000baseT_Full);
-				else
-					ecmd.advertising = advertising_wanted;
+			/* XXX If the user specified speed or duplex
+			 * then we should mask the advertised modes
+			 * accordingly.  For now, warn that we aren't
+			 * doing that.
+			 */
+			if ((speed_wanted != -1 || duplex_wanted != -1) &&
+			    ecmd.autoneg && advertising_wanted == 0) {
+				fprintf(stderr, "Cannot advertise");
+				if (speed_wanted >= 0)
+					fprintf(stderr, " speed %d",
+						speed_wanted);
+				if (duplex_wanted >= 0)
+					fprintf(stderr, " duplex %s",
+						duplex_wanted ? 
+						"full" : "half");
+				fprintf(stderr,	"\n");
+			}
+			if (autoneg_wanted == AUTONEG_ENABLE &&
+			    advertising_wanted == 0) {
+				ecmd.advertising = ecmd.supported &
+					(ADVERTISED_10baseT_Half |
+					 ADVERTISED_10baseT_Full |
+					 ADVERTISED_100baseT_Half |
+					 ADVERTISED_100baseT_Full |
+					 ADVERTISED_1000baseT_Half |
+					 ADVERTISED_1000baseT_Full |
+					 ADVERTISED_2500baseX_Full |
+					 ADVERTISED_10000baseT_Full);
+			} else if (advertising_wanted > 0) {
+				ecmd.advertising = advertising_wanted;
 			}
 
 			/* Try to perform the update. */
