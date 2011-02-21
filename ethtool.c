@@ -807,10 +807,11 @@ static void parse_cmdline(int argc, char **argp)
 					mode = args[k].Mode;
 					break;
 				}
-			if (mode == MODE_HELP ||
-			    (!args[k].srt && argp[i][0] == '-')) {
+			if (mode == MODE_HELP) {
 				show_usage();
 				exit(0);
+			} else if (!args[k].srt && argp[i][0] == '-') {
+				exit_bad_args();
 			} else {
 				devname = argp[i];
 			}
