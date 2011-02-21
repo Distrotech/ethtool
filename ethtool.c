@@ -287,12 +287,16 @@ static void show_usage(void)
 	fprintf(stdout,
 		"Usage:\n"
 		"ethtool DEVNAME\tDisplay standard information about device\n");
-	for (i = 0; args[i].srt; i++) {
-		fprintf(stdout, "        ethtool %s|%s %s\t%s\n%s",
-			args[i].srt, args[i].lng,
-			strstr(args[i].srt, "-h") ? "\t" : "DEVNAME",
-			args[i].help,
-			args[i].opthelp ? args[i].opthelp : "");
+	for (i = 0; args[i].lng; i++) {
+		fputs("        ethtool ", stdout);
+		if (args[i].srt)
+			fprintf(stdout, "%s|", args[i].srt);
+		fprintf(stdout, "%s %s\t%s\n",
+			args[i].lng,
+			args[i].Mode < 0 ? "\t" : "DEVNAME",
+			args[i].help);
+		if (args[i].opthelp)
+			fputs(args[i].opthelp, stdout);
 	}
 }
 
@@ -801,8 +805,9 @@ static void parse_cmdline(int argc, char **argp)
 	for (i = 1; i < argc; i++) {
 		switch (i) {
 		case 1:
-			for (k = 0; args[k].srt; k++)
-				if (!strcmp(argp[i], args[k].srt) ||
+			for (k = 0; args[k].lng; k++)
+				if ((args[k].srt &&
+				     !strcmp(argp[i], args[k].srt)) ||
 				    !strcmp(argp[i], args[k].lng)) {
 					mode = args[k].Mode;
 					break;
@@ -810,7 +815,7 @@ static void parse_cmdline(int argc, char **argp)
 			if (mode == MODE_HELP) {
 				show_usage();
 				exit(0);
-			} else if (!args[k].srt && argp[i][0] == '-') {
+			} else if (!args[k].lng && argp[i][0] == '-') {
 				exit_bad_args();
 			} else {
 				devname = argp[i];
