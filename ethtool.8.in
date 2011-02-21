@@ -100,6 +100,8 @@ ethtool \- query or control network driver and hardware settings
 
 .B ethtool \-h|\-\-help
 
+.B ethtool \-\-version
+
 .B ethtool \-a|\-\-show\-pause
 .I ethX
 
@@ -309,6 +311,9 @@ settings of the specified device.
 .TP
 .B \-h \-\-help
 Shows a short help message.
+.TP
+.B \-\-version
+Shows the ethtool version number.
 .TP
 .B \-a \-\-show\-pause
 Queries the specified Ethernet device for pause parameter information.

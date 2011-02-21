@@ -115,6 +115,7 @@ static int do_permaddr(int fd, struct ifreq *ifr);
 static int send_ioctl(int fd, struct ifreq *ifr);
 
 static enum {
+	MODE_VERSION = -2,
 	MODE_HELP = -1,
 	MODE_GSET=0,
 	MODE_SSET,
@@ -264,6 +265,7 @@ static struct option {
     { "-P", "--show-permaddr", MODE_PERMADDR,
 		"Show permanent hardware address" },
     { "-h", "--help", MODE_HELP, "Show this help" },
+    { NULL, "--version", MODE_VERSION, "Show version number" },
     {}
 };
 
@@ -815,6 +817,10 @@ static void parse_cmdline(int argc, char **argp)
 				}
 			if (mode == MODE_HELP) {
 				show_usage();
+				exit(0);
+			} else if (mode == MODE_VERSION) {
+				fprintf(stdout,
+					PACKAGE " version " VERSION "\n");
 				exit(0);
 			} else if (!args[k].lng && argp[i][0] == '-') {
 				exit_bad_args();
