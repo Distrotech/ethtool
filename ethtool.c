@@ -286,7 +286,8 @@ static void show_usage(void)
 	fprintf(stdout, PACKAGE " version " VERSION "\n");
 	fprintf(stdout,
 		"Usage:\n"
-		"ethtool DEVNAME\tDisplay standard information about device\n");
+		"        ethtool DEVNAME\t"
+		"Display standard information about device\n");
 	for (i = 0; args[i].lng; i++) {
 		fputs("        ethtool ", stdout);
 		if (args[i].srt)
