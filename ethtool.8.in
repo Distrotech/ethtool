@@ -495,8 +495,6 @@ a hexadecimal value using one or a combination of the following values:
 .BR "0x8000" "   2500 Full" "(not supported by IEEE standards)"
 .TP 3
 .BR "0x1000" "   10000 Full"
-.TP 3
-.BR "0x03F" "    Auto"
 .PD
 .RE
 .TP
