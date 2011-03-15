@@ -1,3 +1,16 @@
+Version 2.6.38 - March 15, 2011
+
+	* Doc: Fix spelling and spacing in online help
+	* Doc: Update date, version and web site reference in manual page
+	* Doc: Fix spelling, capitalisation, consistency and style in
+	  manual page
+	* Doc: Generalise some references to network devices rather than
+	  Ethernet devices
+	* Fix: Don't silently ignore speed/duplex when autoneg is on
+	* Fix: Report an error (rather than full usage information) if
+	  given an unrecognised option
+	* Feature: Add --version option
+
 Version 2.6.37 - January 5, 2011
 
 	* Fix: Build fix for distributions with kernel headers from
