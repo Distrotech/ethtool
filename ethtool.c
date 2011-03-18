@@ -1423,11 +1423,19 @@ static int dump_drvinfo(struct ethtool_drvinfo *info)
 		"driver: %s\n"
 		"version: %s\n"
 		"firmware-version: %s\n"
-		"bus-info: %s\n",
+		"bus-info: %s\n"
+		"supports-statistics: %s\n"
+		"supports-test: %s\n"
+		"supports-eeprom-access: %s\n"
+		"supports-register-dump: %s\n",
 		info->driver,
 		info->version,
 		info->fw_version,
-		info->bus_info);
+		info->bus_info,
+		info->n_stats ? "yes" : "no",
+		info->testinfo_len ? "yes" : "no",
+		info->eedump_len ? "yes" : "no",
+		info->regdump_len ? "yes" : "no");
 
 	return 0;
 }
