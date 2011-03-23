@@ -4,6 +4,8 @@
 .\" Portions Copyright 2007, 2009 Free Software Foundation, Inc.
 .\" This file may be copied under the terms of the GNU Public License.
 .\" 
+.\" There must be no text lines before .TH.  Use '.' for vertical spacing.
+.\"
 .\"	.An - list of n alternative values as in "flav vanilla|strawberry"
 .\"
 .de A1
@@ -90,7 +92,7 @@
 .
 .  hy \\n(HY
 ..
-
+.
 .TH ETHTOOL 8 "January 2011" "Ethtool version @VERSION@"
 .SH NAME
 ethtool \- query or control network driver and hardware settings
