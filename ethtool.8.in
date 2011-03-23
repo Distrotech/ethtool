@@ -96,87 +96,92 @@
 .TH ETHTOOL 8 "January 2011" "Ethtool version @VERSION@"
 .SH NAME
 ethtool \- query or control network driver and hardware settings
+.
 .SH SYNOPSIS
+.\" Do not adjust lines (i.e. left justification) and do not hyphenate.
+.na
+.nh
+.HP
 .B ethtool
 .I ethX
-
+.HP
 .B ethtool \-h|\-\-help
-
+.HP
 .B ethtool \-\-version
-
+.HP
 .B ethtool \-a|\-\-show\-pause
 .I ethX
-
+.HP
 .B ethtool \-A|\-\-pause
 .I ethX
 .B2 autoneg on off
 .B2 rx on off
 .B2 tx on off
-
+.HP
 .B ethtool \-c|\-\-show\-coalesce
 .I ethX
-
+.HP
 .B ethtool \-C|\-\-coalesce
 .I ethX
-.B2 adaptive-rx on off
-.B2 adaptive-tx on off
-.BN rx-usecs
-.BN rx-frames
-.BN rx-usecs-irq
-.BN rx-frames-irq
-.BN tx-usecs
-.BN tx-frames
-.BN tx-usecs-irq
-.BN tx-frames-irq
-.BN stats-block-usecs
-.BN pkt-rate-low
-.BN rx-usecs-low
-.BN rx-frames-low
-.BN tx-usecs-low
-.BN tx-frames-low
-.BN pkt-rate-high
-.BN rx-usecs-high
-.BN rx-frames-high
-.BN tx-usecs-high
-.BN tx-frames-high
-.BN sample-interval
-
+.B2 adaptive\-rx on off
+.B2 adaptive\-tx on off
+.BN rx\-usecs
+.BN rx\-frames
+.BN rx\-usecs\-irq
+.BN rx\-frames\-irq
+.BN tx\-usecs
+.BN tx\-frames
+.BN tx\-usecs\-irq
+.BN tx\-frames\-irq
+.BN stats\-block\-usecs
+.BN pkt\-rate\-low
+.BN rx\-usecs\-low
+.BN rx\-frames\-low
+.BN tx\-usecs\-low
+.BN tx\-frames\-low
+.BN pkt\-rate\-high
+.BN rx\-usecs\-high
+.BN rx\-frames\-high
+.BN tx\-usecs\-high
+.BN tx\-frames\-high
+.BN sample\-interval
+.HP
 .B ethtool \-g|\-\-show\-ring
 .I ethX
-
+.HP
 .B ethtool \-G|\-\-set\-ring
 .I ethX
 .BN rx
-.BN rx-mini
-.BN rx-jumbo
+.BN rx\-mini
+.BN rx\-jumbo
 .BN tx
-
+.HP
 .B ethtool \-i|\-\-driver
 .I ethX
-
+.HP
 .B ethtool \-d|\-\-register\-dump
 .I ethX
 .B2 raw on off
 .B2 hex on off
 .RB [ file 
 .IR name ]
-
+.HP
 .B ethtool \-e|\-\-eeprom\-dump
 .I ethX
 .B2 raw on off
 .BN offset
 .BN length
-
+.HP
 .B ethtool \-E|\-\-change\-eeprom
 .I ethX
 .BN magic
 .BN offset
 .BN length
 .BN value
-
+.HP
 .B ethtool \-k|\-\-show\-offload
 .I ethX
-
+.HP
 .B ethtool \-K|\-\-offload
 .I ethX
 .B2 rx on off
@@ -190,24 +195,24 @@ ethtool \- query or control network driver and hardware settings
 .B2 rxvlan on off
 .B2 txvlan on off
 .B2 rxhash on off
-
+.HP
 .B ethtool \-p|\-\-identify
 .I ethX
 .RI [ N ]
-
-.B ethtool \-P|\-\-show-permaddr
+.HP
+.B ethtool \-P|\-\-show\-permaddr
 .I ethX
-
+.HP
 .B ethtool \-r|\-\-negotiate
 .I ethX
-
+.HP
 .B ethtool \-S|\-\-statistics
 .I ethX
-
+.HP
 .B ethtool \-t|\-\-test
 .I ethX
 .B1 offline online
-
+.HP
 .B ethtool \-s
 .I ethX
 .BI speed \ N
@@ -224,19 +229,19 @@ ethtool \- query or control network driver and hardware settings
 .BI msglvl \ type
 .A1 on off
 .RB ...]
-
+.HP
 .B ethtool \-n
 .I ethX
-.RB [ rx-flow-hash \ \*(FL]
-
+.RB [ rx\-flow\-hash \ \*(FL]
+.HP
 .B ethtool \-N
 .I ethX
-.RB [ rx-flow-hash \ \*(FL
+.RB [ rx\-flow\-hash \ \*(FL
 .RB \ \*(HO]
-
+.HP
 .B ethtool \-x|\-\-show\-rxfh\-indir
 .I ethX
-
+.HP
 .B ethtool \-X|\-\-set\-rxfh\-indir
 .I ethX
 .RB [\  equal
@@ -244,59 +249,62 @@ ethtool \- query or control network driver and hardware settings
 .BI weight\  W0
 .IR W1
 .RB ...\ ]
-
+.HP
 .B ethtool \-f|\-\-flash
 .I ethX
 .RI FILE
 .RI [ N ]
-
+.HP
 .B ethtool \-u|\-\-show\-ntuple
 .I ethX
-
 .TP
 .BI ethtool\ \-U|\-\-config\-ntuple \ ethX
 .RB {
-.A3 flow-type tcp4 udp4 sctp4
-.RB [ src-ip
+.A3 flow\-type tcp4 udp4 sctp4
+.RB [ src\-ip
 .IR addr
-.RB [ src-ip-mask
+.RB [ src\-ip\-mask
 .IR mask ]]
-.RB [ dst-ip
+.RB [ dst\-ip
 .IR addr
-.RB [ dst-ip-mask
+.RB [ dst\-ip\-mask
 .IR mask ]]
-.RB [ src-port
+.RB [ src\-port
 .IR port
-.RB [ src-port-mask
+.RB [ src\-port\-mask
 .IR mask ]]
-.RB [ dst-port
+.RB [ dst\-port
 .IR port
-.RB [ dst-port-mask
+.RB [ dst\-port\-mask
 .IR mask ]]
 .br
-.RB | \ flow-type\ ether
+.RB | \ flow\-type\ ether
 .RB [ src
-.IR mac-addr
-.RB [ src-mask
+.IR mac\-addr
+.RB [ src\-mask
 .IR mask ]]
 .RB [ dst
-.IR mac-addr
-.RB [ dst-mask
+.IR mac\-addr
+.RB [ dst\-mask
 .IR mask ]]
 .RB [ proto
 .IR N
-.RB [ proto-mask
+.RB [ proto\-mask
 .IR mask ]]\ }
 .br
 .RB [ vlan
-.IR VLAN-tag
-.RB [ vlan-mask
+.IR VLAN\-tag
+.RB [ vlan\-mask
 .IR mask ]]
-.RB [ user-def
+.RB [ user\-def
 .IR data
-.RB [ user-def-mask
+.RB [ user\-def\-mask
 .IR mask ]]
 .RI action \ N
+.
+.\" Adjust lines (i.e. full justification) and hyphenate.
+.ad
+.hy
 
 .SH DESCRIPTION
 .BI ethtool
@@ -347,10 +355,10 @@ Changes the rx/tx ring parameters of the specified network device.
 .BI rx \ N
 Changes the number of ring entries for the Rx ring.
 .TP
-.BI rx-mini \ N
+.BI rx\-mini \ N
 Changes the number of ring entries for the Rx Mini ring.
 .TP
-.BI rx-jumbo \ N
+.BI rx\-jumbo \ N
 Changes the number of ring entries for the Rx Jumbo ring.
 .TP
 .BI tx \ N
@@ -433,7 +441,7 @@ blinking one or more LEDs on the specific network port.
 .B N
 Length of time to perform phys-id, in seconds.
 .TP
-.B \-P \-\-show-permaddr
+.B \-P \-\-show\-permaddr
 Queries the specified network device for permanent hardware address.
 .TP
 .B \-r \-\-negotiate
@@ -554,10 +562,10 @@ The precise meanings of these type flags differ between drivers.
 .PD
 .RE
 .TP
-.B \-n \-\-show-nfc
+.B \-n \-\-show\-nfc
 Retrieves the receive network flow classification configurations.
 .TP
-.BR rx-flow-hash \ \*(FL
+.BR rx\-flow\-hash \ \*(FL
 Retrieves the hash options for the specified network traffic type.
 .TS
 nokeep;
@@ -572,10 +580,10 @@ ah6	IPSEC AH/ESP over IPv6
 sctp6	SCTP over IPv6
 .TE
 .TP
-.B \-N \-\-config-nfc
+.B \-N \-\-config\-nfc
 Configures the receive network flow classification.
 .TP
-.BR rx-flow-hash \ \*(FL \ \*(HO
+.BR rx\-flow\-hash \ \*(FL \ \*(HO
 Configures the hash options for the specified network traffic type.
 .TS
 nokeep;
@@ -618,15 +626,15 @@ Default region is 0 which denotes all regions in the flash.
 .PD
 .RE
 .TP
-.B \-u \-\-show-ntuple
+.B \-u \-\-show\-ntuple
 Get Rx ntuple filters and actions, then display them to the user.
 .PD
 .RE
 .TP
-.B \-U \-\-config-ntuple
+.B \-U \-\-config\-ntuple
 Configure Rx ntuple filters and actions
 .TP
-.B flow-type tcp4|udp4|sctp4|ether
+.B flow\-type tcp4|udp4|sctp4|ether
 .TS
 nokeep;
 lB	lx.
@@ -636,60 +644,60 @@ sctp4	SCTP over IPv4
 ether	Ethernet
 .TE
 .TP
-.BI src-ip \ addr
+.BI src\-ip \ addr
 Includes the source IP address, specified using dotted-quad notation
 or as a single 32-bit number.
 .TP
-.BI src-ip-mask \ mask
+.BI src\-ip\-mask \ mask
 Specify a mask for the source IP address.
 .TP
-.BI dst-ip \ addr
+.BI dst\-ip \ addr
 Includes the destination IP address.
 .TP
-.BI dst-ip-mask \ mask
+.BI dst\-ip\-mask \ mask
 Specify a mask for the destination IP address.
 .TP
-.BI src-port \ port
+.BI src\-port \ port
 Includes the source port.
 .TP
-.BI src-port-mask \ mask
+.BI src\-port\-mask \ mask
 Specify a mask for the source port.
 .TP
-.BI dst-port \ port
+.BI dst\-port \ port
 Includes the destination port.
 .TP
-.BI dst-port-mask \ mask
+.BI dst\-port\-mask \ mask
 Specify a mask for the destination port.
 .TP
-.BI src \ mac-addr
+.BI src \ mac\-addr
 Includes the source MAC address, specified as 6 bytes in hexadecimal
 separated by colons.
 .TP
-.BI src-mask \ mask
+.BI src\-mask \ mask
 Specify a mask for the source MAC address.
 .TP
-.BI dst \ mac-addr
+.BI dst \ mac\-addr
 Includes the destination MAC address.
 .TP
-.BI dst-mask \ mask
+.BI dst\-mask \ mask
 Specify a mask for the destination MAC address.
 .TP
 .BI proto \ N
 Includes the Ethernet protocol number (ethertype).
 .TP
-.BI proto-mask \ mask
+.BI proto\-mask \ mask
 Specify a mask for the Ethernet protocol number.
 .TP
-.BI vlan \ VLAN-tag
+.BI vlan \ VLAN\-tag
 Includes the VLAN tag.
 .TP
-.BI vlan-mask \ mask
+.BI vlan\-mask \ mask
 Specify a mask for the VLAN tag.
 .TP
-.BI user-def \ data
+.BI user\-def \ data
 Includes 64-bits of user-specific data.
 .TP
-.BI user-def-mask \ mask
+.BI user\-def\-mask \ mask
 Specify a mask for the user-specific data.
 .TP
 .BI action \ N
