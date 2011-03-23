@@ -477,26 +477,18 @@ with it, so you can disable it if really necessary.
 .BI advertise \ N
 Sets the speed and duplex advertised by autonegotiation.  The argument is
 a hexadecimal value using one or a combination of the following values:
-.RS
-.PD 0
-.TP 3
-.BR "0x001" "    10 Half"
-.TP 3
-.BR "0x002" "    10 Full"
-.TP 3
-.BR "0x004" "    100 Half"
-.TP 3
-.BR "0x008" "    100 Full"
-.TP 3
-.BR "0x010" "    1000 Half" "(not supported by IEEE standards)"
-.TP 3
-.BR "0x020" "    1000 Full"
-.TP 3
-.BR "0x8000" "   2500 Full" "(not supported by IEEE standards)"
-.TP 3
-.BR "0x1000" "   10000 Full"
-.PD
-.RE
+.TS
+nokeep;
+lB	l	lxB.
+0x001	10 Half
+0x002	10 Full
+0x004	100 Half
+0x008	100 Full
+0x010	1000 Half	(not supported by IEEE standards)
+0x020	1000 Full
+0x8000	2500 Full	(not supported by IEEE standards)
+0x1000	10000 Full
+.TE
 .TP
 .BI phyad \ N
 PHY address.
@@ -508,34 +500,20 @@ specified, in the future further types might be added.
 .BR wol \ \*(WO
 Sets Wake-on-LAN options.  Not all devices support this.  The argument to 
 this option is a string of characters specifying which options to enable.
-.RS
-.PD 0
-.TP 3
-.B p
-Wake on PHY activity
-.TP 3
-.B u
-Wake on unicast messages
-.TP 3
-.B m
-Wake on multicast messages
-.TP 3
-.B b
-Wake on broadcast messages
-.TP 3
-.B a
-Wake on ARP
-.TP 3
-.B g
-Wake on MagicPacket\[tm]
-.TP 3
-.B s
-Enable SecureOn\[tm] password for MagicPacket\[tm]
-.TP 3
-.B d
+.TS
+nokeep;
+lB	lx.
+p	Wake on PHY activity
+u	Wake on unicast messages
+m	Wake on multicast messages
+b	Wake on broadcast messages
+a	Wake on ARP
+g	Wake on MagicPacket\[tm]
+s	Enable SecureOn\[tm] password for MagicPacket\[tm]
+d	T{
 Disable (wake on nothing).  This option clears all previous options.
-.PD
-.RE
+T}
+.TE
 .TP
 .B sopass \*(MA\c
 Sets the SecureOn\[tm] password.  The argument to this option must be 6
@@ -550,52 +528,25 @@ bytes in Ethernet MAC hex format (\*(MA).
 Sets the driver message type flags by name or number. \fItype\fR
 names the type of message to enable or disable; \fIN\fR specifies the
 new flags numerically. The defined type names and numbers are:
-.PD 0
-.TP 12
-.B drv
-0x0001  General driver status
-.TP 12
-.B probe
-0x0002  Hardware probing
-.TP 12
-.B link
-0x0004  Link state
-.TP 12
-.B timer
-0x0008  Periodic status check
-.TP 12
-.B ifdown
-0x0010  Interface being brought down
-.TP 12
-.B ifup
-0x0020  Interface being brought up
-.TP 12
-.B rx_err
-0x0040  Receive error
-.TP 12
-.B tx_err
-0x0080  Transmit error
-.TP 12
-.B tx_queued
-0x0100  Transmit queueing
-.TP 12
-.B intr
-0x0200  Interrupt handling
-.TP 12
-.B tx_done
-0x0400  Transmit completion
-.TP 12
-.B rx_status
-0x0800  Receive completion
-.TP 12
-.B pktdata
-0x1000  Packet contents
-.TP 12
-.B hw
-0x2000  Hardware status
-.TP 12
-.B wol
-0x4000  Wake-on-LAN status
+.TS
+nokeep;
+lB	l	lx.
+drv	0x0001  General driver status
+probe	0x0002  Hardware probing
+link	0x0004  Link state
+timer	0x0008  Periodic status check
+ifdown	0x0010  Interface being brought down
+ifup	0x0020  Interface being brought up
+rx_err	0x0040  Receive error
+tx_err	0x0080  Transmit error
+tx_queued	0x0100  Transmit queueing
+intr	0x0200  Interrupt handling
+tx_done	0x0400  Transmit completion
+rx_status	0x0800  Receive completion
+pktdata	0x1000  Packet contents
+hw	0x2000  Hardware status
+wol	0x4000  Wake-on-LAN status
+.TE
 .PP
 The precise meanings of these type flags differ between drivers.
 .PD
@@ -606,60 +557,39 @@ Retrieves the receive network flow classification configurations.
 .TP
 .BR rx-flow-hash \ \*(FL
 Retrieves the hash options for the specified network traffic type.
-.RS
-.PD 0
-.TP 3
-.BR "tcp4" "    TCP over IPv4"
-.TP 3
-.BR "udp4" "    UDP over IPv4"
-.TP 3
-.BR "ah4" "     IPSEC AH/ESP over IPv4"
-.TP 3
-.BR "sctp4" "   SCTP over IPv4"
-.TP 3
-.BR "tcp6" "    TCP over IPv6"
-.TP 3
-.BR "udp6" "    UDP over IPv6"
-.TP 3
-.BR "ah6" "     IPSEC AH/ESP over IPv6"
-.TP 3
-.BR "sctp6" "   SCTP over IPv6"
-.PD
-.RE
+.TS
+nokeep;
+lB	lx.
+tcp4	TCP over IPv4
+udp4	UDP over IPv4
+ah4	IPSEC AH/ESP over IPv4
+sctp4	SCTP over IPv4
+tcp6	TCP over IPv6
+udp6	UDP over IPv6
+ah6	IPSEC AH/ESP over IPv6
+sctp6	SCTP over IPv6
+.TE
 .TP
 .B \-N \-\-config-nfc
 Configures the receive network flow classification.
 .TP
 .BR rx-flow-hash \ \*(FL \ \*(HO
 Configures the hash options for the specified network traffic type.
-.RS
-.PD 0
-.TP 3
-.B m
-Hash on the Layer 2 destination address of the rx packet.
-.TP 3
-.B v
-Hash on the VLAN tag of the rx packet.
-.TP 3
-.B t
-Hash on the Layer 3 protocol field of the rx packet.
-.TP 3
-.B s
-Hash on the IP source address of the rx packet.
-.TP 3
-.B d
-Hash on the IP destination address of the rx packet.
-.TP 3
-.B f
-Hash on bytes 0 and 1 of the Layer 4 header of the rx packet.
-.TP 3
-.B n
-Hash on bytes 2 and 3 of the Layer 4 header of the rx packet.
-.TP 3
-.B r
-Discard all packets of this flow type. When this option is set, all other options are ignored.
-.PD
-.RE
+.TS
+nokeep;
+lB	lx.
+m	Hash on the Layer 2 destination address of the rx packet.
+v	Hash on the VLAN tag of the rx packet.
+t	Hash on the Layer 3 protocol field of the rx packet.
+s	Hash on the IP source address of the rx packet.
+d	Hash on the IP destination address of the rx packet.
+f	Hash on bytes 0 and 1 of the Layer 4 header of the rx packet.
+n	Hash on bytes 2 and 3 of the Layer 4 header of the rx packet.
+r	T{
+Discard all packets of this flow type. When this option is set, all
+other options are ignored.
+T}
+.TE
 .TP
 .B \-x \-\-show\-rxfh\-indir
 Retrieves the receive flow hash indirection table.
@@ -695,18 +625,14 @@ Get Rx ntuple filters and actions, then display them to the user.
 Configure Rx ntuple filters and actions
 .TP
 .B flow-type tcp4|udp4|sctp4|ether
-.RS
-.PD 0
-.TP 3
-.BR "tcp4" "    TCP over IPv4"
-.TP 3
-.BR "udp4" "    UDP over IPv4"
-.TP 3
-.BR "sctp4" "   SCTP over IPv4"
-.TP 3
-.BR "ether" "   Ethernet"
-.PD
-.RE
+.TS
+nokeep;
+lB	lx.
+tcp4	TCP over IPv4
+udp4	UDP over IPv4
+sctp4	SCTP over IPv4
+ether	Ethernet
+.TE
 .TP
 .BI src-ip \ addr
 Includes the source IP address, specified using dotted-quad notation
@@ -766,16 +692,13 @@ Specify a mask for the user-specific data.
 .TP
 .BI action \ N
 Specifies the Rx queue to send packets to, or some other action.
-.RS
-.PD 0
-.TP 3
-.BR "-2" "             Clear the filter"
-.TP 3
-.BR "-1" "             Drop the matched flow"
-.TP 3
-.BR "0 or higher" "    Rx queue to route the flow"
-.PD
-.RE
+.TS
+nokeep;
+lB	lx.
+-2	Clear the filter
+-1	Drop the matched flow
+0 or higher	Rx queue to route the flow
+.TE
 .SH BUGS
 Not supported (in part or whole) on all network drivers.
 .SH AUTHOR
