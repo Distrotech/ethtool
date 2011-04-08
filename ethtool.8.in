@@ -489,7 +489,7 @@ Sets the speed and duplex advertised by autonegotiation.  The argument is
 a hexadecimal value using one or a combination of the following values:
 .TS
 nokeep;
-lB	l	lxB.
+lB	l	lB.
 0x001	10 Half
 0x002	10 Full
 0x004	100 Half
@@ -512,7 +512,7 @@ Sets Wake-on-LAN options.  Not all devices support this.  The argument to
 this option is a string of characters specifying which options to enable.
 .TS
 nokeep;
-lB	lx.
+lB	l.
 p	Wake on PHY activity
 u	Wake on unicast messages
 m	Wake on multicast messages
@@ -540,7 +540,7 @@ names the type of message to enable or disable; \fIN\fR specifies the
 new flags numerically. The defined type names and numbers are:
 .TS
 nokeep;
-lB	l	lx.
+lB	l	l.
 drv	0x0001  General driver status
 probe	0x0002  Hardware probing
 link	0x0004  Link state
@@ -569,7 +569,7 @@ Retrieves the receive network flow classification configurations.
 Retrieves the hash options for the specified network traffic type.
 .TS
 nokeep;
-lB	lx.
+lB	l.
 tcp4	TCP over IPv4
 udp4	UDP over IPv4
 ah4	IPSEC AH/ESP over IPv4
@@ -587,7 +587,7 @@ Configures the receive network flow classification.
 Configures the hash options for the specified network traffic type.
 .TS
 nokeep;
-lB	lx.
+lB	l.
 m	Hash on the Layer 2 destination address of the rx packet.
 v	Hash on the VLAN tag of the rx packet.
 t	Hash on the Layer 3 protocol field of the rx packet.
@@ -637,7 +637,7 @@ Configure Rx ntuple filters and actions
 .B flow\-type tcp4|udp4|sctp4|ether
 .TS
 nokeep;
-lB	lx.
+lB	l.
 tcp4	TCP over IPv4
 udp4	UDP over IPv4
 sctp4	SCTP over IPv4
@@ -704,7 +704,7 @@ Specify a mask for the user-specific data.
 Specifies the Rx queue to send packets to, or some other action.
 .TS
 nokeep;
-lB	lx.
+lB	l.
 -2	Clear the filter
 -1	Drop the matched flow
 0 or higher	Rx queue to route the flow
