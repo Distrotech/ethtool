@@ -32,7 +32,6 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <stdio.h>
-#include <string.h>
 #include <errno.h>
 #include <net/if.h>
 #include <sys/utsname.h>
@@ -233,15 +232,15 @@ static struct option {
     { "-S", "--statistics", MODE_GSTATS, "Show adapter statistics" },
     { "-n", "--show-nfc", MODE_GNFC, "Show Rx network flow classification "
 		"options",
-		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
-		"tcp6|udp6|ah6|sctp6 ]\n" },
+		"		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
+		"tcp6|udp6|ah6|esp6|sctp6 ]\n" },
     { "-f", "--flash", MODE_FLASHDEV, "FILENAME " "Flash firmware image "
     		"from the specified file to a region on the device",
 		"               [ REGION-NUMBER-TO-FLASH ]\n" },
     { "-N", "--config-nfc", MODE_SNFC, "Configure Rx network flow "
 		"classification options",
-		"		[ rx-flow-hash tcp4|udp4|ah4|sctp4|"
-		"tcp6|udp6|ah6|sctp6 m|v|t|s|d|f|n|r... ]\n" },
+		"		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
+		"tcp6|udp6|ah6|esp6|sctp6 m|v|t|s|d|f|n|r... ]\n" },
     { "-x", "--show-rxfh-indir", MODE_GRXFHINDIR, "Show Rx flow hash "
 		"indirection" },
     { "-X", "--set-rxfh-indir", MODE_SRXFHINDIR, "Set Rx flow hash indirection",
@@ -783,7 +782,7 @@ static int rxflow_str_to_type(const char *str)
 		flow_type = TCP_V4_FLOW;
 	else if (!strcmp(str, "udp4"))
 		flow_type = UDP_V4_FLOW;
-	else if (!strcmp(str, "ah4"))
+	else if (!strcmp(str, "ah4") || !strcmp(str, "esp4"))
 		flow_type = AH_ESP_V4_FLOW;
 	else if (!strcmp(str, "sctp4"))
 		flow_type = SCTP_V4_FLOW;
@@ -791,7 +790,7 @@ static int rxflow_str_to_type(const char *str)
 		flow_type = TCP_V6_FLOW;
 	else if (!strcmp(str, "udp6"))
 		flow_type = UDP_V6_FLOW;
-	else if (!strcmp(str, "ah6"))
+	else if (!strcmp(str, "ah6") || !strcmp(str, "esp6"))
 		flow_type = AH_ESP_V6_FLOW;
 	else if (!strcmp(str, "sctp6"))
 		flow_type = SCTP_V6_FLOW;
@@ -1941,7 +1940,9 @@ static int dump_rxfhash(int fhash, u64 val)
 		fprintf(stdout, "SCTP over IPV4 flows");
 		break;
 	case AH_ESP_V4_FLOW:
-		fprintf(stdout, "IPSEC AH over IPV4 flows");
+	case AH_V4_FLOW:
+	case ESP_V4_FLOW:
+		fprintf(stdout, "IPSEC AH/ESP over IPV4 flows");
 		break;
 	case TCP_V6_FLOW:
 		fprintf(stdout, "TCP over IPV6 flows");
@@ -1953,7 +1954,9 @@ static int dump_rxfhash(int fhash, u64 val)
 		fprintf(stdout, "SCTP over IPV6 flows");
 		break;
 	case AH_ESP_V6_FLOW:
-		fprintf(stdout, "IPSEC AH over IPV6 flows");
+	case AH_V6_FLOW:
+	case ESP_V6_FLOW:
+		fprintf(stdout, "IPSEC AH/ESP over IPV6 flows");
 		break;
 	default:
 		break;

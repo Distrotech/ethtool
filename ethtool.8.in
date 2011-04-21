@@ -52,7 +52,7 @@
 .\"
 .\"	\(*FL - flow type values
 .\"
-.ds FL \fBtcp4\fP|\fBudp4\fP|\fBah4\fP|\fBsctp4\fP|\fBtcp6\fP|\fBudp6\fP|\fBah6\fP|\fBsctp6\fP
+.ds FL \fBtcp4\fP|\fBudp4\fP|\fBah4\fP|\fBesp4\fP|\fBsctp4\fP|\fBtcp6\fP|\fBudp6\fP|\fBah6\fP|\fBesp6\fP|\fBsctp6\fP
 .\"
 .\"	\(*HO - hash options
 .\"
@@ -572,11 +572,13 @@ nokeep;
 lB	l.
 tcp4	TCP over IPv4
 udp4	UDP over IPv4
-ah4	IPSEC AH/ESP over IPv4
+ah4	IPSEC AH over IPv4
+esp4	IPSEC ESP over IPv4
 sctp4	SCTP over IPv4
 tcp6	TCP over IPv6
 udp6	UDP over IPv6
-ah6	IPSEC AH/ESP over IPv6
+ah6	IPSEC AH over IPv6
+esp6	IPSEC ESP over IPv6
 sctp6	SCTP over IPv6
 .TE
 .TP
