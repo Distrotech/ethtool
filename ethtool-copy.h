@@ -226,6 +226,34 @@ struct ethtool_ringparam {
 	__u32	tx_pending;
 };
 
+/**
+ * struct ethtool_channels - configuring number of network channel
+ * @cmd: ETHTOOL_{G,S}CHANNELS
+ * @max_rx: Read only. Maximum number of receive channel the driver support.
+ * @max_tx: Read only. Maximum number of transmit channel the driver support.
+ * @max_other: Read only. Maximum number of other channel the driver support.
+ * @max_combined: Read only. Maximum number of combined channel the driver
+ *	support. Set of queues RX, TX or other.
+ * @rx_count: Valid values are in the range 1 to the max_rx.
+ * @tx_count: Valid values are in the range 1 to the max_tx.
+ * @other_count: Valid values are in the range 1 to the max_other.
+ * @combined_count: Valid values are in the range 1 to the max_combined.
+ *
+ * This can be used to configure RX, TX and other channels.
+ */
+
+struct ethtool_channels {
+	__u32	cmd;
+	__u32	max_rx;
+	__u32	max_tx;
+	__u32	max_other;
+	__u32	max_combined;
+	__u32	rx_count;
+	__u32	tx_count;
+	__u32	other_count;
+	__u32	combined_count;
+};
+
 /* for configuring link flow control parameters */
 struct ethtool_pauseparam {
 	__u32	cmd;	/* ETHTOOL_{G,S}PAUSEPARAM */
@@ -251,6 +279,7 @@ enum ethtool_stringset {
 	ETH_SS_STATS,
 	ETH_SS_PRIV_FLAGS,
 	ETH_SS_NTUPLE_FILTERS,
+	ETH_SS_FEATURES,
 };
 
 /* for passing string sets for data tagging */
@@ -464,6 +493,7 @@ struct ethtool_rxnfc {
 	__u32				rule_locs[0];
 };
 
+
 /**
  * struct ethtool_rxfh_indir - command to get or set RX flow hash indirection
  * @cmd: Specific command number - %ETHTOOL_GRXFHINDIR or %ETHTOOL_SRXFHINDIR
@@ -538,6 +568,92 @@ struct ethtool_flash {
 	char	data[ETHTOOL_FLASH_MAX_FILENAME];
 };
 
+/* for returning and changing feature sets */
+
+/**
+ * struct ethtool_get_features_block - block with state of 32 features
+ * @available: mask of changeable features
+ * @requested: mask of features requested to be enabled if possible
+ * @active: mask of currently enabled features
+ * @never_changed: mask of features not changeable for any device
+ */
+struct ethtool_get_features_block {
+	__u32	available;
+	__u32	requested;
+	__u32	active;
+	__u32	never_changed;
+};
+
+/**
+ * struct ethtool_gfeatures - command to get state of device's features
+ * @cmd: command number = %ETHTOOL_GFEATURES
+ * @size: in: number of elements in the features[] array;
+ *       out: number of elements in features[] needed to hold all features
+ * @features: state of features
+ */
+struct ethtool_gfeatures {
+	__u32	cmd;
+	__u32	size;
+	struct ethtool_get_features_block features[0];
+};
+
+/**
+ * struct ethtool_set_features_block - block with request for 32 features
+ * @valid: mask of features to be changed
+ * @requested: values of features to be changed
+ */
+struct ethtool_set_features_block {
+	__u32	valid;
+	__u32	requested;
+};
+
+/**
+ * struct ethtool_sfeatures - command to request change in device's features
+ * @cmd: command number = %ETHTOOL_SFEATURES
+ * @size: array size of the features[] array
+ * @features: feature change masks
+ */
+struct ethtool_sfeatures {
+	__u32	cmd;
+	__u32	size;
+	struct ethtool_set_features_block features[0];
+};
+
+/*
+ * %ETHTOOL_SFEATURES changes features present in features[].valid to the
+ * values of corresponding bits in features[].requested. Bits in .requested
+ * not set in .valid or not changeable are ignored.
+ *
+ * Returns %EINVAL when .valid contains undefined or never-changeable bits
+ * or size is not equal to required number of features words (32-bit blocks).
+ * Returns >= 0 if request was completed; bits set in the value mean:
+ *   %ETHTOOL_F_UNSUPPORTED - there were bits set in .valid that are not
+ *	changeable (not present in %ETHTOOL_GFEATURES' features[].available)
+ *	those bits were ignored.
+ *   %ETHTOOL_F_WISH - some or all changes requested were recorded but the
+ *      resulting state of bits masked by .valid is not equal to .requested.
+ *      Probably there are other device-specific constraints on some features
+ *      in the set. When %ETHTOOL_F_UNSUPPORTED is set, .valid is considered
+ *      here as though ignored bits were cleared.
+ *   %ETHTOOL_F_COMPAT - some or all changes requested were made by calling
+ *      compatibility functions. Requested offload state cannot be properly
+ *      managed by kernel.
+ *
+ * Meaning of bits in the masks are obtained by %ETHTOOL_GSSET_INFO (number of
+ * bits in the arrays - always multiple of 32) and %ETHTOOL_GSTRINGS commands
+ * for ETH_SS_FEATURES string set. First entry in the table corresponds to least
+ * significant bit in features[0] fields. Empty strings mark undefined features.
+ */
+enum ethtool_sfeatures_retval_bits {
+	ETHTOOL_F_UNSUPPORTED__BIT,
+	ETHTOOL_F_WISH__BIT,
+	ETHTOOL_F_COMPAT__BIT,
+};
+
+#define ETHTOOL_F_UNSUPPORTED   (1 << ETHTOOL_F_UNSUPPORTED__BIT)
+#define ETHTOOL_F_WISH          (1 << ETHTOOL_F_WISH__BIT)
+#define ETHTOOL_F_COMPAT        (1 << ETHTOOL_F_COMPAT__BIT)
+
 
 /* CMDs currently supported */
 #define ETHTOOL_GSET		0x00000001 /* Get settings. */
@@ -549,7 +665,9 @@ struct ethtool_flash {
 #define ETHTOOL_GMSGLVL		0x00000007 /* Get driver message level */
 #define ETHTOOL_SMSGLVL		0x00000008 /* Set driver msg level. */
 #define ETHTOOL_NWAY_RST	0x00000009 /* Restart autonegotiation. */
-#define ETHTOOL_GLINK		0x0000000a /* Get link status (ethtool_value) */
+/* Get link status for host, i.e. whether the interface *and* the
+ * physical port (if there is one) are up (ethtool_value). */
+#define ETHTOOL_GLINK		0x0000000a
 #define ETHTOOL_GEEPROM		0x0000000b /* Get EEPROM data */
 #define ETHTOOL_SEEPROM		0x0000000c /* Set EEPROM data. */
 #define ETHTOOL_GCOALESCE	0x0000000e /* Get coalesce config */
@@ -599,6 +717,11 @@ struct ethtool_flash {
 #define ETHTOOL_GSSET_INFO	0x00000037 /* Get string set info */
 #define ETHTOOL_GRXFHINDIR	0x00000038 /* Get RX flow hash indir'n table */
 #define ETHTOOL_SRXFHINDIR	0x00000039 /* Set RX flow hash indir'n table */
+
+#define ETHTOOL_GFEATURES	0x0000003a /* Get device offload settings */
+#define ETHTOOL_SFEATURES	0x0000003b /* Change device offload settings */
+#define ETHTOOL_GCHANNELS	0x0000003c /* Get no of channels */
+#define ETHTOOL_SCHANNELS	0x0000003d /* Set no of channels */
 
 /* compatibility with older code */
 #define SPARC_ETH_GSET		ETHTOOL_GSET
