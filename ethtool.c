@@ -21,19 +21,12 @@
  *   * show settings for all devices
  */
 
-#ifdef HAVE_CONFIG_H
-#  include "ethtool-config.h"
-#endif
-
-#include <sys/types.h>
+#include "ethtool-util.h"
 #include <string.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
-#include <net/if.h>
 #include <sys/utsname.h>
 #include <limits.h>
 #include <ctype.h>
@@ -43,17 +36,9 @@
 #include <arpa/inet.h>
 
 #include <linux/sockios.h>
-#include "ethtool-util.h"
 
-
-#ifndef SIOCETHTOOL
-#define SIOCETHTOOL     0x8946
-#endif
 #ifndef MAX_ADDR_LEN
 #define MAX_ADDR_LEN	32
-#endif
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
 
 #ifndef HAVE_NETIF_MSG

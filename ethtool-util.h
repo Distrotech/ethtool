@@ -3,8 +3,13 @@
 #ifndef ETHTOOL_UTIL_H__
 #define ETHTOOL_UTIL_H__
 
+#ifdef HAVE_CONFIG_H
+#include "ethtool-config.h"
+#endif
 #include <sys/types.h>
 #include <endian.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 
 /* ethtool.h expects these to be defined by <linux/types.h> */
 #ifndef HAVE_BE_TYPES
@@ -12,13 +17,13 @@ typedef __uint16_t __be16;
 typedef __uint32_t __be32;
 #endif
 
-#include "ethtool-copy.h"
-
 typedef unsigned long long u64;
 typedef __uint32_t u32;
 typedef __uint16_t u16;
 typedef __uint8_t u8;
 typedef __int32_t s32;
+
+#include "ethtool-copy.h"
 
 #if __BYTE_ORDER == __BIG_ENDIAN
 static inline u16 cpu_to_be16(u16 value)
@@ -38,6 +43,14 @@ static inline u32 cpu_to_be32(u32 value)
 {
 	return cpu_to_be16(value >> 16) | (cpu_to_be16(value) << 16);
 }
+#endif
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#endif
+
+#ifndef SIOCETHTOOL
+#define SIOCETHTOOL     0x8946
 #endif
 
 /* National Semiconductor DP83815, DP83816 */
