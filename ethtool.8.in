@@ -42,9 +42,19 @@
 [\\fB\\$1\\fP\ \\fIN\\fP]
 ..
 .\"
+.\"	.BM - same as above but has a mask field for format "[value N [m N]]"
+.\"
+.de BM
+[\\fB\\$1\\fP\ \\fIN\\fP\ [\\fBm\\fP\ \\fIN\\fP]]
+..
+.\"
 .\"	\(*MA - mac address
 .\"
 .ds MA \fIxx\fP\fB:\fP\fIyy\fP\fB:\fP\fIzz\fP\fB:\fP\fIaa\fP\fB:\fP\fIbb\fP\fB:\fP\fIcc\fP
+.\"
+.\"	\(*PA - IP address
+.\"
+.ds PA \fIx\fP\fB.\fP\fIx\fP\fB.\fP\fIx\fP\fB.\fP\fIx\fP
 .\"
 .\"	\(*WO - wol flags
 .\"
@@ -57,6 +67,12 @@
 .\"	\(*HO - hash options
 .\"
 .ds HO \fBm\fP|\fBv\fP|\fBt\fP|\fBs\fP|\fBd\fP|\fBf\fP|\fBn\fP|\fBr\fP...
+.\"
+.\"	\(*NC - Network Classifier type values
+.\"
+.ds NC \fBether\fP|\fBip4\fP|\fBtcp4\fP|\fBudp4\fP|\fBsctp4\fP|\fBah4\fP|\fBesp4\fP
+
+.\"
 .\" Start URL.
 .de UR
 .  ds m1 \\$1\"
@@ -236,8 +252,7 @@ ethtool \- query or control network driver and hardware settings
 .HP
 .B ethtool \-N
 .I ethX
-.RB [ rx\-flow\-hash \ \*(FL
-.RB \ \*(HO]
+.RB [ rx\-flow\-hash \ \*(FL \  \*(HO]
 .HP
 .B ethtool \-x|\-\-show\-rxfh\-indir
 .I ethX
@@ -257,50 +272,27 @@ ethtool \- query or control network driver and hardware settings
 .HP
 .B ethtool \-u|\-\-show\-ntuple
 .I ethX
-.TP
+.BN rule
+.HP
 .BI ethtool\ \-U|\-\-config\-ntuple \ ethX
-.RB {
-.A3 flow\-type tcp4 udp4 sctp4
-.RB [ src\-ip
-.IR addr
-.RB [ src\-ip\-mask
-.IR mask ]]
-.RB [ dst\-ip
-.IR addr
-.RB [ dst\-ip\-mask
-.IR mask ]]
-.RB [ src\-port
-.IR port
-.RB [ src\-port\-mask
-.IR mask ]]
-.RB [ dst\-port
-.IR port
-.RB [ dst\-port\-mask
-.IR mask ]]
-.br
-.RB | \ flow\-type\ ether
-.RB [ src
-.IR mac\-addr
-.RB [ src\-mask
-.IR mask ]]
-.RB [ dst
-.IR mac\-addr
-.RB [ dst\-mask
-.IR mask ]]
-.RB [ proto
-.IR N
-.RB [ proto\-mask
-.IR mask ]]\ }
-.br
-.RB [ vlan
-.IR VLAN\-tag
-.RB [ vlan\-mask
-.IR mask ]]
-.RB [ user\-def
-.IR data
-.RB [ user\-def\-mask
-.IR mask ]]
-.RI action \ N
+.BN delete
+.RB [\  flow\-type \ \*(NC
+.RB [ src \ \*(MA\ [ m \ \*(MA]]
+.RB [ dst \ \*(MA\ [ m \ \*(MA]]
+.BM proto
+.RB [ src\-ip \ \*(PA\ [ m \ \*(PA]]
+.RB [ dst\-ip \ \*(PA\ [ m \ \*(PA]]
+.BM tos
+.BM l4proto
+.BM src\-port
+.BM dst\-port
+.BM spi
+.BM vlan\-etype
+.BM vlan
+.BM user\-def
+.BN action
+.BN loc
+.RB ]
 .
 .\" Adjust lines (i.e. full justification) and hyphenate.
 .ad
@@ -630,77 +622,90 @@ Default region is 0 which denotes all regions in the flash.
 .TP
 .B \-u \-\-show\-ntuple
 Get Rx ntuple filters and actions, then display them to the user.
+.TP
+.BI rule \ N
+Retrieves the RX classification rule with the given ID.
 .PD
 .RE
 .TP
 .B \-U \-\-config\-ntuple
 Configure Rx ntuple filters and actions
 .TP
-.B flow\-type tcp4|udp4|sctp4|ether
+.BI delete \ N
+Deletes the RX classification rule with the given ID.
+.TP
+.B flow\-type \*(NC
 .TS
 nokeep;
 lB	l.
+ether	Ethernet
+ip4	Raw IPv4
 tcp4	TCP over IPv4
 udp4	UDP over IPv4
 sctp4	SCTP over IPv4
-ether	Ethernet
+ah4	IPSEC AH over IPv4
+esp4	IPSEC ESP over IPv4
 .TE
+.PP
+All fields below that include a mask option may either use "m" to
+indicate a mask, or may use the full name of the field with a "-mask"
+appended to indicate that this is the mask for a given field.
+.PD
+.RE
 .TP
-.BI src\-ip \ addr
-Includes the source IP address, specified using dotted-quad notation
-or as a single 32-bit number.
-.TP
-.BI src\-ip\-mask \ mask
-Specify a mask for the source IP address.
-.TP
-.BI dst\-ip \ addr
-Includes the destination IP address.
-.TP
-.BI dst\-ip\-mask \ mask
-Specify a mask for the destination IP address.
-.TP
-.BI src\-port \ port
-Includes the source port.
-.TP
-.BI src\-port\-mask \ mask
-Specify a mask for the source port.
-.TP
-.BI dst\-port \ port
-Includes the destination port.
-.TP
-.BI dst\-port\-mask \ mask
-Specify a mask for the destination port.
-.TP
-.BI src \ mac\-addr
+.BR src \ \*(MA\ [ m \ \*(MA]
 Includes the source MAC address, specified as 6 bytes in hexadecimal
-separated by colons.
+separated by colons, along with an optional mask.  Valid only for
+flow-type ether.
 .TP
-.BI src\-mask \ mask
-Specify a mask for the source MAC address.
+.BR dst \ \*(MA\ [ m \ \*(MA]
+Includes the destination MAC address, specified as 6 bytes in hexadecimal
+separated by colons, along with an optional mask.  Valid only for
+flow-type ether.
 .TP
-.BI dst \ mac\-addr
-Includes the destination MAC address.
+.BI proto \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Includes the Ethernet protocol number (ethertype) and an optional mask.
+Valid only for flow-type ether.
 .TP
-.BI dst\-mask \ mask
-Specify a mask for the destination MAC address.
+.BR src\-ip \ \*(PA\ [ m \ \*(PA]
+Specify the source IP address of the incoming packet to match along with
+an optional mask.  Valid for all IPv4 based flow-types.
 .TP
-.BI proto \ N
-Includes the Ethernet protocol number (ethertype).
+.BR dst\-ip \ \*(PA\ [ m \ \*(PA]
+Specify the destination IP address of the incoming packet to match along
+with an optional mask.  Valid for all IPv4 based flow-types.
 .TP
-.BI proto\-mask \ mask
-Specify a mask for the Ethernet protocol number.
+.BI tos \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Specify the value of the Type of Service field in the incoming packet to
+match along with an optional mask.  Applies to all IPv4 based flow-types.
 .TP
-.BI vlan \ VLAN\-tag
-Includes the VLAN tag.
+.BI l4proto \ N \\fR\ [\\fPl4m \ N \\fR]\\fP
+Includes the layer 4 protocol number and optional mask.  Valid only for
+flow-type ip4.
 .TP
-.BI vlan\-mask \ mask
-Specify a mask for the VLAN tag.
+.BI src\-port \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Specify the value of the source port field (applicable to TCP/UDP packets)
+in the incoming packet to match along with an optional mask.  Valid for
+flow-types ip4, tcp4, udp4, and sctp4.
 .TP
-.BI user\-def \ data
-Includes 64-bits of user-specific data.
+.BI dst\-port \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Specify the value of the destination port field (applicable to TCP/UDP
+packets)in the incoming packet to match along with an optional mask.
+Valid for flow-types ip4, tcp4, udp4, and sctp4.
 .TP
-.BI user\-def\-mask \ mask
-Specify a mask for the user-specific data.
+.BI spi \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Specify the value of the security parameter index field (applicable to
+AH/ESP packets)in the incoming packet to match along with an optional
+mask.  Valid for flow-types ip4, ah4, and esp4.
+.TP
+.BI vlan\-etype \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Includes the VLAN tag Ethertype and an optional mask.
+.TP
+.BI vlan \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Includes the VLAN tag and an optional mask.
+.TP
+.BI user\-def \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Includes 64-bits of user-specific data and an optional mask.
 .TP
 .BI action \ N
 Specifies the Rx queue to send packets to, or some other action.
@@ -711,6 +716,11 @@ lB	l.
 -1	Drop the matched flow
 0 or higher	Rx queue to route the flow
 .TE
+.TP
+.BI loc \ N
+Specify the location/ID to insert the rule. This will overwrite
+any rule present in that location and will not go through any
+of the rule ordering process.
 .SH BUGS
 Not supported (in part or whole) on all network drivers.
 .SH AUTHOR
@@ -724,7 +734,8 @@ Jakub Jelinek,
 Andre Majorel,
 Eli Kupermann,
 Scott Feldman,
-Andi Kleen.
+Andi Kleen,
+Alexander Duyck.
 .SH AVAILABILITY
 .B ethtool
 is available from

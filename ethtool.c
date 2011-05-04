@@ -6,6 +6,7 @@
  * Kernel 2.4 update Copyright 2001 Jeff Garzik <jgarzik@mandrakesoft.com>
  * Wake-on-LAN,natsemi,misc support by Tim Hockin <thockin@sun.com>
  * Portions Copyright 2002 Intel
+ * Portions Copyright (C) Sun Microsystems 2008
  * do_test support by Eli Kupermann <eli.kupermann@intel.com>
  * ETHTOOL_PHYS_ID support by Chris Leech <christopher.leech@intel.com>
  * e1000 support by Scott Feldman <scott.feldman@intel.com>
@@ -14,6 +15,7 @@
  * amd8111e support by Reeja John <reeja.john@amd.com>
  * long arguments by Andi Kleen.
  * SMSC LAN911x support by Steve Glendinning <steve.glendinning@smsc.com>
+ * Rx Network Flow Control configuration support <santwona.behera@sun.com>
  * Various features by Ben Hutchings <bhutchings@solarflare.com>;
  *	Copyright 2009, 2010 Solarflare Communications
  *
@@ -85,14 +87,13 @@ static int do_gstats(int fd, struct ifreq *ifr);
 static int rxflow_str_to_type(const char *str);
 static int parse_rxfhashopts(char *optstr, u32 *data);
 static char *unparse_rxfhashopts(u64 opts);
-static void parse_rxntupleopts(int argc, char **argp, int first_arg);
 static int dump_rxfhash(int fhash, u64 val);
 static int do_srxclass(int fd, struct ifreq *ifr);
 static int do_grxclass(int fd, struct ifreq *ifr);
 static int do_grxfhindir(int fd, struct ifreq *ifr);
 static int do_srxfhindir(int fd, struct ifreq *ifr);
-static int do_srxntuple(int fd, struct ifreq *ifr);
-static int do_grxntuple(int fd, struct ifreq *ifr);
+static int do_srxclsrule(int fd, struct ifreq *ifr);
+static int do_grxclsrule(int fd, struct ifreq *ifr);
 static int do_flash(int fd, struct ifreq *ifr);
 static int do_permaddr(int fd, struct ifreq *ifr);
 
@@ -123,8 +124,8 @@ static enum {
 	MODE_SNFC,
 	MODE_GRXFHINDIR,
 	MODE_SRXFHINDIR,
-	MODE_SNTUPLE,
-	MODE_GNTUPLE,
+	MODE_SCLSRULE,
+	MODE_GCLSRULE,
 	MODE_FLASHDEV,
 	MODE_PERMADDR,
 } mode = MODE_GSET;
@@ -230,22 +231,28 @@ static struct option {
 		"indirection" },
     { "-X", "--set-rxfh-indir", MODE_SRXFHINDIR, "Set Rx flow hash indirection",
 		"		equal N | weight W0 W1 ...\n" },
-    { "-U", "--config-ntuple", MODE_SNTUPLE, "Configure Rx ntuple filters "
+    { "-U", "--config-ntuple", MODE_SCLSRULE, "Configure Rx ntuple filters "
 		"and actions",
-		"		{ flow-type tcp4|udp4|sctp4\n"
-		"		  [ src-ip ADDR [src-ip-mask MASK] ]\n"
-		"		  [ dst-ip ADDR [dst-ip-mask MASK] ]\n"
-		"		  [ src-port PORT [src-port-mask MASK] ]\n"
-		"		  [ dst-port PORT [dst-port-mask MASK] ]\n"
-		"		| flow-type ether\n"
-		"		  [ src MAC-ADDR [src-mask MASK] ]\n"
-		"		  [ dst MAC-ADDR [dst-mask MASK] ]\n"
-		"		  [ proto N [proto-mask MASK] ] }\n"
-		"		[ vlan VLAN-TAG [vlan-mask MASK] ]\n"
-		"		[ user-def DATA [user-def-mask MASK] ]\n"
-		"		action N\n" },
-    { "-u", "--show-ntuple", MODE_GNTUPLE,
-		"Get Rx ntuple filters and actions\n" },
+		"		[ delete %d ] |\n"
+		"		[ flow-type ether|ip4|tcp4|udp4|sctp4|ah4|esp4\n"
+		"			[ src %x:%x:%x:%x:%x:%x [m %x:%x:%x:%x:%x:%x] ]\n"
+		"			[ dst %x:%x:%x:%x:%x:%x [m %x:%x:%x:%x:%x:%x] ]\n"
+		"			[ proto %d [m %x] ]\n"
+		"			[ src-ip %d.%d.%d.%d [m %d.%d.%d.%d] ]\n"
+		"			[ dst-ip %d.%d.%d.%d [m %d.%d.%d.%d] ]\n"
+		"			[ tos %d [m %x] ]\n"
+		"			[ l4proto %d [m %x] ]\n"
+		"			[ src-port %d [m %x] ]\n"
+		"			[ dst-port %d [m %x] ]\n"
+		"			[ spi %d [m %x] ]\n"
+		"			[ vlan-etype %x [m %x] ]\n"
+		"			[ vlan %x [m %x] ]\n"
+		"			[ user-def %x [m %x] ]\n"
+		"			[ action %d ]\n"
+		"			[ loc %d]]\n" },
+    { "-u", "--show-ntuple", MODE_GCLSRULE,
+		"Get Rx ntuple filters and actions",
+		"		[ rule %d ]\n"},
     { "-P", "--show-permaddr", MODE_PERMADDR,
 		"Show permanent hardware address" },
     { "-h", "--help", MODE_HELP, "Show this help" },
@@ -371,26 +378,6 @@ static u32 rx_fhash_val = 0;
 static int rx_fhash_changed = 0;
 static int rxfhindir_equal = 0;
 static char **rxfhindir_weight = NULL;
-static int sntuple_changed = 0;
-static struct ethtool_rx_ntuple_flow_spec ntuple_fs;
-static int ntuple_ip4src_seen = 0;
-static int ntuple_ip4src_mask_seen = 0;
-static int ntuple_ip4dst_seen = 0;
-static int ntuple_ip4dst_mask_seen = 0;
-static int ntuple_psrc_seen = 0;
-static int ntuple_psrc_mask_seen = 0;
-static int ntuple_pdst_seen = 0;
-static int ntuple_pdst_mask_seen = 0;
-static int ntuple_ether_dst_seen = 0;
-static int ntuple_ether_dst_mask_seen = 0;
-static int ntuple_ether_src_seen = 0;
-static int ntuple_ether_src_mask_seen = 0;
-static int ntuple_ether_proto_seen = 0;
-static int ntuple_ether_proto_mask_seen = 0;
-static int ntuple_vlan_tag_seen = 0;
-static int ntuple_vlan_tag_mask_seen = 0;
-static int ntuple_user_def_seen = 0;
-static int ntuple_user_def_mask_seen = 0;
 static char *flash_file = NULL;
 static int flash = -1;
 static int flash_region = -1;
@@ -398,6 +385,11 @@ static int flash_region = -1;
 static int msglvl_changed;
 static u32 msglvl_wanted = 0;
 static u32 msglvl_mask = 0;
+
+static int rx_class_rule_get = -1;
+static int rx_class_rule_del = -1;
+static int rx_class_rule_added = 0;
+static struct ethtool_rx_flow_spec rx_rule_fs;
 
 static enum {
 	ONLINE=0,
@@ -509,58 +501,6 @@ static struct cmdline_info cmdline_coalesce[] = {
 	{ "rx-frames-high", CMDL_S32, &coal_rx_frames_high_wanted, &ecoal.rx_max_coalesced_frames_high },
 	{ "tx-usecs-high", CMDL_S32, &coal_tx_usec_high_wanted, &ecoal.tx_coalesce_usecs_high },
 	{ "tx-frames-high", CMDL_S32, &coal_tx_frames_high_wanted, &ecoal.tx_max_coalesced_frames_high },
-};
-
-static struct cmdline_info cmdline_ntuple_tcp_ip4[] = {
-	{ "src-ip", CMDL_IP4, &ntuple_fs.h_u.tcp_ip4_spec.ip4src, NULL,
-	  0, &ntuple_ip4src_seen },
-	{ "src-ip-mask", CMDL_IP4, &ntuple_fs.m_u.tcp_ip4_spec.ip4src, NULL,
-	  0, &ntuple_ip4src_mask_seen },
-	{ "dst-ip", CMDL_IP4, &ntuple_fs.h_u.tcp_ip4_spec.ip4dst, NULL,
-	  0, &ntuple_ip4dst_seen },
-	{ "dst-ip-mask", CMDL_IP4, &ntuple_fs.m_u.tcp_ip4_spec.ip4dst, NULL,
-	  0, &ntuple_ip4dst_mask_seen },
-	{ "src-port", CMDL_BE16, &ntuple_fs.h_u.tcp_ip4_spec.psrc, NULL,
-	  0, &ntuple_psrc_seen },
-	{ "src-port-mask", CMDL_BE16, &ntuple_fs.m_u.tcp_ip4_spec.psrc, NULL,
-	  0, &ntuple_psrc_mask_seen },
-	{ "dst-port", CMDL_BE16, &ntuple_fs.h_u.tcp_ip4_spec.pdst, NULL,
-	  0, &ntuple_pdst_seen },
-	{ "dst-port-mask", CMDL_BE16, &ntuple_fs.m_u.tcp_ip4_spec.pdst, NULL,
-	  0, &ntuple_pdst_mask_seen },
-	{ "vlan", CMDL_U16, &ntuple_fs.vlan_tag, NULL,
-	  0, &ntuple_vlan_tag_seen },
-	{ "vlan-mask", CMDL_U16, &ntuple_fs.vlan_tag_mask, NULL,
-	  0, &ntuple_vlan_tag_mask_seen },
-	{ "user-def", CMDL_U64, &ntuple_fs.data, NULL,
-	  0, &ntuple_user_def_seen },
-	{ "user-def-mask", CMDL_U64, &ntuple_fs.data_mask, NULL,
-	  0, &ntuple_user_def_mask_seen },
-	{ "action", CMDL_S32, &ntuple_fs.action, NULL },
-};
-
-static struct cmdline_info cmdline_ntuple_ether[] = {
-	{ "dst", CMDL_MAC, ntuple_fs.h_u.ether_spec.h_dest, NULL,
-	  0, &ntuple_ether_dst_seen },
-	{ "dst-mask", CMDL_MAC, ntuple_fs.m_u.ether_spec.h_dest, NULL,
-	  0, &ntuple_ether_dst_mask_seen },
-	{ "src", CMDL_MAC, ntuple_fs.h_u.ether_spec.h_source, NULL,
-	  0, &ntuple_ether_src_seen },
-	{ "src-mask", CMDL_MAC, ntuple_fs.m_u.ether_spec.h_source, NULL,
-	  0, &ntuple_ether_src_mask_seen },
-	{ "proto", CMDL_BE16, &ntuple_fs.h_u.ether_spec.h_proto, NULL,
-	  0, &ntuple_ether_proto_seen },
-	{ "proto-mask", CMDL_BE16, &ntuple_fs.m_u.ether_spec.h_proto, NULL,
-	  0, &ntuple_ether_proto_mask_seen },
-	{ "vlan", CMDL_U16, &ntuple_fs.vlan_tag, NULL,
-	  0, &ntuple_vlan_tag_seen },
-	{ "vlan-mask", CMDL_U16, &ntuple_fs.vlan_tag_mask, NULL,
-	  0, &ntuple_vlan_tag_mask_seen },
-	{ "user-def", CMDL_U64, &ntuple_fs.data, NULL,
-	  0, &ntuple_user_def_seen },
-	{ "user-def-mask", CMDL_U64, &ntuple_fs.data_mask, NULL,
-	  0, &ntuple_user_def_mask_seen },
-	{ "action", CMDL_S32, &ntuple_fs.action, NULL },
 };
 
 static struct cmdline_info cmdline_msglvl[] = {
@@ -833,8 +773,8 @@ static void parse_cmdline(int argc, char **argp)
 			    (mode == MODE_SNFC) ||
 			    (mode == MODE_GRXFHINDIR) ||
 			    (mode == MODE_SRXFHINDIR) ||
-			    (mode == MODE_SNTUPLE) ||
-			    (mode == MODE_GNTUPLE) ||
+			    (mode == MODE_SCLSRULE) ||
+			    (mode == MODE_GCLSRULE) ||
 			    (mode == MODE_PHYS_ID) ||
 			    (mode == MODE_FLASHDEV) ||
 			    (mode == MODE_PERMADDR)) {
@@ -918,16 +858,45 @@ static void parse_cmdline(int argc, char **argp)
 				i = argc;
 				break;
 			}
-			if (mode == MODE_SNTUPLE) {
+			if (mode == MODE_SCLSRULE) {
 				if (!strcmp(argp[i], "flow-type")) {
 					i += 1;
 					if (i >= argc) {
 						exit_bad_args();
 						break;
 					}
-					parse_rxntupleopts(argc, argp, i);
-					i = argc;
-					break;
+					if (rxclass_parse_ruleopts(&argp[i],
+							argc - i,
+							&rx_rule_fs) < 0) {
+						exit_bad_args();
+					} else {
+						i = argc;
+						rx_class_rule_added = 1;
+					}
+				} else if (!strcmp(argp[i], "delete")) {
+					i += 1;
+					if (i >= argc) {
+						exit_bad_args();
+						break;
+					}
+					rx_class_rule_del =
+						get_uint_range(argp[i], 0,
+							       INT_MAX);
+				} else {
+					exit_bad_args();
+				}
+				break;
+			}
+			if (mode == MODE_GCLSRULE) {
+				if (!strcmp(argp[i], "rule")) {
+					i += 1;
+					if (i >= argc) {
+						exit_bad_args();
+						break;
+					}
+					rx_class_rule_get =
+						get_uint_range(argp[i], 0,
+							       INT_MAX);
 				} else {
 					exit_bad_args();
 				}
@@ -1598,66 +1567,6 @@ static char *unparse_rxfhashopts(u64 opts)
 	return buf;
 }
 
-static void parse_rxntupleopts(int argc, char **argp, int i)
-{
-	ntuple_fs.flow_type = rxflow_str_to_type(argp[i]);
-
-	switch (ntuple_fs.flow_type) {
-	case TCP_V4_FLOW:
-	case UDP_V4_FLOW:
-	case SCTP_V4_FLOW:
-		parse_generic_cmdline(argc, argp, i + 1,
-				      &sntuple_changed,
-				      cmdline_ntuple_tcp_ip4,
-				      ARRAY_SIZE(cmdline_ntuple_tcp_ip4));
-		if (!ntuple_ip4src_seen)
-			ntuple_fs.m_u.tcp_ip4_spec.ip4src = 0xffffffff;
-		if (!ntuple_ip4dst_seen)
-			ntuple_fs.m_u.tcp_ip4_spec.ip4dst = 0xffffffff;
-		if (!ntuple_psrc_seen)
-			ntuple_fs.m_u.tcp_ip4_spec.psrc = 0xffff;
-		if (!ntuple_pdst_seen)
-			ntuple_fs.m_u.tcp_ip4_spec.pdst = 0xffff;
-		ntuple_fs.m_u.tcp_ip4_spec.tos = 0xff;
-		break;
-	case ETHER_FLOW:
-		parse_generic_cmdline(argc, argp, i + 1,
-				      &sntuple_changed,
-				      cmdline_ntuple_ether,
-				      ARRAY_SIZE(cmdline_ntuple_ether));
-		if (!ntuple_ether_dst_seen)
-			memset(ntuple_fs.m_u.ether_spec.h_dest, 0xff, ETH_ALEN);
-		if (!ntuple_ether_src_seen)
-			memset(ntuple_fs.m_u.ether_spec.h_source, 0xff,
-			       ETH_ALEN);
-		if (!ntuple_ether_proto_seen)
-			ntuple_fs.m_u.ether_spec.h_proto = 0xffff;
-		break;
-	default:
-		fprintf(stderr, "Unsupported flow type \"%s\"\n", argp[i]);
-		exit(106);
-		break;
-	}
-
-	if (!ntuple_vlan_tag_seen)
-		ntuple_fs.vlan_tag_mask = 0xffff;
-	if (!ntuple_user_def_seen)
-		ntuple_fs.data_mask = 0xffffffffffffffffULL;
-
-	if ((ntuple_ip4src_mask_seen && !ntuple_ip4src_seen) ||
-	    (ntuple_ip4dst_mask_seen && !ntuple_ip4dst_seen) ||
-	    (ntuple_psrc_mask_seen && !ntuple_psrc_seen) ||
-	    (ntuple_pdst_mask_seen && !ntuple_pdst_seen) ||
-	    (ntuple_ether_dst_mask_seen && !ntuple_ether_dst_seen) ||
-	    (ntuple_ether_src_mask_seen && !ntuple_ether_src_seen) ||
-	    (ntuple_ether_proto_mask_seen && !ntuple_ether_proto_seen) ||
-	    (ntuple_vlan_tag_mask_seen && !ntuple_vlan_tag_seen) ||
-	    (ntuple_user_def_mask_seen && !ntuple_user_def_seen)) {
-		fprintf(stderr, "Cannot specify mask without value\n");
-		exit(107);
-	}
-}
-
 static struct {
 	const char *name;
 	int (*func)(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
@@ -2019,10 +1928,10 @@ static int doit(void)
 		return do_grxfhindir(fd, &ifr);
 	} else if (mode == MODE_SRXFHINDIR) {
 		return do_srxfhindir(fd, &ifr);
-	} else if (mode == MODE_SNTUPLE) {
-		return do_srxntuple(fd, &ifr);
-	} else if (mode == MODE_GNTUPLE) {
-		return do_grxntuple(fd, &ifr);
+	} else if (mode == MODE_SCLSRULE) {
+		return do_srxclsrule(fd, &ifr);
+	} else if (mode == MODE_GCLSRULE) {
+		return do_grxclsrule(fd, &ifr);
 	} else if (mode == MODE_FLASHDEV) {
 		return do_flash(fd, &ifr);
 	} else if (mode == MODE_PERMADDR) {
@@ -3155,21 +3064,143 @@ static int do_permaddr(int fd, struct ifreq *ifr)
 	return err;
 }
 
+static int flow_spec_to_ntuple(struct ethtool_rx_flow_spec *fsp,
+			       struct ethtool_rx_ntuple_flow_spec *ntuple)
+{
+	size_t i;
+
+	/* verify location is not specified */
+	if (fsp->location != RX_CLS_LOC_UNSPEC)
+		return -1;
+
+	/* verify ring cookie can transfer to action */
+	if (fsp->ring_cookie > INT_MAX && fsp->ring_cookie < (u64)(-2))
+		return -1;
+
+	/* verify only one field is setting data field */
+	if ((fsp->flow_type & FLOW_EXT) &&
+	    (fsp->m_ext.data[0] || fsp->m_ext.data[1]) &&
+	    fsp->m_ext.vlan_etype)
+		return -1;
+
+	/* Set entire ntuple to ~0 to guarantee all masks are set */
+	memset(ntuple, ~0, sizeof(*ntuple));
+
+	/* set non-filter values */
+	ntuple->flow_type = fsp->flow_type;
+	ntuple->action = fsp->ring_cookie;
+
+	/*
+	 * Copy over header union, they are identical in layout however
+	 * the ntuple union contains additional padding on the end
+	 */
+	memcpy(&ntuple->h_u, &fsp->h_u, sizeof(fsp->h_u));
+
+	/*
+	 * The same rule mentioned above applies to the mask union.  However,
+	 * in addition we need to invert the mask bits to match the ntuple
+	 * mask which is 1 for masked, versus 0 for masked as seen in nfc.
+	 */
+	memcpy(&ntuple->m_u, &fsp->m_u, sizeof(fsp->m_u));
+	for (i = 0; i < sizeof(fsp->m_u); i++)
+		ntuple->m_u.hdata[i] ^= 0xFF;
+
+	/* copy extended fields */
+	if (fsp->flow_type & FLOW_EXT) {
+		ntuple->vlan_tag =
+			ntohs(fsp->h_ext.vlan_tci);
+		ntuple->vlan_tag_mask =
+			~ntohs(fsp->m_ext.vlan_tci);
+		if (fsp->m_ext.vlan_etype) {
+			/*
+			 * vlan_etype and user data are mutually exclusive
+			 * in ntuple configuration as they occupy the same
+			 * space.
+			 */
+			if (fsp->m_ext.data[0] || fsp->m_ext.data[1])
+				return -1;
+			ntuple->data =
+				ntohl(fsp->h_ext.vlan_etype);
+			ntuple->data_mask =
+				~(u64)ntohl(fsp->m_ext.vlan_etype);
+		} else {
+			ntuple->data =
+				(u64)ntohl(fsp->h_ext.data[0]) << 32;
+			ntuple->data |=
+				(u64)ntohl(fsp->h_ext.data[1]);
+			ntuple->data_mask =
+				(u64)ntohl(~fsp->m_ext.data[0]) << 32;
+			ntuple->data_mask |=
+				(u64)ntohl(~fsp->m_ext.data[1]);
+		}
+	}
+
+	return 0;
+}
+
 static int do_srxntuple(int fd, struct ifreq *ifr)
+{
+	struct ethtool_rx_ntuple ntuplecmd;
+	struct ethtool_value eval;
+	int err;
+
+	/* attempt to convert the flow classifier to an ntuple classifier */
+	err = flow_spec_to_ntuple(&rx_rule_fs, &ntuplecmd.fs);
+	if (err)
+		return -1;
+
+	/*
+	 * Check to see if the flag is set for N-tuple, this allows
+	 * us to avoid the possible EINVAL response for the N-tuple
+	 * flag not being set on the device
+	 */
+	eval.cmd = ETHTOOL_GFLAGS;
+	ifr->ifr_data = (caddr_t)&eval;
+	err = ioctl(fd, SIOCETHTOOL, ifr);
+	if (err || !(eval.data & ETH_FLAG_NTUPLE))
+		return -1;
+
+	/* send rule via N-tuple */
+	ntuplecmd.cmd = ETHTOOL_SRXNTUPLE;
+	ifr->ifr_data = (caddr_t)&ntuplecmd;
+	err = ioctl(fd, SIOCETHTOOL, ifr);
+
+	/*
+	 * Display error only if reponse is something other than op not
+	 * supported.  It is possible that the interface uses the network
+	 * flow classifier interface instead of N-tuple. 
+	 */ 
+	if (err && errno != EOPNOTSUPP)
+		perror("Cannot add new rule via N-tuple");
+
+	return err;
+}
+
+static int do_srxclsrule(int fd, struct ifreq *ifr)
 {
 	int err;
 
-	if (sntuple_changed) {
-		struct ethtool_rx_ntuple ntuplecmd;
+	if (rx_class_rule_added) {
+		/* attempt to add rule via N-tuple specifier */
+		err = do_srxntuple(fd, ifr);
+		if (!err)
+			return 0;
 
-		ntuplecmd.cmd = ETHTOOL_SRXNTUPLE;
-		memcpy(&ntuplecmd.fs, &ntuple_fs,
-		       sizeof(struct ethtool_rx_ntuple_flow_spec));
+		/* attempt to add rule via network flow classifier */
+		err = rxclass_rule_ins(fd, ifr, &rx_rule_fs);
+		if (err < 0) {
+			fprintf(stderr, "Cannot insert"
+				" classification rule\n");
+			return 1;
+		}
+	} else if (rx_class_rule_del >= 0) {
+		err = rxclass_rule_del(fd, ifr, rx_class_rule_del);
 
-		ifr->ifr_data = (caddr_t)&ntuplecmd;
-		err = ioctl(fd, SIOCETHTOOL, ifr);
-		if (err < 0)
-			perror("Cannot add new RX n-tuple filter");
+		if (err < 0) {
+			fprintf(stderr, "Cannot delete"
+				" classification rule\n");
+			return 1;
+		}
 	} else {
 		exit_bad_args();
 	}
@@ -3177,9 +3208,32 @@ static int do_srxntuple(int fd, struct ifreq *ifr)
 	return 0;
 }
 
-static int do_grxntuple(int fd, struct ifreq *ifr)
+static int do_grxclsrule(int fd, struct ifreq *ifr)
 {
-	return 0;
+	struct ethtool_rxnfc nfccmd;
+	int err;
+
+	if (rx_class_rule_get >= 0) {
+		err = rxclass_rule_get(fd, ifr, rx_class_rule_get);
+		if (err < 0)
+			fprintf(stderr, "Cannot get RX classification rule\n");
+		return err ? 1 : 0;
+	}
+
+	nfccmd.cmd = ETHTOOL_GRXRINGS;
+	ifr->ifr_data = (caddr_t)&nfccmd;
+	err = ioctl(fd, SIOCETHTOOL, ifr);
+	if (err < 0)
+		perror("Cannot get RX rings");
+	else
+		fprintf(stdout, "%d RX rings available\n",
+			(int)nfccmd.data);
+
+	err = rxclass_rule_getall(fd, ifr);
+	if (err < 0)
+		fprintf(stderr, "RX classification rule retrieval failed\n");
+
+	return err ? 1 : 0;
 }
 
 static int send_ioctl(int fd, struct ifreq *ifr)

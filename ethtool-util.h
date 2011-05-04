@@ -65,6 +65,8 @@ static inline u64 cpu_to_be64(u64 value)
 #define SIOCETHTOOL     0x8946
 #endif
 
+#define	RX_CLS_LOC_UNSPEC	0xffffffffUL
+
 /* National Semiconductor DP83815, DP83816 */
 int natsemi_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 int natsemi_dump_eeprom(struct ethtool_drvinfo *info,
@@ -128,4 +130,14 @@ int sfc_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 int st_mac100_dump_regs(struct ethtool_drvinfo *info,
 			struct ethtool_regs *regs);
 int st_gmac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
-#endif
+
+/* Rx flow classification */
+int rxclass_parse_ruleopts(char **optstr, int opt_cnt,
+			   struct ethtool_rx_flow_spec *fsp);
+int rxclass_rule_getall(int fd, struct ifreq *ifr);
+int rxclass_rule_get(int fd, struct ifreq *ifr, __u32 loc);
+int rxclass_rule_ins(int fd, struct ifreq *ifr,
+		     struct ethtool_rx_flow_spec *fsp);
+int rxclass_rule_del(int fd, struct ifreq *ifr, __u32 loc);
+
+#endif /* ETHTOOL_UTIL_H__ */
