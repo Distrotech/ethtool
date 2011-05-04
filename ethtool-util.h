@@ -15,6 +15,7 @@
 #ifndef HAVE_BE_TYPES
 typedef __uint16_t __be16;
 typedef __uint32_t __be32;
+typedef unsigned long long __be64;
 #endif
 
 typedef unsigned long long u64;
@@ -28,11 +29,15 @@ typedef __int32_t s32;
 #if __BYTE_ORDER == __BIG_ENDIAN
 static inline u16 cpu_to_be16(u16 value)
 {
-    return value;
+	return value;
 }
 static inline u32 cpu_to_be32(u32 value)
 {
-    return value;
+	return value;
+}
+static inline u64 cpu_to_be64(u64 value)
+{
+	return value;
 }
 #else
 static inline u16 cpu_to_be16(u16 value)
@@ -43,7 +48,14 @@ static inline u32 cpu_to_be32(u32 value)
 {
 	return cpu_to_be16(value >> 16) | (cpu_to_be16(value) << 16);
 }
+static inline u64 cpu_to_be64(u64 value)
+{
+	return cpu_to_be32(value >> 32) | ((u64)cpu_to_be32(value) << 32);
+}
 #endif
+
+#define ntohll cpu_to_be64
+#define htonll cpu_to_be64
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
