@@ -62,8 +62,8 @@ static const struct cmd_expect cmd_expect_get_features_off[] = {
 	{ &cmd_gtso_off, 4, 0, &cmd_gtso_off, sizeof(cmd_gtso_off) },
 	{ &cmd_gufo_off, 4, 0, &cmd_gufo_off, sizeof(cmd_gufo_off) },
 	{ &cmd_ggso_off, 4, 0, &cmd_ggso_off, sizeof(cmd_ggso_off) },
-	{ &cmd_gflags_off, 4, 0, &cmd_gflags_off, sizeof(cmd_gflags_off) },
 	{ &cmd_ggro_off, 4,0, &cmd_ggro_off, sizeof(cmd_ggro_off) },
+	{ &cmd_gflags_off, 4, 0, &cmd_gflags_off, sizeof(cmd_gflags_off) },
 	{ 0, 0, 0, 0, 0 }
 };
 
@@ -74,9 +74,9 @@ static const struct cmd_expect cmd_expect_set_features_off[] = {
 	{ &cmd_stso_off, sizeof(cmd_stso_off), 0, 0, 0 },
 	{ &cmd_sufo_off, sizeof(cmd_sufo_off), 0, 0, 0 },
 	{ &cmd_sgso_off, sizeof(cmd_sgso_off), 0, 0, 0 },
+	{ &cmd_sgro_off, sizeof(cmd_sgro_off), 0, 0, 0 },
 	{ &cmd_gflags_on, 4, 0, &cmd_gflags_on, sizeof(cmd_sflags_on) },
 	{ &cmd_sflags_off, sizeof(cmd_sflags_off), 0, 0, 0 },
-	{ &cmd_sgro_off, sizeof(cmd_sgro_off), 0, 0, 0 },
 	{ 0, 0, 0, 0, 0 }
 };
 
@@ -87,9 +87,9 @@ static const struct cmd_expect cmd_expect_set_features_on[] = {
 	{ &cmd_stso_on, sizeof(cmd_stso_on), 0, 0, 0 },
 	{ &cmd_sufo_on, sizeof(cmd_sufo_on), 0, 0, 0 },
 	{ &cmd_sgso_on, sizeof(cmd_sgso_on), 0, 0, 0 },
+	{ &cmd_sgro_on, sizeof(cmd_sgro_on), 0, 0, 0 },
 	{ &cmd_gflags_off, 4, 0, &cmd_gflags_on, sizeof(cmd_sflags_off) },
 	{ &cmd_sflags_on, sizeof(cmd_sflags_on), 0, 0, 0 },
-	{ &cmd_sgro_on, sizeof(cmd_sgro_on), 0, 0, 0 },
 	{ 0, 0, 0, 0, 0 }
 };
 

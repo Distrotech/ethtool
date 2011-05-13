@@ -91,6 +91,24 @@ static inline int test_bit(unsigned int nr, const unsigned long *addr)
 #define SIOCETHTOOL     0x8946
 #endif
 
+/* Internal values for old-style offload flags.  Values and names
+ * must not clash with the flags defined for ETHTOOL_{G,S}FLAGS.
+ */
+#define ETH_FLAG_RXCSUM		(1 << 0)
+#define ETH_FLAG_TXCSUM		(1 << 1)
+#define ETH_FLAG_SG		(1 << 2)
+#define ETH_FLAG_TSO		(1 << 3)
+#define ETH_FLAG_UFO		(1 << 4)
+#define ETH_FLAG_GSO		(1 << 5)
+#define ETH_FLAG_GRO		(1 << 6)
+#define ETH_FLAG_INT_MASK	(ETH_FLAG_RXCSUM | ETH_FLAG_TXCSUM |	\
+				 ETH_FLAG_SG | ETH_FLAG_TSO | ETH_FLAG_UFO | \
+				 ETH_FLAG_GSO | ETH_FLAG_GRO),
+/* Mask of all flags defined for ETHTOOL_{G,S}FLAGS. */
+#define ETH_FLAG_EXT_MASK	(ETH_FLAG_LRO | ETH_FLAG_RXVLAN |	\
+				 ETH_FLAG_TXVLAN | ETH_FLAG_NTUPLE |	\
+				 ETH_FLAG_RXHASH)
+
 /* Context for sub-commands */
 struct cmd_context {
 	const char *devname;	/* net device name */
