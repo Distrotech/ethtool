@@ -3170,10 +3170,13 @@ static int do_srxntuple(int fd, struct ifreq *ifr)
 	 * supported.  It is possible that the interface uses the network
 	 * flow classifier interface instead of N-tuple. 
 	 */ 
-	if (err && errno != EOPNOTSUPP)
-		perror("Cannot add new rule via N-tuple");
+	if (err < 0) {
+		if (errno != EOPNOTSUPP)
+			perror("Cannot add new rule via N-tuple");
+		return -1;
+	}
 
-	return err;
+	return 0;
 }
 
 static int do_srxclsrule(int fd, struct ifreq *ifr)
