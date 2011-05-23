@@ -3135,6 +3135,9 @@ static int flow_spec_to_ntuple(struct ethtool_rx_flow_spec *fsp,
 		}
 	}
 
+	/* Mask out the extended bit, because ntuple does not know it! */
+	ntuple->flow_type &= ~FLOW_EXT;
+
 	return 0;
 }
 
