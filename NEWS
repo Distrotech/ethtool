@@ -1,3 +1,19 @@
+Version 2.6.39 - June 1, 2011
+
+	* Feature: Report some driver features (-i option)
+	* Doc: Remove misleading 'Auto' advertising mask from manual page
+	* Doc: Improve table formatting on manual page, using tbl
+	* Doc: Remove initial blank page in printed manual page
+	* Doc: Fix line-wrapping of options
+	* Feature: Add support for ESP as a separate protocol from AH
+	  (-n, -N, -u and -U options)
+	* Cleanup: Remove support for showing RX n-tuple settings
+	  (-u option), which was never implemented correctly in the kernel
+	* Feature: Add support for RX network flow classifier (NFC)
+	  (-u and -U options)
+	* Feature: Add support for e1000 M88 PHY registers (-d option)
+	* Cleanup: Change bug-address to netdev
+
 Version 2.6.38 - March 15, 2011
 
 	* Doc: Fix spelling and spacing in online help
