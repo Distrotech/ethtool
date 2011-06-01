@@ -1,6 +1,8 @@
+The changelog after March 2005 can be obtained from the git repository
+at <git://git.kernel.org/pub/scm/network/ethtool/ethtool.git>.
 
-
-NOTE:  For further changelog entries, see BitKeeper repository.
+The changelog after version 2 up to March 2005 can be obtained from the
+BitKeeper repository at <bk://gkernel.bkbits.net/ethtool>.
 
 
 Tue Aug 17 2004  Jeff Garzik <jgarzik@pobox.com>
