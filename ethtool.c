@@ -1202,7 +1202,7 @@ dump_link_caps(const char *prefix, const char *an_prefix, u32 mask)
 		indent = 24;
 
 	fprintf(stdout, "	%s link modes:%*s", prefix,
-		indent - strlen(prefix) - 12, "");
+		indent - (int)strlen(prefix) - 12, "");
 	did1 = 0;
 	if (mask & ADVERTISED_10baseT_Half) {
 		did1++; fprintf(stdout, "10baseT/Half ");
