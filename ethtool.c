@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <errno.h>
 #include <sys/utsname.h>
 #include <limits.h>
@@ -96,6 +97,8 @@ static int do_srxclsrule(int fd, struct ifreq *ifr);
 static int do_grxclsrule(int fd, struct ifreq *ifr);
 static int do_flash(int fd, struct ifreq *ifr);
 static int do_permaddr(int fd, struct ifreq *ifr);
+static int do_getfwdump(int fd, struct ifreq *ifr);
+static int do_setfwdump(int fd, struct ifreq *ifr);
 
 static int send_ioctl(int fd, struct ifreq *ifr);
 
@@ -128,6 +131,8 @@ static enum {
 	MODE_GCLSRULE,
 	MODE_FLASHDEV,
 	MODE_PERMADDR,
+	MODE_SET_DUMP,
+	MODE_GET_DUMP,
 } mode = MODE_GSET;
 
 static struct option {
@@ -255,6 +260,12 @@ static struct option {
 		"		[ rule %d ]\n"},
     { "-P", "--show-permaddr", MODE_PERMADDR,
 		"Show permanent hardware address" },
+    { "-w", "--get-dump", MODE_GET_DUMP,
+		"Get dump flag, data",
+		"		[ data FILENAME ]\n" },
+    { "-W", "--set-dump", MODE_SET_DUMP,
+		"Set dump flag of the device",
+		"		N\n"},
     { "-h", "--help", MODE_HELP, "Show this help" },
     { NULL, "--version", MODE_VERSION, "Show version number" },
     {}
@@ -385,6 +396,8 @@ static int flash_region = -1;
 static int msglvl_changed;
 static u32 msglvl_wanted = 0;
 static u32 msglvl_mask = 0;
+static u32 dump_flag;
+static char *dump_file = NULL;
 
 static int rx_class_rule_get = -1;
 static int rx_class_rule_del = -1;
@@ -777,7 +790,9 @@ static void parse_cmdline(int argc, char **argp)
 			    (mode == MODE_GCLSRULE) ||
 			    (mode == MODE_PHYS_ID) ||
 			    (mode == MODE_FLASHDEV) ||
-			    (mode == MODE_PERMADDR)) {
+			    (mode == MODE_PERMADDR) ||
+			    (mode == MODE_SET_DUMP) ||
+			    (mode == MODE_GET_DUMP)) {
 				devname = argp[i];
 				break;
 			}
@@ -798,6 +813,9 @@ static void parse_cmdline(int argc, char **argp)
 			} else if (mode == MODE_FLASHDEV) {
 				flash_file = argp[i];
 				flash = 1;
+				break;
+			} else if (mode == MODE_SET_DUMP) {
+				dump_flag = get_u32(argp[i], 0);
 				break;
 			}
 			/* fallthrough */
@@ -972,6 +990,21 @@ static void parse_cmdline(int argc, char **argp)
 				} else {
 					exit_bad_args();
 				}
+				break;
+			}
+			if (mode == MODE_GET_DUMP) {
+				if (argc != i + 2) {
+					exit_bad_args();
+					break;
+				}
+				if (!strcmp(argp[i++], "data"))
+					dump_flag = ETHTOOL_GET_DUMP_DATA;
+				else {
+					exit_bad_args();
+					break;
+				}
+				dump_file = argp[i];
+				i = argc;
 				break;
 			}
 			if (mode != MODE_SSET)
@@ -1898,6 +1931,10 @@ static int doit(void)
 		return do_flash(fd, &ifr);
 	} else if (mode == MODE_PERMADDR) {
 		return do_permaddr(fd, &ifr);
+	} else if (mode == MODE_GET_DUMP) {
+		return do_getfwdump(fd, &ifr);
+	} else if (mode == MODE_SET_DUMP) {
+		return do_setfwdump(fd, &ifr);
 	}
 
 	return 69;
@@ -3202,6 +3239,87 @@ static int do_grxclsrule(int fd, struct ifreq *ifr)
 		fprintf(stderr, "RX classification rule retrieval failed\n");
 
 	return err ? 1 : 0;
+}
+
+static int do_writefwdump(struct ethtool_dump *dump)
+{
+	int err = 0;
+	FILE *f;
+	size_t bytes;
+
+	f = fopen(dump_file, "wb+");
+
+	if (!f) {
+		fprintf(stderr, "Can't open file %s: %s\n",
+			dump_file, strerror(errno));
+		return 1;
+	}
+	bytes = fwrite(dump->data, 1, dump->len, f);
+	if (bytes != dump->len) {
+		fprintf(stderr, "Can not write all of dump data\n");
+		err = 1;
+	}
+	if (fclose(f)) {
+		fprintf(stderr, "Can't close file %s: %s\n",
+			dump_file, strerror(errno));
+		err = 1;
+	}
+	return err;
+}
+
+static int do_getfwdump(int fd, struct ifreq *ifr)
+{
+	int err;
+	struct ethtool_dump edata;
+	struct ethtool_dump *data;
+
+	edata.cmd = ETHTOOL_GET_DUMP_FLAG;
+
+	ifr->ifr_data = (caddr_t) &edata;
+	err = send_ioctl(fd, ifr);
+	if (err < 0) {
+		perror("Can not get dump level\n");
+		return 1;
+	}
+	if (dump_flag != ETHTOOL_GET_DUMP_DATA) {
+		fprintf(stdout, "flag: %u, version: %u, length: %u\n",
+			edata.flag, edata.version, edata.len);
+		return 0;
+	}
+	data = calloc(1, offsetof(struct ethtool_dump, data) + edata.len);
+	if (!data) {
+		perror("Can not allocate enough memory\n");
+		return 1;
+	}
+	data->cmd = ETHTOOL_GET_DUMP_DATA;
+	data->len = edata.len;
+	ifr->ifr_data = (caddr_t) data;
+	err = send_ioctl(fd, ifr);
+	if (err < 0) {
+		perror("Can not get dump data\n");
+		err = 1;
+		goto free;
+	}
+	err = do_writefwdump(data);
+free:
+	free(data);
+	return err;
+}
+
+static int do_setfwdump(int fd, struct ifreq *ifr)
+{
+	int err;
+	struct ethtool_dump dump;
+
+	dump.cmd = ETHTOOL_SET_DUMP;
+	dump.flag = dump_flag;
+	ifr->ifr_data = (caddr_t)&dump;
+	err = send_ioctl(fd, ifr);
+	if (err < 0) {
+		perror("Can not set dump level\n");
+		return 1;
+	}
+	return 0;
 }
 
 static int send_ioctl(int fd, struct ifreq *ifr)

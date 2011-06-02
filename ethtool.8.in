@@ -254,6 +254,15 @@ ethtool \- query or control network driver and hardware settings
 .I ethX
 .RB [ rx\-flow\-hash \ \*(FL \  \*(HO]
 .HP
+.B ethtool \-w|\-\-get\-dump
+.I ethX
+.RB [ data
+.IR filename ]
+.HP
+.B ethtool\ \-W|\-\-set\-dump
+.I ethX
+.BI \ N
+.HP
 .B ethtool \-x|\-\-show\-rxfh\-indir
 .I ethX
 .HP
@@ -594,6 +603,17 @@ Discard all packets of this flow type. When this option is set, all
 other options are ignored.
 T}
 .TE
+.TP
+.B \-w \-\-get\-dump
+Retrieves and prints firmware dump for the specified network device.
+By default, it prints out the dump flag, version and length of the dump data.
+When
+.I data
+is indicated, then ethtool fetches the dump data and directs it to a
+.I file.
+.TP
+.B \-W \-\-set\-dump
+Sets the dump flag for the device.
 .TP
 .B \-x \-\-show\-rxfh\-indir
 Retrieves the receive flow hash indirection table.
