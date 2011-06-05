@@ -1244,6 +1244,20 @@ dump_link_caps(const char *prefix, const char *an_prefix, u32 mask)
 	if (mask & ADVERTISED_10000baseT_Full) {
 		did1++; fprintf(stdout, "10000baseT/Full ");
 	}
+	if (did1 && (mask & ADVERTISED_20000baseMLD2_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	%*s", indent, "");
+	}
+	if (mask & ADVERTISED_20000baseMLD2_Full) {
+		did1++; fprintf(stdout, "20000baseMLD2/Full ");
+	}
+	if (did1 && (mask & ADVERTISED_20000baseKR2_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	%*s", indent, "");
+	}
+	if (mask & ADVERTISED_20000baseKR2_Full) {
+		did1++; fprintf(stdout, "20000baseKR2/Full ");
+	}
 	if (did1 == 0)
 		 fprintf(stdout, "Not reported");
 	fprintf(stdout, "\n");
@@ -2474,7 +2488,9 @@ static int do_sset(int fd, struct ifreq *ifr)
 					 ADVERTISED_1000baseT_Half |
 					 ADVERTISED_1000baseT_Full |
 					 ADVERTISED_2500baseX_Full |
-					 ADVERTISED_10000baseT_Full);
+					 ADVERTISED_10000baseT_Full |
+					 ADVERTISED_20000baseMLD2_Full |
+					 ADVERTISED_20000baseKR2_Full);
 			} else if (advertising_wanted > 0) {
 				ecmd.advertising = advertising_wanted;
 			}
