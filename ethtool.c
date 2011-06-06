@@ -376,13 +376,14 @@ static int gregs_dump_hex = 0;
 static char *gregs_dump_file = NULL;
 static int geeprom_changed = 0;
 static int geeprom_dump_raw = 0;
-static s32 geeprom_offset = 0;
-static s32 geeprom_length = -1;
+static u32 geeprom_offset = 0;
+static u32 geeprom_length = -1;
 static int seeprom_changed = 0;
-static s32 seeprom_magic = 0;
-static s32 seeprom_length = -1;
-static s32 seeprom_offset = 0;
-static s32 seeprom_value = EOF;
+static u32 seeprom_magic = 0;
+static u32 seeprom_length = -1;
+static u32 seeprom_offset = 0;
+static u8 seeprom_value = 0;
+static int seeprom_value_seen = 0;
 static int rx_fhash_get = 0;
 static int rx_fhash_set = 0;
 static u32 rx_fhash_val = 0;
@@ -413,6 +414,7 @@ typedef enum {
 	CMDL_NONE,
 	CMDL_BOOL,
 	CMDL_S32,
+	CMDL_U8,
 	CMDL_U16,
 	CMDL_U32,
 	CMDL_U64,
@@ -446,16 +448,17 @@ static struct cmdline_info cmdline_gregs[] = {
 };
 
 static struct cmdline_info cmdline_geeprom[] = {
-	{ "offset", CMDL_S32, &geeprom_offset, NULL },
-	{ "length", CMDL_S32, &geeprom_length, NULL },
+	{ "offset", CMDL_U32, &geeprom_offset, NULL },
+	{ "length", CMDL_U32, &geeprom_length, NULL },
 	{ "raw", CMDL_BOOL, &geeprom_dump_raw, NULL },
 };
 
 static struct cmdline_info cmdline_seeprom[] = {
-	{ "magic", CMDL_S32, &seeprom_magic, NULL },
-	{ "offset", CMDL_S32, &seeprom_offset, NULL },
-	{ "length", CMDL_S32, &seeprom_length, NULL },
-	{ "value", CMDL_S32, &seeprom_value, NULL },
+	{ "magic", CMDL_U32, &seeprom_magic, NULL },
+	{ "offset", CMDL_U32, &seeprom_offset, NULL },
+	{ "length", CMDL_U32, &seeprom_length, NULL },
+	{ "value", CMDL_U8, &seeprom_value, NULL,
+	  0, &seeprom_value_seen },
 };
 
 static struct cmdline_info cmdline_offload[] = {
@@ -625,6 +628,11 @@ static void parse_generic_cmdline(int argc, char **argp,
 					*p = get_int_range(argp[i], 0,
 							   -0x80000000LL,
 							   0x7fffffff);
+					break;
+				}
+				case CMDL_U8: {
+					u8 *p = info[idx].wanted_val;
+					*p = get_uint_range(argp[i], 0, 0xff);
 					break;
 				}
 				case CMDL_U16: {
@@ -2641,7 +2649,7 @@ static int do_geeprom(int fd, struct ifreq *ifr)
 		return 74;
 	}
 
-	if (geeprom_length <= 0)
+	if (geeprom_length == -1)
 		geeprom_length = drvinfo.eedump_len;
 
 	if (drvinfo.eedump_len < geeprom_offset + geeprom_length)
@@ -2682,10 +2690,10 @@ static int do_seeprom(int fd, struct ifreq *ifr)
 		return 74;
 	}
 
-	if (seeprom_value != EOF)
+	if (seeprom_value_seen)
 		seeprom_length = 1;
 
-	if (seeprom_length <= 0)
+	if (seeprom_length == -1)
 		seeprom_length = drvinfo.eedump_len;
 
 	if (drvinfo.eedump_len < seeprom_offset + seeprom_length)
@@ -2704,7 +2712,7 @@ static int do_seeprom(int fd, struct ifreq *ifr)
 	eeprom->data[0] = seeprom_value;
 
 	/* Multi-byte write: read input from stdin */
-	if (seeprom_value == EOF)
+	if (!seeprom_value_seen)
 		eeprom->len = fread(eeprom->data, 1, eeprom->len, stdin);
 
 	ifr->ifr_data = (caddr_t)eeprom;
