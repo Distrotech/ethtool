@@ -622,6 +622,9 @@ static struct rule_opts rule_nfc_usr_ip4[] = {
 	{ "l4proto", OPT_U8, NFC_FLAG_PROTO,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.usr_ip4_spec.proto),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.usr_ip4_spec.proto) },
+	{ "l4data", OPT_BE32, NFC_FLAG_SPI,
+	  offsetof(struct ethtool_rx_flow_spec, h_u.usr_ip4_spec.l4_4_bytes),
+	  offsetof(struct ethtool_rx_flow_spec, m_u.usr_ip4_spec.l4_4_bytes) },
 	{ "spi", OPT_BE32, NFC_FLAG_SPI,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.usr_ip4_spec.l4_4_bytes),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.usr_ip4_spec.l4_4_bytes) },
@@ -648,11 +651,11 @@ static struct rule_opts rule_nfc_usr_ip4[] = {
 
 static struct rule_opts rule_nfc_ether[] = {
 	{ "src", OPT_MAC, NFC_FLAG_SADDR,
-	  offsetof(struct ethtool_rx_flow_spec, h_u.ether_spec.h_dest),
-	  offsetof(struct ethtool_rx_flow_spec, m_u.ether_spec.h_dest) },
-	{ "dst", OPT_MAC, NFC_FLAG_DADDR,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.ether_spec.h_source),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.ether_spec.h_source) },
+	{ "dst", OPT_MAC, NFC_FLAG_DADDR,
+	  offsetof(struct ethtool_rx_flow_spec, h_u.ether_spec.h_dest),
+	  offsetof(struct ethtool_rx_flow_spec, m_u.ether_spec.h_dest) },
 	{ "proto", OPT_BE16, NFC_FLAG_PROTO,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.ether_spec.h_proto),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.ether_spec.h_proto) },
@@ -1062,6 +1065,8 @@ int rxclass_parse_ruleopts(char **argp, int argc,
 		}
 	}
 
+	if (flow_type == IP_USER_FLOW)
+		fsp->h_u.usr_ip4_spec.ip_ver = ETH_RX_NFC_IP4;
 	if (flags & (NTUPLE_FLAG_VLAN | NTUPLE_FLAG_UDEF | NTUPLE_FLAG_VETH))
 		fsp->flow_type |= FLOW_EXT;
 

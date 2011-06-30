@@ -296,6 +296,7 @@ ethtool \- query or control network driver and hardware settings
 .BM src\-port
 .BM dst\-port
 .BM spi
+.BM l4data
 .BM vlan\-etype
 .BM vlan
 .BM user\-def
@@ -719,6 +720,10 @@ Valid for flow-types ip4, tcp4, udp4, and sctp4.
 Specify the value of the security parameter index field (applicable to
 AH/ESP packets)in the incoming packet to match along with an optional
 mask.  Valid for flow-types ip4, ah4, and esp4.
+.TP
+.BI l4data \ N \\fR\ [\\fPm \ N \\fR]\\fP
+Specify the value of the first 4 Bytes of Layer 4 in the incoming packet to
+match along with an optional mask.  Valid for ip4 flow-type.
 .TP
 .BI vlan\-etype \ N \\fR\ [\\fPm \ N \\fR]\\fP
 Includes the VLAN tag Ethertype and an optional mask.
