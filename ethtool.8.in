@@ -68,6 +68,10 @@
 .\"
 .ds HO \fBm\fP|\fBv\fP|\fBt\fP|\fBs\fP|\fBd\fP|\fBf\fP|\fBn\fP|\fBr\fP...
 .\"
+.\"	\(*SD - Self-diag test values
+.\"
+.ds SD \fBoffline\fP|\fBonline\fP|\fBexternal_lb\fP
+.\"
 .\"	\(*NC - Network Classifier type values
 .\"
 .ds NC \fBether\fP|\fBip4\fP|\fBtcp4\fP|\fBudp4\fP|\fBsctp4\fP|\fBah4\fP|\fBesp4\fP
@@ -227,7 +231,7 @@ ethtool \- query or control network driver and hardware settings
 .HP
 .B ethtool \-t|\-\-test
 .I ethX
-.B1 offline online
+.RI [\*(SD]
 .HP
 .B ethtool \-s
 .I ethX
@@ -457,12 +461,14 @@ statistics.
 .B \-t \-\-test
 Executes adapter selftest on the specified network device. Possible test modes are:
 .TP
-.A1 offline online
+.RI \*(SD
 defines test type: 
 .B offline
 (default) means to perform full set of tests possibly causing normal operation interruption during the tests,
 .B online
-means to perform limited set of tests do not interrupting normal adapter operation.
+means to perform limited set of tests do not interrupting normal adapter operation,
+.B external_lb
+means to perform external-loopback test in addition to other offline tests.
 .TP
 .B \-s \-\-change
 Allows changing some or all settings of the specified network device.
@@ -762,7 +768,8 @@ Andre Majorel,
 Eli Kupermann,
 Scott Feldman,
 Andi Kleen,
-Alexander Duyck.
+Alexander Duyck,
+Sucheta Chakraborty.
 .SH AVAILABILITY
 .B ethtool
 is available from

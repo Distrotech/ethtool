@@ -219,7 +219,7 @@ static struct option {
     { "-p", "--identify", MODE_PHYS_ID, "Show visible port identification (e.g. blinking)",
                 "               [ TIME-IN-SECONDS ]\n" },
     { "-t", "--test", MODE_TEST, "Execute adapter self test",
-                "               [ online | offline ]\n" },
+		"               [ online | offline | external_lb ]\n" },
     { "-S", "--statistics", MODE_GSTATS, "Show adapter statistics" },
     { "-n", "--show-nfc", MODE_GNFC, "Show Rx network flow classification "
 		"options",
@@ -408,6 +408,7 @@ static struct ethtool_rx_flow_spec rx_rule_fs;
 static enum {
 	ONLINE=0,
 	OFFLINE,
+	EXTERNAL_LB,
 } test_type = OFFLINE;
 
 typedef enum {
@@ -811,6 +812,8 @@ static void parse_cmdline(int argc, char **argp)
 					test_type = ONLINE;
 				} else if (!strcmp(argp[i], "offline")) {
 					test_type = OFFLINE;
+				} else if (!strcmp(argp[i], "external_lb")) {
+					test_type = EXTERNAL_LB;
 				} else {
 					exit_bad_args();
 				}
@@ -1689,6 +1692,11 @@ static int dump_test(struct ethtool_drvinfo *info, struct ethtool_test *test,
 
 	rc = test->flags & ETH_TEST_FL_FAILED;
 	fprintf(stdout, "The test result is %s\n", rc ? "FAIL" : "PASS");
+
+	if (test_type == EXTERNAL_LB)
+		fprintf(stdout, "External loopback test was %sexecuted\n",
+			(test->flags & ETH_TEST_FL_EXTERNAL_LB_DONE) ?
+			"" : "not ");
 
 	if (info->testinfo_len)
 		fprintf(stdout, "The test extra info:\n");
@@ -2749,7 +2757,9 @@ static int do_test(int fd, struct ifreq *ifr)
 	memset (test->data, 0, drvinfo.testinfo_len * sizeof(u64));
 	test->cmd = ETHTOOL_TEST;
 	test->len = drvinfo.testinfo_len;
-	if (test_type == OFFLINE)
+	if (test_type == EXTERNAL_LB)
+		test->flags = (ETH_TEST_FL_OFFLINE | ETH_TEST_FL_EXTERNAL_LB);
+	else if (test_type == OFFLINE)
 		test->flags = ETH_TEST_FL_OFFLINE;
 	else
 		test->flags = 0;
