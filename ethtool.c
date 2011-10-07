@@ -80,6 +80,8 @@ static int do_gpause(int fd, struct ifreq *ifr);
 static int do_spause(int fd, struct ifreq *ifr);
 static int do_gring(int fd, struct ifreq *ifr);
 static int do_sring(int fd, struct ifreq *ifr);
+static int do_schannels(int fd, struct ifreq *ifr);
+static int do_gchannels(int fd, struct ifreq *ifr);
 static int do_gcoalesce(int fd, struct ifreq *ifr);
 static int do_scoalesce(int fd, struct ifreq *ifr);
 static int do_goffload(int fd, struct ifreq *ifr);
@@ -133,6 +135,8 @@ static enum {
 	MODE_PERMADDR,
 	MODE_SET_DUMP,
 	MODE_GET_DUMP,
+	MODE_GCHANNELS,
+	MODE_SCHANNELS
 } mode = MODE_GSET;
 
 static struct option {
@@ -266,6 +270,12 @@ static struct option {
     { "-W", "--set-dump", MODE_SET_DUMP,
 		"Set dump flag of the device",
 		"		N\n"},
+    { "-l", "--show-channels", MODE_GCHANNELS, "Query Channels" },
+    { "-L", "--set-channels", MODE_SCHANNELS, "Set Channels",
+		"               [ rx N ]\n"
+		"               [ tx N ]\n"
+		"               [ other N ]\n"
+		"               [ combined N ]\n" },
     { "-h", "--help", MODE_HELP, "Show this help" },
     { NULL, "--version", MODE_VERSION, "Show version number" },
     {}
@@ -330,6 +340,13 @@ static s32 ring_rx_wanted = -1;
 static s32 ring_rx_mini_wanted = -1;
 static s32 ring_rx_jumbo_wanted = -1;
 static s32 ring_tx_wanted = -1;
+
+static struct ethtool_channels echannels;
+static int gchannels_changed;
+static s32 channels_rx_wanted = -1;
+static s32 channels_tx_wanted = -1;
+static s32 channels_other_wanted = -1;
+static s32 channels_combined_wanted = -1;
 
 static struct ethtool_coalesce ecoal;
 static int gcoalesce_changed = 0;
@@ -493,6 +510,13 @@ static struct cmdline_info cmdline_ring[] = {
 	{ "rx-mini", CMDL_S32, &ring_rx_mini_wanted, &ering.rx_mini_pending },
 	{ "rx-jumbo", CMDL_S32, &ring_rx_jumbo_wanted, &ering.rx_jumbo_pending },
 	{ "tx", CMDL_S32, &ring_tx_wanted, &ering.tx_pending },
+};
+
+static struct cmdline_info cmdline_channels[] = {
+	{ "rx", CMDL_S32, &channels_rx_wanted, &echannels.rx_count },
+	{ "tx", CMDL_S32, &channels_tx_wanted, &echannels.tx_count },
+	{ "other", CMDL_S32, &channels_other_wanted, &echannels.other_count },
+	{ "combined", CMDL_S32, &channels_combined_wanted, &echannels.combined_count },
 };
 
 static struct cmdline_info cmdline_coalesce[] = {
@@ -787,6 +811,8 @@ static void parse_cmdline(int argc, char **argp)
 			    (mode == MODE_GCOALESCE) ||
 			    (mode == MODE_SCOALESCE) ||
 			    (mode == MODE_GRING) ||
+			    (mode == MODE_GCHANNELS) ||
+			    (mode == MODE_SCHANNELS) ||
 			    (mode == MODE_SRING) ||
 			    (mode == MODE_GOFFLOAD) ||
 			    (mode == MODE_SOFFLOAD) ||
@@ -868,6 +894,14 @@ static void parse_cmdline(int argc, char **argp)
 					&gring_changed,
 			      		cmdline_ring,
 			      		ARRAY_SIZE(cmdline_ring));
+				i = argc;
+				break;
+			}
+			if (mode == MODE_SCHANNELS) {
+				parse_generic_cmdline(argc, argp, i,
+					&gchannels_changed,
+					cmdline_channels,
+					ARRAY_SIZE(cmdline_ring));
 				i = argc;
 				break;
 			}
@@ -1753,6 +1787,32 @@ static int dump_ring(void)
 	return 0;
 }
 
+static int dump_channels(void)
+{
+	fprintf(stdout,
+		"Pre-set maximums:\n"
+		"RX:		%u\n"
+		"TX:		%u\n"
+		"Other:		%u\n"
+		"Combined:	%u\n",
+		echannels.max_rx, echannels.max_tx,
+		echannels.max_other,
+		echannels.max_combined);
+
+	fprintf(stdout,
+		"Current hardware settings:\n"
+		"RX:		%u\n"
+		"TX:		%u\n"
+		"Other:		%u\n"
+		"Combined:	%u\n",
+		echannels.rx_count, echannels.tx_count,
+		echannels.other_count,
+		echannels.combined_count);
+
+	fprintf(stdout, "\n");
+	return 0;
+}
+
 static int dump_coalesce(void)
 {
 	fprintf(stdout, "Adaptive RX: %s  TX: %s\n",
@@ -1939,6 +1999,10 @@ static int doit(void)
 		return do_gring(fd, &ifr);
 	} else if (mode == MODE_SRING) {
 		return do_sring(fd, &ifr);
+	} else if (mode == MODE_GCHANNELS) {
+		return do_gchannels(fd, &ifr);
+	} else if (mode == MODE_SCHANNELS) {
+		return do_schannels(fd, &ifr);
 	} else if (mode == MODE_GOFFLOAD) {
 		return do_goffload(fd, &ifr);
 	} else if (mode == MODE_SOFFLOAD) {
@@ -2114,6 +2178,62 @@ static int do_gring(int fd, struct ifreq *ifr)
 	}
 
 	return 0;
+}
+
+static int do_schannels(int fd, struct ifreq *ifr)
+{
+	int err, changed = 0;
+
+	echannels.cmd = ETHTOOL_GCHANNELS;
+	ifr->ifr_data = (caddr_t)&echannels;
+	err = send_ioctl(fd, ifr);
+	if (err) {
+		perror("Cannot get device channel parameters");
+		return 1;
+	}
+
+	do_generic_set(cmdline_channels, ARRAY_SIZE(cmdline_channels),
+			&changed);
+
+	if (!changed) {
+		fprintf(stderr, "no channel parameters changed, aborting\n");
+		fprintf(stderr, "current values: tx %u rx %u other %u"
+			"combined %u\n", echannels.rx_count,
+			echannels.tx_count, echannels.other_count,
+			echannels.combined_count);
+		return 1;
+	}
+
+	echannels.cmd = ETHTOOL_SCHANNELS;
+	ifr->ifr_data = (caddr_t)&echannels;
+	err = send_ioctl(fd, ifr);
+	if (err) {
+		perror("Cannot set device channel parameters");
+		return 1;
+	}
+
+	return 0;
+}
+
+static int do_gchannels(int fd, struct ifreq *ifr)
+{
+	int err;
+
+	fprintf(stdout, "Channel parameters for %s:\n", devname);
+
+	echannels.cmd = ETHTOOL_GCHANNELS;
+	ifr->ifr_data = (caddr_t)&echannels;
+	err = send_ioctl(fd, ifr);
+	if (err == 0) {
+		err = dump_channels();
+		if (err)
+			return err;
+	} else {
+		perror("Cannot get device channel parameters\n");
+		return 1;
+	}
+	return 0;
+
 }
 
 static int do_gcoalesce(int fd, struct ifreq *ifr)

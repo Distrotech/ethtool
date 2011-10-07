@@ -307,6 +307,16 @@ ethtool \- query or control network driver and hardware settings
 .BN action
 .BN loc
 .RB ]
+.HP
+.B ethtool \-l|\-\-show\-channels
+.I ethX
+.HP
+.B ethtool \-L|\-\-set\-channels
+.I ethX
+.BN rx
+.BN tx
+.BN other
+.BN combined
 .
 .\" Adjust lines (i.e. full justification) and hyphenate.
 .ad
@@ -754,6 +764,25 @@ lB	l.
 Specify the location/ID to insert the rule. This will overwrite
 any rule present in that location and will not go through any
 of the rule ordering process.
+.TP
+.B \-l \-\-show\-channels
+Queries the specified network device for the numbers of channels it has.
+A channel is an IRQ and the set of queues that can trigger that IRQ.
+.TP
+.B \-L \-\-set\-channels
+Changes the numbers of channels of the specified network device.
+.TP
+.BI rx \ N
+Changes the number of channels with only receive queues.
+.TP
+.BI tx \ N
+Changes the number of channels with only transmit queues.
+.TP
+.BI other \ N
+Changes the number of channels used only for other purposes e.g. link interrupts or SR-IOV co-ordination.
+.TP
+.BI combined \ N
+Changes the number of multi-purpose channels.
 .SH BUGS
 Not supported (in part or whole) on all network drivers.
 .SH AUTHOR
