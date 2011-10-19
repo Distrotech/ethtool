@@ -1745,7 +1745,7 @@ static int dump_test(struct ethtool_drvinfo *info, struct ethtool_test *test,
 	return rc;
 }
 
-static int dump_pause(void)
+static int dump_pause(u32 advertising, u32 lp_advertising)
 {
 	fprintf(stdout,
 		"Autonegotiate:	%s\n"
@@ -1754,6 +1754,30 @@ static int dump_pause(void)
 		epause.autoneg ? "on" : "off",
 		epause.rx_pause ? "on" : "off",
 		epause.tx_pause ? "on" : "off");
+
+	if (lp_advertising) {
+		int an_rx = 0, an_tx = 0;
+
+		/* Work out negotiated pause frame usage per
+		 * IEEE 802.3-2005 table 28B-3.
+		 */
+		if (advertising & lp_advertising & ADVERTISED_Pause) {
+			an_tx = 1;
+			an_rx = 1;
+		} else if (advertising & lp_advertising &
+			   ADVERTISED_Asym_Pause) {
+			if (advertising & ADVERTISED_Pause)
+				an_rx = 1;
+			else if (lp_advertising & ADVERTISED_Pause)
+				an_tx = 1;
+		}
+
+		fprintf(stdout,
+			"RX negotiated:	%s\n"
+			"TX negotiated:	%s\n",
+			an_rx ? "on" : "off",
+			an_tx ? "on" : "off");
+	}
 
 	fprintf(stdout, "\n");
 	return 0;
@@ -2051,6 +2075,7 @@ static int do_gdrv(int fd, struct ifreq *ifr)
 
 static int do_gpause(int fd, struct ifreq *ifr)
 {
+	struct ethtool_cmd ecmd;
 	int err;
 
 	fprintf(stdout, "Pause parameters for %s:\n", devname);
@@ -2058,13 +2083,22 @@ static int do_gpause(int fd, struct ifreq *ifr)
 	epause.cmd = ETHTOOL_GPAUSEPARAM;
 	ifr->ifr_data = (caddr_t)&epause;
 	err = send_ioctl(fd, ifr);
-	if (err == 0) {
-		err = dump_pause();
-		if (err)
-			return err;
-	} else {
+	if (err) {
 		perror("Cannot get device pause settings");
 		return 76;
+	}
+
+	if (epause.autoneg) {
+		ecmd.cmd = ETHTOOL_GSET;
+		ifr->ifr_data = (caddr_t)&ecmd;
+		err = send_ioctl(fd, ifr);
+		if (err) {
+			perror("Cannot get device settings");
+			return 1;
+		}
+		dump_pause(ecmd.advertising, ecmd.lp_advertising);
+	} else {
+		dump_pause(0, 0);
 	}
 
 	return 0;
