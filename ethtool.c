@@ -1069,13 +1069,15 @@ static int dump_coalesce(const struct ethtool_coalesce *ecoal)
 	return 0;
 }
 
-static int dump_offload(u32 active)
+static int dump_offload(u32 active, u32 mask)
 {
 	u32 value;
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
 		value = off_flag_def[i].value;
+		if (!(mask & value))
+			continue;
 		printf("%s: %s\n",
 		       off_flag_def[i].long_name,
 		       (active & value) ? "on" : "off");
@@ -1647,17 +1649,14 @@ static int do_scoalesce(struct cmd_context *ctx)
 	return 0;
 }
 
-static int do_goffload(struct cmd_context *ctx)
+static int get_offload(struct cmd_context *ctx, u32 *flags)
 {
 	struct ethtool_value eval;
 	int err, allfail = 1;
-	u32 flags = 0, value;
+	u32 value;
 	int i;
 
-	if (ctx->argc != 0)
-		exit_bad_args();
-
-	fprintf(stdout, "Offload parameters for %s:\n", ctx->devname);
+	*flags = 0; 
 
 	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
 		value = off_flag_def[i].value;
@@ -1671,7 +1670,7 @@ static int do_goffload(struct cmd_context *ctx)
 				off_flag_def[i].long_name);
 		} else {
 			if (eval.data)
-				flags |= value;
+				*flags |= value;
 			allfail = 0;
 		}
 	}
@@ -1681,16 +1680,28 @@ static int do_goffload(struct cmd_context *ctx)
 	if (err) {
 		perror("Cannot get device flags");
 	} else {
-		flags |= eval.data & ETH_FLAG_EXT_MASK;
+		*flags |= eval.data & ETH_FLAG_EXT_MASK;
 		allfail = 0;
 	}
 
-	if (allfail) {
+	return allfail;
+}
+
+static int do_goffload(struct cmd_context *ctx)
+{
+	u32 flags;
+
+	if (ctx->argc != 0)
+		exit_bad_args();
+
+	fprintf(stdout, "Offload parameters for %s:\n", ctx->devname);
+
+	if (get_offload(ctx, &flags)) {
 		fprintf(stdout, "no offload info available\n");
 		return 83;
 	}
 
-	return dump_offload(flags);
+	return dump_offload(flags, ~(u32)0);
 }
 
 static int do_soffload(struct cmd_context *ctx)
@@ -1699,6 +1710,7 @@ static int do_soffload(struct cmd_context *ctx)
 	u32 off_flags_wanted = 0;
 	u32 off_flags_mask = 0;
 	struct cmdline_info cmdline_offload[ARRAY_SIZE(off_flag_def)];
+	u32 old_flags, new_flags, diff;
 	struct ethtool_value eval;
 	int err;
 	int i;
@@ -1711,6 +1723,11 @@ static int do_soffload(struct cmd_context *ctx)
 
 	parse_generic_cmdline(ctx, &goffload_changed,
 			      cmdline_offload, ARRAY_SIZE(cmdline_offload));
+
+	if (get_offload(ctx, &old_flags)) {
+		fprintf(stderr, "no offload info available\n");
+		return 1;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
 		if (!off_flag_def[i].set_cmd)
@@ -1729,16 +1746,8 @@ static int do_soffload(struct cmd_context *ctx)
 		}
 	}
 	if (off_flags_mask & ETH_FLAG_EXT_MASK) {
-		eval.cmd = ETHTOOL_GFLAGS;
-		eval.data = 0;
-		err = send_ioctl(ctx, &eval);
-		if (err) {
-			perror("Cannot get device flag settings");
-			return 91;
-		}
-
 		eval.cmd = ETHTOOL_SFLAGS;
-		eval.data &= ~(off_flags_mask & ETH_FLAG_EXT_MASK);
+		eval.data = old_flags & ~off_flags_mask & ETH_FLAG_EXT_MASK;
 		eval.data |= off_flags_wanted & ETH_FLAG_EXT_MASK;
 
 		err = send_ioctl(ctx, &eval);
@@ -1750,6 +1759,22 @@ static int do_soffload(struct cmd_context *ctx)
 
 	if (off_flags_mask == 0) {
 		fprintf(stdout, "no offload settings changed\n");
+		return 0;
+	}
+
+	/* Compare new state with requested state */
+	if (get_offload(ctx, &new_flags)) {
+		fprintf(stderr, "no offload info available\n");
+		return 1;
+	}
+	if (new_flags != ((old_flags & ~off_flags_mask) | off_flags_wanted)) {
+		if (new_flags == old_flags) {
+			fprintf(stderr,
+				"Could not change any device offload settings\n");
+			return 1;
+		}
+		printf("Actual changes:\n");
+		dump_offload(new_flags, new_flags ^ old_flags);
 	}
 
 	return 0;
