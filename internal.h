@@ -62,12 +62,12 @@ static inline u64 cpu_to_be64(u64 value)
 #define DIV_ROUND_UP(n, d)	(((n) + (d) - 1) / (d))
 #define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_LONG)
 
-static inline void set_bit(int nr, unsigned long *addr)
+static inline void set_bit(unsigned int nr, unsigned long *addr)
 {
 	addr[nr / BITS_PER_LONG] |= 1UL << (nr % BITS_PER_LONG);
 }
 
-static inline void clear_bit(int nr, unsigned long *addr)
+static inline void clear_bit(unsigned int nr, unsigned long *addr)
 {
 	addr[nr / BITS_PER_LONG] &= ~(1UL << (nr % BITS_PER_LONG));
 }
