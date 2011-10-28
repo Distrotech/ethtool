@@ -256,7 +256,7 @@ ethtool \- query or control network driver and hardware settings
 .HP
 .B ethtool \-N
 .I devname
-.RB [ rx\-flow\-hash \ \*(FL \  \*(HO]
+.RB [ rx\-flow\-hash \ \*(FL \: \*(HO]
 .HP
 .B ethtool \-w|\-\-get\-dump
 .I devname
@@ -605,7 +605,7 @@ sctp6	SCTP over IPv6
 .B \-N \-\-config\-nfc
 Configures the receive network flow classification.
 .TP
-.BR rx\-flow\-hash \ \*(FL \ \*(HO
+.BR rx\-flow\-hash \ \*(FL \: \*(HO
 Configures the hash options for the specified network traffic type.
 .TS
 nokeep;
