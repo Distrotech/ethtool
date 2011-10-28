@@ -229,9 +229,9 @@ static struct option {
 		"options",
 		"		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
 		"tcp6|udp6|ah6|esp6|sctp6 ]\n" },
-    { "-f", "--flash", MODE_FLASHDEV, "FILENAME " "Flash firmware image "
+    { "-f", "--flash", MODE_FLASHDEV, "Flash firmware image "
     		"from the specified file to a region on the device",
-		"               [ REGION-NUMBER-TO-FLASH ]\n" },
+		"               FILENAME [ REGION-NUMBER-TO-FLASH ]\n" },
     { "-N", "--config-nfc", MODE_SNFC, "Configure Rx network flow "
 		"classification options",
 		"		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
