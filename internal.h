@@ -92,6 +92,8 @@ static inline int test_bit(unsigned int nr, const unsigned long *addr)
 struct cmd_context {
 	int fd;			/* socket suitable for ethtool ioctl */
 	struct ifreq ifr;	/* ifreq suitable for ethtool ioctl */
+	int argc;		/* number of arguments to the sub-command */
+	char **argp;		/* arguments to the sub-command */
 };
 
 #ifdef TEST_ETHTOOL
@@ -165,7 +167,7 @@ int st_mac100_dump_regs(struct ethtool_drvinfo *info,
 int st_gmac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
 /* Rx flow classification */
-int rxclass_parse_ruleopts(char **optstr, int opt_cnt,
+int rxclass_parse_ruleopts(struct cmd_context *ctx,
 			   struct ethtool_rx_flow_spec *fsp);
 int rxclass_rule_getall(struct cmd_context *ctx);
 int rxclass_rule_get(struct cmd_context *ctx, __u32 loc);

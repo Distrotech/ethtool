@@ -950,7 +950,7 @@ static int rxclass_get_mask(char *str, unsigned char *p,
 	return 0;
 }
 
-int rxclass_parse_ruleopts(char **argp, int argc,
+int rxclass_parse_ruleopts(struct cmd_context *ctx,
 			   struct ethtool_rx_flow_spec *fsp)
 {
 	const struct rule_opts *options;
@@ -958,6 +958,8 @@ int rxclass_parse_ruleopts(char **argp, int argc,
 	int i = 0, n_opts, err;
 	u32 flags = 0;
 	int flow_type;
+	int argc = ctx->argc;
+	char **argp = ctx->argp;
 
 	if (argc < 1)
 		goto syntax_err;

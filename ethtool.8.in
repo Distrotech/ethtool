@@ -252,11 +252,11 @@ ethtool \- query or control network driver and hardware settings
 .HP
 .B ethtool \-n
 .I devname
-.RB [ rx\-flow\-hash \ \*(FL]
+.BR rx\-flow\-hash \ \*(FL
 .HP
 .B ethtool \-N
 .I devname
-.RB [ rx\-flow\-hash \ \*(FL \: \*(HO]
+.BR rx\-flow\-hash \ \*(FL \: \*(HO
 .HP
 .B ethtool \-w|\-\-get\-dump
 .I devname
