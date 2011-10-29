@@ -88,6 +88,14 @@ static inline int test_bit(unsigned int nr, const unsigned long *addr)
 
 #define	RX_CLS_LOC_UNSPEC	0xffffffffUL
 
+/* Context for sub-commands */
+struct cmd_context {
+	int fd;			/* socket suitable for ethtool ioctl */
+	struct ifreq ifr;	/* ifreq suitable for ethtool ioctl */
+};
+
+int send_ioctl(struct cmd_context *ctx, void *cmd);
+
 /* National Semiconductor DP83815, DP83816 */
 int natsemi_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 int natsemi_dump_eeprom(struct ethtool_drvinfo *info,
@@ -155,10 +163,10 @@ int st_gmac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* Rx flow classification */
 int rxclass_parse_ruleopts(char **optstr, int opt_cnt,
 			   struct ethtool_rx_flow_spec *fsp);
-int rxclass_rule_getall(int fd, struct ifreq *ifr);
-int rxclass_rule_get(int fd, struct ifreq *ifr, __u32 loc);
-int rxclass_rule_ins(int fd, struct ifreq *ifr,
+int rxclass_rule_getall(struct cmd_context *ctx);
+int rxclass_rule_get(struct cmd_context *ctx, __u32 loc);
+int rxclass_rule_ins(struct cmd_context *ctx,
 		     struct ethtool_rx_flow_spec *fsp);
-int rxclass_rule_del(int fd, struct ifreq *ifr, __u32 loc);
+int rxclass_rule_del(struct cmd_context *ctx, __u32 loc);
 
 #endif /* ETHTOOL_INTERNAL_H__ */

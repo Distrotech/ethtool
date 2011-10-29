@@ -203,7 +203,7 @@ static void rxclass_print_rule(struct ethtool_rx_flow_spec *fsp)
 	}
 }
 
-static int rxclass_get_count(int fd, struct ifreq *ifr, __u32 *count)
+static int rxclass_get_count(struct cmd_context *ctx, __u32 *count)
 {
 	struct ethtool_rxnfc nfccmd;
 	int err;
@@ -211,8 +211,7 @@ static int rxclass_get_count(int fd, struct ifreq *ifr, __u32 *count)
 	/* request count and store */
 	nfccmd.cmd = ETHTOOL_GRXCLSRLCNT;
 	nfccmd.rule_cnt = 0;
-	ifr->ifr_data = (caddr_t)&nfccmd;
-	err = ioctl(fd, SIOCETHTOOL, ifr);
+	err = send_ioctl(ctx, &nfccmd);
 	*count = nfccmd.rule_cnt;
 	if (err < 0)
 		perror("rxclass: Cannot get RX class rule count");
@@ -220,7 +219,7 @@ static int rxclass_get_count(int fd, struct ifreq *ifr, __u32 *count)
 	return err;
 }
 
-int rxclass_rule_get(int fd, struct ifreq *ifr, __u32 loc)
+int rxclass_rule_get(struct cmd_context *ctx, __u32 loc)
 {
 	struct ethtool_rxnfc nfccmd;
 	int err;
@@ -229,8 +228,7 @@ int rxclass_rule_get(int fd, struct ifreq *ifr, __u32 loc)
 	nfccmd.cmd = ETHTOOL_GRXCLSRULE;
 	memset(&nfccmd.fs, 0, sizeof(struct ethtool_rx_flow_spec));
 	nfccmd.fs.location = loc;
-	ifr->ifr_data = (caddr_t)&nfccmd;
-	err = ioctl(fd, SIOCETHTOOL, ifr);
+	err = send_ioctl(ctx, &nfccmd);
 	if (err < 0) {
 		perror("rxclass: Cannot get RX class rule");
 		return err;
@@ -241,7 +239,7 @@ int rxclass_rule_get(int fd, struct ifreq *ifr, __u32 loc)
 	return err;
 }
 
-int rxclass_rule_getall(int fd, struct ifreq *ifr)
+int rxclass_rule_getall(struct cmd_context *ctx)
 {
 	struct ethtool_rxnfc *nfccmd;
 	__u32 *rule_locs;
@@ -249,7 +247,7 @@ int rxclass_rule_getall(int fd, struct ifreq *ifr)
 	__u32 count;
 
 	/* determine rule count */
-	err = rxclass_get_count(fd, ifr, &count);
+	err = rxclass_get_count(ctx, &count);
 	if (err < 0)
 		return err;
 
@@ -266,8 +264,7 @@ int rxclass_rule_getall(int fd, struct ifreq *ifr)
 	/* request location list */
 	nfccmd->cmd = ETHTOOL_GRXCLSRLALL;
 	nfccmd->rule_cnt = count;
-	ifr->ifr_data = (caddr_t)nfccmd;
-	err = ioctl(fd, SIOCETHTOOL, ifr);
+	err = send_ioctl(ctx, nfccmd);
 	if (err < 0) {
 		perror("rxclass: Cannot get RX class rules");
 		free(nfccmd);
@@ -277,7 +274,7 @@ int rxclass_rule_getall(int fd, struct ifreq *ifr)
 	/* write locations to bitmap */
 	rule_locs = nfccmd->rule_locs;
 	for (i = 0; i < count; i++) {
-		err = rxclass_rule_get(fd, ifr, rule_locs[i]);
+		err = rxclass_rule_get(ctx, rule_locs[i]);
 		if (err < 0)
 			break;
 	}
@@ -372,7 +369,7 @@ static int rmgr_find_empty_slot(struct ethtool_rx_flow_spec *fsp)
 	return -1;
 }
 
-static int rmgr_init(int fd, struct ifreq *ifr)
+static int rmgr_init(struct cmd_context *ctx)
 {
 	struct ethtool_rxnfc *nfccmd;
 	int err, i;
@@ -385,7 +382,7 @@ static int rmgr_init(int fd, struct ifreq *ifr)
 	memset(&rmgr, 0, sizeof(struct rmgr_ctrl));
 
 	/* request count and store in rmgr.n_rules */
-	err = rxclass_get_count(fd, ifr, &rmgr.n_rules);
+	err = rxclass_get_count(ctx, &rmgr.n_rules);
 	if (err < 0)
 		return err;
 
@@ -400,8 +397,7 @@ static int rmgr_init(int fd, struct ifreq *ifr)
 	/* request location list */
 	nfccmd->cmd = ETHTOOL_GRXCLSRLALL;
 	nfccmd->rule_cnt = rmgr.n_rules;
-	ifr->ifr_data = (caddr_t)nfccmd;
-	err = ioctl(fd, SIOCETHTOOL, ifr);
+	err = send_ioctl(ctx, nfccmd);
 	if (err < 0) {
 		perror("rmgr: Cannot get RX class rules");
 		free(nfccmd);
@@ -449,13 +445,13 @@ static void rmgr_cleanup(void)
 	rmgr.size = 0;
 }
 
-static int rmgr_set_location(int fd, struct ifreq *ifr,
+static int rmgr_set_location(struct cmd_context *ctx,
 			     struct ethtool_rx_flow_spec *fsp)
 {
 	int err;
 
 	/* init table of available rules */
-	err = rmgr_init(fd, ifr);
+	err = rmgr_init(ctx);
 	if (err < 0)
 		return err;
 
@@ -468,7 +464,7 @@ static int rmgr_set_location(int fd, struct ifreq *ifr,
 	return err;
 }
 
-int rxclass_rule_ins(int fd, struct ifreq *ifr,
+int rxclass_rule_ins(struct cmd_context *ctx,
 		     struct ethtool_rx_flow_spec *fsp)
 {
 	struct ethtool_rxnfc nfccmd;
@@ -480,7 +476,7 @@ int rxclass_rule_ins(int fd, struct ifreq *ifr,
 	 * and allocate a free rule for our use
 	 */
 	if (loc == RX_CLS_LOC_UNSPEC) {
-		err = rmgr_set_location(fd, ifr, fsp);
+		err = rmgr_set_location(ctx, fsp);
 		if (err < 0)
 			return err;
 	}
@@ -488,8 +484,7 @@ int rxclass_rule_ins(int fd, struct ifreq *ifr,
 	/* notify netdev of new rule */
 	nfccmd.cmd = ETHTOOL_SRXCLSRLINS;
 	nfccmd.fs = *fsp;
-	ifr->ifr_data = (caddr_t)&nfccmd;
-	err = ioctl(fd, SIOCETHTOOL, ifr);
+	err = send_ioctl(ctx, &nfccmd);
 	if (err < 0)
 		perror("rmgr: Cannot insert RX class rule");
 	else if (loc == RX_CLS_LOC_UNSPEC)
@@ -498,7 +493,7 @@ int rxclass_rule_ins(int fd, struct ifreq *ifr,
 	return 0;
 }
 
-int rxclass_rule_del(int fd, struct ifreq *ifr, __u32 loc)
+int rxclass_rule_del(struct cmd_context *ctx, __u32 loc)
 {
 	struct ethtool_rxnfc nfccmd;
 	int err;
@@ -506,8 +501,7 @@ int rxclass_rule_del(int fd, struct ifreq *ifr, __u32 loc)
 	/* notify netdev of rule removal */
 	nfccmd.cmd = ETHTOOL_SRXCLSRLDEL;
 	nfccmd.fs.location = loc;
-	ifr->ifr_data = (caddr_t)&nfccmd;
-	err = ioctl(fd, SIOCETHTOOL, ifr);
+	err = send_ioctl(ctx, &nfccmd);
 	if (err < 0)
 		perror("rmgr: Cannot delete RX class rule");
 
