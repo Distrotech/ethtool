@@ -90,6 +90,7 @@ static inline int test_bit(unsigned int nr, const unsigned long *addr)
 
 /* Context for sub-commands */
 struct cmd_context {
+	const char *devname;	/* net device name */
 	int fd;			/* socket suitable for ethtool ioctl */
 	struct ifreq ifr;	/* ifreq suitable for ethtool ioctl */
 	int argc;		/* number of arguments to the sub-command */

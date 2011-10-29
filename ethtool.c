@@ -285,8 +285,6 @@ static int show_usage(struct cmd_context *ctx)
 	return 0;
 }
 
-static char *devname = NULL;
-
 static int goffload_changed = 0;
 static int off_csum_rx_wanted = -1;
 static int off_csum_tx_wanted = -1;
@@ -1540,7 +1538,7 @@ static int do_gpause(struct cmd_context *ctx)
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	fprintf(stdout, "Pause parameters for %s:\n", devname);
+	fprintf(stdout, "Pause parameters for %s:\n", ctx->devname);
 
 	epause.cmd = ETHTOOL_GPAUSEPARAM;
 	err = send_ioctl(ctx, &epause);
@@ -1662,7 +1660,7 @@ static int do_gring(struct cmd_context *ctx)
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	fprintf(stdout, "Ring parameters for %s:\n", devname);
+	fprintf(stdout, "Ring parameters for %s:\n", ctx->devname);
 
 	ering.cmd = ETHTOOL_GRINGPARAM;
 	err = send_ioctl(ctx, &ering);
@@ -1721,7 +1719,7 @@ static int do_gchannels(struct cmd_context *ctx)
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	fprintf(stdout, "Channel parameters for %s:\n", devname);
+	fprintf(stdout, "Channel parameters for %s:\n", ctx->devname);
 
 	echannels.cmd = ETHTOOL_GCHANNELS;
 	err = send_ioctl(ctx, &echannels);
@@ -1744,7 +1742,7 @@ static int do_gcoalesce(struct cmd_context *ctx)
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	fprintf(stdout, "Coalesce parameters for %s:\n", devname);
+	fprintf(stdout, "Coalesce parameters for %s:\n", ctx->devname);
 
 	ecoal.cmd = ETHTOOL_GCOALESCE;
 	err = send_ioctl(ctx, &ecoal);
@@ -1802,7 +1800,7 @@ static int do_goffload(struct cmd_context *ctx)
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	fprintf(stdout, "Offload parameters for %s:\n", devname);
+	fprintf(stdout, "Offload parameters for %s:\n", ctx->devname);
 
 	eval.cmd = ETHTOOL_GRXCSUM;
 	err = send_ioctl(ctx, &eval);
@@ -2009,7 +2007,7 @@ static int do_gset(struct cmd_context *ctx)
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	fprintf(stdout, "Settings for %s:\n", devname);
+	fprintf(stdout, "Settings for %s:\n", ctx->devname);
 
 	ecmd.cmd = ETHTOOL_GSET;
 	err = send_ioctl(ctx, &ecmd);
@@ -2744,7 +2742,7 @@ static int do_grxfhindir(struct cmd_context *ctx)
 	}
 
 	printf("RX flow hash indirection table for %s with %llu RX ring(s):\n",
-	       devname, ring_count.data);
+	       ctx->devname, ring_count.data);
 	for (i = 0; i < indir->size; i++) {
 		if (i % 8 == 0)
 			printf("%5u: ", i);
@@ -3222,17 +3220,17 @@ int main(int argc, char **argp, char **envp)
 
 opt_found:
 	if (want_device) {
-		devname = *argp++;
+		ctx.devname = *argp++;
 		argc--;
 
-		if (devname == NULL)
+		if (ctx.devname == NULL)
 			exit_bad_args();
-		if (strlen(devname) >= IFNAMSIZ)
+		if (strlen(ctx.devname) >= IFNAMSIZ)
 			exit_bad_args();
 
 		/* Setup our control structures. */
 		memset(&ctx.ifr, 0, sizeof(ctx.ifr));
-		strcpy(ctx.ifr.ifr_name, devname);
+		strcpy(ctx.ifr.ifr_name, ctx.devname);
 
 		/* Open control socket. */
 		ctx.fd = socket(AF_INET, SOCK_DGRAM, 0);
