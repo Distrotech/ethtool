@@ -7,9 +7,12 @@ INSTALL
 missing
 depcomp
 install-sh
+compile
 ethtool-config.h*
 ethtool.spec
 ethtool
+test-cmdline
+test-one-cmdline
 stamp-h1
 config.*
 aclocal.m4

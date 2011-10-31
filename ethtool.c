@@ -3444,8 +3444,13 @@ static int do_setfwdump(struct cmd_context *ctx)
 
 int send_ioctl(struct cmd_context *ctx, void *cmd)
 {
+#ifndef TEST_ETHTOOL
 	ctx->ifr.ifr_data = cmd;
 	return ioctl(ctx->fd, SIOCETHTOOL, &ctx->ifr);
+#else
+	/* If we get this far then parsing succeeded */
+	exit(0);
+#endif
 }
 
 int main(int argc, char **argp, char **envp)

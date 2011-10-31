@@ -10,6 +10,7 @@ AM_MAINTAINER_MODE
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_GCC_TRADITIONAL
+AM_PROG_CC_C_O
 
 dnl Checks for libraries.
 

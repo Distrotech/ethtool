@@ -94,6 +94,10 @@ struct cmd_context {
 	struct ifreq ifr;	/* ifreq suitable for ethtool ioctl */
 };
 
+#ifdef TEST_ETHTOOL
+int test_cmdline(const char *args);
+#endif
+
 int send_ioctl(struct cmd_context *ctx, void *cmd);
 
 /* National Semiconductor DP83815, DP83816 */
