@@ -3261,16 +3261,13 @@ static int do_getmodule(struct cmd_context *ctx)
 	return 0;
 }
 
+#ifndef TEST_ETHTOOL
 int send_ioctl(struct cmd_context *ctx, void *cmd)
 {
-#ifndef TEST_ETHTOOL
 	ctx->ifr.ifr_data = cmd;
 	return ioctl(ctx->fd, SIOCETHTOOL, &ctx->ifr);
-#else
-	/* If we get this far then parsing succeeded */
-	exit(0);
-#endif
 }
+#endif
 
 static int show_usage(struct cmd_context *ctx);
 
@@ -3451,7 +3448,7 @@ static int show_usage(struct cmd_context *ctx)
 	return 0;
 }
 
-int main(int argc, char **argp, char **envp)
+int main(int argc, char **argp)
 {
 	int (*func)(struct cmd_context *);
 	int want_device;

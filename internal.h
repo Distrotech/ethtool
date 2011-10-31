@@ -6,7 +6,11 @@
 #ifdef HAVE_CONFIG_H
 #include "ethtool-config.h"
 #endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <endian.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -98,6 +102,44 @@ struct cmd_context {
 
 #ifdef TEST_ETHTOOL
 int test_cmdline(const char *args);
+
+#ifndef TEST_NO_WRAPPERS
+int test_main(int argc, char **argp);
+#define main(...) test_main(__VA_ARGS__)
+void test_exit(int rc) __attribute__((noreturn));
+#undef exit
+#define exit(rc) test_exit(rc)
+void *test_malloc(size_t size);
+#undef malloc
+#define malloc(size) test_malloc(size)
+void *test_calloc(size_t nmemb, size_t size);
+#undef calloc
+#define calloc(nmemb, size) test_calloc(nmemb, size)
+char *test_strdup(const char *s);
+#undef strdup
+#define strdup(s) test_strdup(s)
+void *test_free(void *ptr);
+#undef free
+#define free(ptr) test_free(ptr)
+void *test_realloc(void *ptr, size_t size);
+#undef realloc
+#define realloc(ptr, size) test_realloc(ptr, size)
+int test_open(const char *pathname, int flag, ...);
+#undef open
+#define open(...) test_open(__VA_ARGS__)
+int test_socket(int domain, int type, int protocol);
+#undef socket
+#define socket(...) test_socket(__VA_ARGS__)
+int test_close(int fd);
+#undef close
+#define close(fd) test_close(fd)
+FILE *test_fopen(const char *path, const char *mode);
+#undef fopen
+#define fopen(path, mode) test_fopen(path, mode)
+int test_fclose(FILE *fh);
+#undef fclose
+#define fclose(fh) test_fclose(fh)
+#endif
 #endif
 
 int send_ioctl(struct cmd_context *ctx, void *cmd);

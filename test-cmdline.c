@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#define TEST_NO_WRAPPERS
 #include "internal.h"
 
 static struct test_case {
@@ -231,6 +232,12 @@ static struct test_case {
 	{ 1, "-foo" },
 	{ 1, "-0" },
 };
+
+int send_ioctl(struct cmd_context *ctx, void *cmd)
+{
+	/* If we get this far then parsing succeeded */
+	test_exit(0);
+}
 
 int main(void)
 {
