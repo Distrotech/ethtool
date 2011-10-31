@@ -1681,7 +1681,7 @@ static int do_schannels(struct cmd_context *ctx)
 	int err, changed = 0;
 
 	parse_generic_cmdline(ctx, &gchannels_changed,
-			      cmdline_channels, ARRAY_SIZE(cmdline_ring));
+			      cmdline_channels, ARRAY_SIZE(cmdline_channels));
 
 	echannels.cmd = ETHTOOL_GCHANNELS;
 	err = send_ioctl(ctx, &echannels);
