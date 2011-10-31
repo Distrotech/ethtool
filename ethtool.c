@@ -104,7 +104,7 @@ static int do_permaddr(struct cmd_context *ctx);
 static int do_getfwdump(struct cmd_context *ctx);
 static int do_setfwdump(struct cmd_context *ctx);
 
-static struct option {
+static const struct option {
 	const char *opts;
 	int want_device;
 	int (*func)(struct cmd_context *);
@@ -965,7 +965,7 @@ static char *unparse_rxfhashopts(u64 opts)
 	return buf;
 }
 
-static struct {
+static const struct {
 	const char *name;
 	int (*func)(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 

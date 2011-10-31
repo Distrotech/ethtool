@@ -533,7 +533,7 @@ struct rule_opts {
 	int		moffset;
 };
 
-static struct rule_opts rule_nfc_tcp_ip4[] = {
+static const struct rule_opts rule_nfc_tcp_ip4[] = {
 	{ "src-ip", OPT_IP4, NFC_FLAG_SADDR,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.tcp_ip4_spec.ip4src),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.tcp_ip4_spec.ip4src) },
@@ -564,7 +564,7 @@ static struct rule_opts rule_nfc_tcp_ip4[] = {
 	  offsetof(struct ethtool_rx_flow_spec, m_ext.data) },
 };
 
-static struct rule_opts rule_nfc_esp_ip4[] = {
+static const struct rule_opts rule_nfc_esp_ip4[] = {
 	{ "src-ip", OPT_IP4, NFC_FLAG_SADDR,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.esp_ip4_spec.ip4src),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.esp_ip4_spec.ip4src) },
@@ -592,7 +592,7 @@ static struct rule_opts rule_nfc_esp_ip4[] = {
 	  offsetof(struct ethtool_rx_flow_spec, m_ext.data) },
 };
 
-static struct rule_opts rule_nfc_usr_ip4[] = {
+static const struct rule_opts rule_nfc_usr_ip4[] = {
 	{ "src-ip", OPT_IP4, NFC_FLAG_SADDR,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.usr_ip4_spec.ip4src),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.usr_ip4_spec.ip4src) },
@@ -632,7 +632,7 @@ static struct rule_opts rule_nfc_usr_ip4[] = {
 	  offsetof(struct ethtool_rx_flow_spec, m_ext.data) },
 };
 
-static struct rule_opts rule_nfc_ether[] = {
+static const struct rule_opts rule_nfc_ether[] = {
 	{ "src", OPT_MAC, NFC_FLAG_SADDR,
 	  offsetof(struct ethtool_rx_flow_spec, h_u.ether_spec.h_source),
 	  offsetof(struct ethtool_rx_flow_spec, m_u.ether_spec.h_source) },
