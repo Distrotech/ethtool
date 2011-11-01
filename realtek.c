@@ -1,7 +1,7 @@
 /* Copyright 2001 Sun Microsystems (thockin@sun.com) */
 #include <stdio.h>
 #include <stdlib.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 

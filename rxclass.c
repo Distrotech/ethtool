@@ -10,8 +10,7 @@
 
 #include <linux/sockios.h>
 #include <arpa/inet.h>
-#include "ethtool-util.h"
-#include "ethtool-bitops.h"
+#include "internal.h"
 
 static void invert_flow_mask(struct ethtool_rx_flow_spec *fsp)
 {

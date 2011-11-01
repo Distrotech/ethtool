@@ -1,6 +1,6 @@
 /* Copyright (c) 2006 Intel Corporation */
 #include <stdio.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 /* CTRL0 Bit Masks */
 #define IXGB_CTRL0_LRST           0x00000008

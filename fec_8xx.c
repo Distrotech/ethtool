@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "ethtool-util.h"
+#include "internal.h"
 
 struct fec {
 	uint32_t	addr_low;	/* lower 32 bits of station address	*/

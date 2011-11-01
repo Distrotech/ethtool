@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "ethtool-util.h"
+#include "internal.h"
 
 /* Ethtool get_regs complex data.
  * we want to get not just EMAC registers, but also MAL, ZMII, RGMII, TAH

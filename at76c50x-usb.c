@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 static char *hw_versions[] = {
         "503_ISL3861",

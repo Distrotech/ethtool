@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 #define TG3_MAGIC 0x669955aa
 

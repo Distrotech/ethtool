@@ -12,7 +12,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 int st_mac100_dump_regs(struct ethtool_drvinfo *info,
 			struct ethtool_regs *regs)

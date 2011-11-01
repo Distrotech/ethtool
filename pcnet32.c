@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 #define BIT0  0x0001
 #define BIT1  0x0002

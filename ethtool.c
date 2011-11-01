@@ -23,7 +23,7 @@
  *   * show settings for all devices
  */
 
-#include "ethtool-util.h"
+#include "internal.h"
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>

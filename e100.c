@@ -1,6 +1,6 @@
 /* Copyright (c) 2002 Intel Corporation */
 #include <stdio.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 #define D102_REV_ID		12
 

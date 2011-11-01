@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 struct regs_line {
 		u32	addr;

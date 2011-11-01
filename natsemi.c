@@ -1,6 +1,6 @@
 /* Copyright 2001 Sun Microsystems (thockin@sun.com) */
 #include <stdio.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 #define PCI_VENDOR_NATSEMI		0x100b
 #define PCI_DEVICE_DP83815		0x0020

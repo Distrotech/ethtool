@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-#include "ethtool-util.h"
+#include "internal.h"
 
 static void dump_addr(int n, const u8 *a)
 {

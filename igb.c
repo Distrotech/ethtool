@@ -1,6 +1,6 @@
 /* Copyright (c) 2007 Intel Corporation */
 #include <stdio.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 /* Register Bit Masks */
 /* Device Control */

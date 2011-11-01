@@ -1,6 +1,6 @@
 /* Copyright 2001 Sun Microsystems (thockin@sun.com) */
 #include <stdio.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 static const char * const csr0_tap[4] = {
 	"No transmit automatic polling",

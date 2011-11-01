@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))

@@ -1,7 +1,7 @@
 
 /* Copyright (C) 2003  Advanced Micro Devices Inc. */
 #include <stdio.h>
-#include "ethtool-util.h"
+#include "internal.h"
 
 typedef enum {
 	/* VAL2 */

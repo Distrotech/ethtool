@@ -1,7 +1,7 @@
 /* Portions Copyright 2001 Sun Microsystems (thockin@sun.com) */
 /* Portions Copyright 2002 Intel (scott.feldman@intel.com) */
-#ifndef ETHTOOL_UTIL_H__
-#define ETHTOOL_UTIL_H__
+#ifndef ETHTOOL_INTERNAL_H__
+#define ETHTOOL_INTERNAL_H__
 
 #ifdef HAVE_CONFIG_H
 #include "ethtool-config.h"
@@ -56,6 +56,27 @@ static inline u64 cpu_to_be64(u64 value)
 
 #define ntohll cpu_to_be64
 #define htonll cpu_to_be64
+
+#define BITS_PER_BYTE		8
+#define BITS_PER_LONG		(BITS_PER_BYTE * sizeof(long))
+#define DIV_ROUND_UP(n, d)	(((n) + (d) - 1) / (d))
+#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_LONG)
+
+static inline void set_bit(int nr, unsigned long *addr)
+{
+	addr[nr / BITS_PER_LONG] |= 1UL << (nr % BITS_PER_LONG);
+}
+
+static inline void clear_bit(int nr, unsigned long *addr)
+{
+	addr[nr / BITS_PER_LONG] &= ~(1UL << (nr % BITS_PER_LONG));
+}
+
+static inline int test_bit(unsigned int nr, const unsigned long *addr)
+{
+	return !!((1UL << (nr % BITS_PER_LONG)) &
+		  (((unsigned long *)addr)[nr / BITS_PER_LONG]));
+}
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -140,4 +161,4 @@ int rxclass_rule_ins(int fd, struct ifreq *ifr,
 		     struct ethtool_rx_flow_spec *fsp);
 int rxclass_rule_del(int fd, struct ifreq *ifr, __u32 loc);
 
-#endif /* ETHTOOL_UTIL_H__ */
+#endif /* ETHTOOL_INTERNAL_H__ */
