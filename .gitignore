@@ -10,6 +10,7 @@ install-sh
 compile
 ethtool-config.h*
 ethtool.spec
+ethtool.8
 ethtool
 test-cmdline
 test-one-cmdline
