@@ -1,3 +1,17 @@
+Version 3.1 - November 16, 2011
+
+	* Fix: Show all non-zero registers for tg3 (-d option)
+	* Feature: Add support for external loopback test (-t option)
+	* Fix: Show correct flow control registers for Intel 82599 (-d option)
+	* Feature: Add support for reporting and configuring numbers of
+	  channels/queues (-l and -L options)
+	* Feature: Report pause frame autonegotiation result (-a option)
+	* Doc: Change device name metavariable from 'ethX' to 'devname'
+	* Doc: Fix various layout problems
+	* Cleanup: Reorganise and add test cases for argument parsing
+	* Fix: Strictly check for extraneous or missing arguments; in
+	  particular, fail if the device name is missing
+
 Version 3.0 - August 4, 2011
 
 	* Feature: Report supported pause frame modes
