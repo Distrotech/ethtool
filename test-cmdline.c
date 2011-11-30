@@ -205,6 +205,10 @@ static struct test_case {
 	{ 1, "--set-channels devname rx" },
 	{ 0, "-L devname" },
 	{ 1, "-L" },
+	{ 0, "--show-priv-flags devname" },
+	{ 1, "--show-priv-flags devname foo" },
+	{ 1, "--show-priv-flags" },
+	/* can't test --set-priv-flags yet */
 	{ 0, "-h" },
 	{ 0, "--help" },
 	{ 0, "--version" },

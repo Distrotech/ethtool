@@ -317,6 +317,14 @@ ethtool \- query or control network driver and hardware settings
 .BN tx
 .BN other
 .BN combined
+.HP
+.B ethtool \-\-show\-priv\-flags
+.I devname
+.HP
+.B ethtool \-\-set\-priv\-flags
+.I devname flag
+.A1 on off
+.RB ...
 .
 .\" Adjust lines (i.e. full justification) and hyphenate.
 .ad
@@ -783,6 +791,18 @@ Changes the number of channels used only for other purposes e.g. link interrupts
 .TP
 .BI combined \ N
 Changes the number of multi-purpose channels.
+.TP
+.B \-\-show\-priv\-flags
+Queries the specified network device for its private flags.  The
+names and meanings of private flags (if any) are defined by each
+network device driver.
+.TP
+.B \-\-set\-priv\-flags
+Sets the device's private flags as specified.
+.PP
+.I flag
+.A1 on off
+Sets the state of the named private flag.
 .SH BUGS
 Not supported (in part or whole) on all network drivers.
 .SH AUTHOR
