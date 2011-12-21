@@ -3777,6 +3777,15 @@ print_simple_table(unsigned revision, const struct efx_nic_reg_table *table,
 	return buf;
 }
 
+static int buf_is_zero(const u8 *buf, size_t size)
+{
+	size_t i;
+	for (i = 0; i < size; i++)
+		if (buf[i])
+			return 0;
+	return 1;
+}
+
 static const void *
 print_complex_table(unsigned revision, const struct efx_nic_reg_table *table,
 		    const void *buf)
@@ -3808,16 +3817,18 @@ print_complex_table(unsigned revision, const struct efx_nic_reg_table *table,
 	fputc('\n', stdout);
 
 	for (j = 0; j < table->rows; j++) {
-		printf("%4zu", j);
-		for (i = 0; i < table->field_count; i++) {
-			field = &table->fields[i];
-			if (!(revision >= field->min_revision &&
-			      revision <= field->max_revision))
-				continue;
-			printf(" %*s", (int)column_padding(field), "");
-			print_field_value(field, buf);
+		if (!buf_is_zero(buf, size)) {
+			printf("%4zu", j);
+			for (i = 0; i < table->field_count; i++) {
+				field = &table->fields[i];
+				if (!(revision >= field->min_revision &&
+				      revision <= field->max_revision))
+					continue;
+				printf(" %*s", (int)column_padding(field), "");
+				print_field_value(field, buf);
+			}
+			fputc('\n', stdout);
 		}
-		fputc('\n', stdout);
 		buf = (const u8 *)buf + size;
 	}
 
