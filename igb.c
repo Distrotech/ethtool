@@ -200,13 +200,13 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	/* Receive descriptor registers */
 	fprintf(stdout,
 		"0x02808: RDLEN  (Receive desc length)                 0x%08X\n",
-		regs_buff[142]);
+		regs_buff[137]);
 	fprintf(stdout,
 		"0x02810: RDH    (Receive desc head)                   0x%08X\n",
-		regs_buff[146]);
+		regs_buff[141]);
 	fprintf(stdout,
 		"0x02818: RDT    (Receive desc tail)                   0x%08X\n",
-		regs_buff[150]);
+		regs_buff[145]);
 
 	/* Transmit control register */
 	reg = regs_buff[38];
@@ -226,13 +226,13 @@ igb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	/* Transmit descriptor registers */
 	fprintf(stdout,
 		"0x03808: TDLEN       (Transmit desc length)           0x%08X\n",
-		regs_buff[214]);
+		regs_buff[219]);
 	fprintf(stdout,
 		"0x03810: TDH         (Transmit desc head)             0x%08X\n",
-		regs_buff[218]);
+		regs_buff[223]);
 	fprintf(stdout,
 		"0x03818: TDT         (Transmit desc tail)             0x%08X\n",
-		regs_buff[222]);
+		regs_buff[227]);
 
 
 	fprintf(stdout,
