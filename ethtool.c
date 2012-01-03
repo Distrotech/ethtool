@@ -2719,7 +2719,7 @@ static int flow_spec_to_ntuple(struct ethtool_rx_flow_spec *fsp,
 	size_t i;
 
 	/* verify location is not specified */
-	if (fsp->location != RX_CLS_LOC_UNSPEC)
+	if (fsp->location != RX_CLS_LOC_ANY)
 		return -1;
 
 	/* verify ring cookie can transfer to action */

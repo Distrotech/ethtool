@@ -68,10 +68,7 @@ static void rxclass_print_nfc_rule(struct ethtool_rx_flow_spec *fsp)
 	unsigned char	*smac, *smacm, *dmac, *dmacm;
 	__u32		flow_type;
 
-	if (fsp->location != RX_CLS_LOC_UNSPEC)
-		fprintf(stdout,	"Filter: %d\n", fsp->location);
-	else
-		fprintf(stdout,	"Filter: Unspecified\n");
+	fprintf(stdout,	"Filter: %d\n", fsp->location);
 
 	flow_type = fsp->flow_type & ~FLOW_EXT;
 
@@ -465,7 +462,7 @@ int rxclass_rule_ins(struct cmd_context *ctx,
 	 * if location is unspecified pull rules from device
 	 * and allocate a free rule for our use
 	 */
-	if (loc == RX_CLS_LOC_UNSPEC) {
+	if (loc & RX_CLS_LOC_SPECIAL) {
 		err = rmgr_set_location(ctx, fsp);
 		if (err < 0)
 			return err;
@@ -477,7 +474,7 @@ int rxclass_rule_ins(struct cmd_context *ctx,
 	err = send_ioctl(ctx, &nfccmd);
 	if (err < 0)
 		perror("rmgr: Cannot insert RX class rule");
-	else if (loc == RX_CLS_LOC_UNSPEC)
+	else if (loc & RX_CLS_LOC_SPECIAL)
 		printf("Added rule with ID %d\n", fsp->location);
 
 	return 0;
@@ -998,7 +995,7 @@ int rxclass_parse_ruleopts(struct cmd_context *ctx,
 
 	memset(p, 0, sizeof(*fsp));
 	fsp->flow_type = flow_type;
-	fsp->location = RX_CLS_LOC_UNSPEC;
+	fsp->location = RX_CLS_LOC_ANY;
 
 	for (i = 1; i < argc;) {
 		const struct rule_opts *opt;

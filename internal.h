@@ -86,8 +86,6 @@ static inline int test_bit(unsigned int nr, const unsigned long *addr)
 #define SIOCETHTOOL     0x8946
 #endif
 
-#define	RX_CLS_LOC_UNSPEC	0xffffffffUL
-
 /* Context for sub-commands */
 struct cmd_context {
 	const char *devname;	/* net device name */
