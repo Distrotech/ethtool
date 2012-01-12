@@ -1,3 +1,12 @@
+Version 3.2 - January 12, 2012
+
+	* Feature: Add support for querying and setting private flags
+	  (--show-priv-flags, --set-priv-flags options)
+	* Feature: Omit zero values in Solarflare register tables (-d option)
+	* Feature: Allow driver to select RX NFC rule location (-U option)
+	* Fix: Correct register dump offsets for Intel 82575 chipsets
+	  (-d option)
+
 Version 3.1 - November 16, 2011
 
 	* Fix: Show all non-zero registers for tg3 (-d option)

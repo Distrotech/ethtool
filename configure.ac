@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(ethtool, 3.1, netdev@vger.kernel.org)
+AC_INIT(ethtool, 3.2, netdev@vger.kernel.org)
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR([ethtool.c])
 AM_INIT_AUTOMAKE([gnu])
