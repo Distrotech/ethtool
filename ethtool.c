@@ -3206,9 +3206,6 @@ static const struct option {
 	  "Show Rx network flow classification options",
 	  "		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
 	  "tcp6|udp6|ah6|esp6|sctp6 ]\n" },
-	{ "-f|--flash", 1, do_flash,
-	  "Flash firmware image from the specified file to a region on the device",
-	  "               FILENAME [ REGION-NUMBER-TO-FLASH ]\n" },
 	{ "-N|--config-nfc", 1, do_srxclass,
 	  "Configure Rx network flow classification options",
 	  "		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
@@ -3218,6 +3215,9 @@ static const struct option {
 	{ "-X|--set-rxfh-indir", 1, do_srxfhindir,
 	  "Set Rx flow hash indirection",
 	  "		equal N | weight W0 W1 ...\n" },
+	{ "-f|--flash", 1, do_flash,
+	  "Flash firmware image from the specified file to a region on the device",
+	  "               FILENAME [ REGION-NUMBER-TO-FLASH ]\n" },
 	{ "-U|--config-ntuple", 1, do_srxclsrule,
 	  "Configure Rx ntuple filters and actions",
 	  "		[ delete %d ] |\n"
