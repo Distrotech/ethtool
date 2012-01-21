@@ -717,7 +717,6 @@ Specifies the Rx queue to send packets to, or some other action.
 .TS
 nokeep;
 lB	l.
--2	Clear the filter
 -1	Drop the matched flow
 0 or higher	Rx queue to route the flow
 .TE
