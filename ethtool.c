@@ -2472,10 +2472,15 @@ static int do_gstats(struct cmd_context *ctx)
 	return 0;
 }
 
+static int do_srxntuple(struct cmd_context *ctx,
+			struct ethtool_rx_flow_spec *rx_rule_fs);
 
 static int do_srxclass(struct cmd_context *ctx)
 {
 	int err;
+
+	if (ctx->argc < 2)
+		exit_bad_args();
 
 	if (ctx->argc == 3 && !strcmp(ctx->argp[0], "rx-flow-hash")) {
 		int rx_fhash_set;
@@ -2495,6 +2500,37 @@ static int do_srxclass(struct cmd_context *ctx)
 		err = send_ioctl(ctx, &nfccmd);
 		if (err < 0)
 			perror("Cannot change RX network flow hashing options");
+	} else if (!strcmp(ctx->argp[0], "flow-type")) {	
+		struct ethtool_rx_flow_spec rx_rule_fs;
+
+		ctx->argc--;
+		ctx->argp++;
+		if (rxclass_parse_ruleopts(ctx, &rx_rule_fs) < 0)
+			exit_bad_args();
+
+		/* attempt to add rule via N-tuple specifier */
+		err = do_srxntuple(ctx, &rx_rule_fs);
+		if (!err)
+			return 0;
+
+		/* attempt to add rule via network flow classifier */
+		err = rxclass_rule_ins(ctx, &rx_rule_fs);
+		if (err < 0) {
+			fprintf(stderr, "Cannot insert"
+				" classification rule\n");
+			return 1;
+		}
+	} else if (!strcmp(ctx->argp[0], "delete")) {
+		int rx_class_rule_del =
+			get_uint_range(ctx->argp[1], 0, INT_MAX);
+
+		err = rxclass_rule_del(ctx, rx_class_rule_del);
+
+		if (err < 0) {
+			fprintf(stderr, "Cannot delete"
+				" classification rule\n");
+			return 1;
+		}
 	} else {
 		exit_bad_args();
 	}
@@ -2521,11 +2557,31 @@ static int do_grxclass(struct cmd_context *ctx)
 			perror("Cannot get RX network flow hashing options");
 		else
 			dump_rxfhash(rx_fhash_get, nfccmd.data);
+	} else if (ctx->argc == 2 && !strcmp(ctx->argp[0], "rule")) {
+		int rx_class_rule_get =
+			get_uint_range(ctx->argp[1], 0, INT_MAX);
+
+		err = rxclass_rule_get(ctx, rx_class_rule_get);
+		if (err < 0)
+			fprintf(stderr, "Cannot get RX classification rule\n");
+	} else if (ctx->argc == 0) {
+		nfccmd.cmd = ETHTOOL_GRXRINGS;
+		err = send_ioctl(ctx, &nfccmd);
+		if (err < 0)
+			perror("Cannot get RX rings");
+		else
+			fprintf(stdout, "%d RX rings available\n",
+				(int)nfccmd.data);
+
+		err = rxclass_rule_getall(ctx);
+		if (err < 0)
+			fprintf(stderr, "RX classification rule retrieval failed\n");
+
 	} else {
 		exit_bad_args();
 	}
 
-	return 0;
+	return err ? 1 : 0;
 }
 
 static int do_grxfhindir(struct cmd_context *ctx)
@@ -2830,84 +2886,6 @@ static int do_srxntuple(struct cmd_context *ctx,
 	return 0;
 }
 
-static int do_srxclsrule(struct cmd_context *ctx)
-{
-	int err;
-
-	if (ctx->argc < 2)
-		exit_bad_args();
-
-	if (!strcmp(ctx->argp[0], "flow-type")) {	
-		struct ethtool_rx_flow_spec rx_rule_fs;
-
-		ctx->argc--;
-		ctx->argp++;
-		if (rxclass_parse_ruleopts(ctx, &rx_rule_fs) < 0)
-			exit_bad_args();
-
-		/* attempt to add rule via N-tuple specifier */
-		err = do_srxntuple(ctx, &rx_rule_fs);
-		if (!err)
-			return 0;
-
-		/* attempt to add rule via network flow classifier */
-		err = rxclass_rule_ins(ctx, &rx_rule_fs);
-		if (err < 0) {
-			fprintf(stderr, "Cannot insert"
-				" classification rule\n");
-			return 1;
-		}
-	} else if (!strcmp(ctx->argp[0], "delete")) {
-		int rx_class_rule_del =
-			get_uint_range(ctx->argp[1], 0, INT_MAX);
-
-		err = rxclass_rule_del(ctx, rx_class_rule_del);
-
-		if (err < 0) {
-			fprintf(stderr, "Cannot delete"
-				" classification rule\n");
-			return 1;
-		}
-	} else {
-		exit_bad_args();
-	}
-
-	return 0;
-}
-
-static int do_grxclsrule(struct cmd_context *ctx)
-{
-	struct ethtool_rxnfc nfccmd;
-	int err;
-
-	if (ctx->argc == 2 && !strcmp(ctx->argp[0], "rule")) {
-		int rx_class_rule_get =
-			get_uint_range(ctx->argp[1], 0, INT_MAX);
-
-		err = rxclass_rule_get(ctx, rx_class_rule_get);
-		if (err < 0)
-			fprintf(stderr, "Cannot get RX classification rule\n");
-		return err ? 1 : 0;
-	}
-
-	if (ctx->argc != 0)
-		exit_bad_args();
-
-	nfccmd.cmd = ETHTOOL_GRXRINGS;
-	err = send_ioctl(ctx, &nfccmd);
-	if (err < 0)
-		perror("Cannot get RX rings");
-	else
-		fprintf(stdout, "%d RX rings available\n",
-			(int)nfccmd.data);
-
-	err = rxclass_rule_getall(ctx);
-	if (err < 0)
-		fprintf(stderr, "RX classification rule retrieval failed\n");
-
-	return err ? 1 : 0;
-}
-
 static int do_writefwdump(struct ethtool_dump *dump, const char *dump_file)
 {
 	int err = 0;
@@ -3202,26 +3180,16 @@ static const struct option {
 	{ "-t|--test", 1, do_test, "Execute adapter self test",
 	  "               [ online | offline | external_lb ]\n" },
 	{ "-S|--statistics", 1, do_gstats, "Show adapter statistics" },
-	{ "-n|--show-nfc", 1, do_grxclass,
-	  "Show Rx network flow classification options",
+	{ "-n|-u|--show-nfc|--show-ntuple", 1, do_grxclass,
+	  "Show Rx network flow classification options or rules",
 	  "		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
-	  "tcp6|udp6|ah6|esp6|sctp6 ]\n" },
-	{ "-N|--config-nfc", 1, do_srxclass,
-	  "Configure Rx network flow classification options",
-	  "		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
-	  "tcp6|udp6|ah6|esp6|sctp6 m|v|t|s|d|f|n|r... ]\n" },
-	{ "-x|--show-rxfh-indir", 1, do_grxfhindir,
-	  "Show Rx flow hash indirection" },
-	{ "-X|--set-rxfh-indir", 1, do_srxfhindir,
-	  "Set Rx flow hash indirection",
-	  "		equal N | weight W0 W1 ...\n" },
-	{ "-f|--flash", 1, do_flash,
-	  "Flash firmware image from the specified file to a region on the device",
-	  "               FILENAME [ REGION-NUMBER-TO-FLASH ]\n" },
-	{ "-U|--config-ntuple", 1, do_srxclsrule,
-	  "Configure Rx ntuple filters and actions",
-	  "		[ delete %d ] |\n"
-	  "		[ flow-type ether|ip4|tcp4|udp4|sctp4|ah4|esp4\n"
+	  "tcp6|udp6|ah6|esp6|sctp6 |\n"
+	  "		  rule %d ]\n" },
+	{ "-N|-U|--config-nfc|--config-ntuple", 1, do_srxclass,
+	  "Configure Rx network flow classification options or rules",
+	  "		rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
+	  "tcp6|udp6|ah6|esp6|sctp6 m|v|t|s|d|f|n|r... |\n"
+	  "		flow-type ether|ip4|tcp4|udp4|sctp4|ah4|esp4\n"
 	  "			[ src %x:%x:%x:%x:%x:%x [m %x:%x:%x:%x:%x:%x] ]\n"
 	  "			[ dst %x:%x:%x:%x:%x:%x [m %x:%x:%x:%x:%x:%x] ]\n"
 	  "			[ proto %d [m %x] ]\n"
@@ -3236,10 +3204,16 @@ static const struct option {
 	  "			[ vlan %x [m %x] ]\n"
 	  "			[ user-def %x [m %x] ]\n"
 	  "			[ action %d ]\n"
-	  "			[ loc %d]]\n" },
-	{ "-u|--show-ntuple", 1, do_grxclsrule,
-	  "Get Rx ntuple filters and actions",
-	  "		[ rule %d ]\n"},
+	  "			[ loc %d]] |\n"
+	  "		delete %d\n" },
+	{ "-x|--show-rxfh-indir", 1, do_grxfhindir,
+	  "Show Rx flow hash indirection" },
+	{ "-X|--set-rxfh-indir", 1, do_srxfhindir,
+	  "Set Rx flow hash indirection",
+	  "		equal N | weight W0 W1 ...\n" },
+	{ "-f|--flash", 1, do_flash,
+	  "Flash firmware image from the specified file to a region on the device",
+	  "               FILENAME [ REGION-NUMBER-TO-FLASH ]\n" },
 	{ "-P|--show-permaddr", 1, do_permaddr,
 	  "Show permanent hardware address" },
 	{ "-w|--get-dump", 1, do_getfwdump,

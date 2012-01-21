@@ -250,13 +250,37 @@ ethtool \- query or control network driver and hardware settings
 .A1 on off
 .RB ...]
 .HP
-.B ethtool \-n
+.B ethtool \-n|\-u|\-\-show\-nfc|\-\-show\-ntuple
 .I devname
-.BR rx\-flow\-hash \ \*(FL
+.RB [\  rx\-flow\-hash \ \*(FL \ |
+.br
+.BI rule \ N
+.RB ]
 .HP
-.B ethtool \-N
+.B ethtool \-N|\-U|\-\-config\-nfc|\-\-config\-ntuple
 .I devname
-.BR rx\-flow\-hash \ \*(FL \: \*(HO
+.BR rx\-flow\-hash \ \*(FL \: \*(HO \ |
+.br
+.B flow\-type \*(NC
+.RB [ src \ \*(MA\ [ m \ \*(MA]]
+.RB [ dst \ \*(MA\ [ m \ \*(MA]]
+.BM proto
+.RB [ src\-ip \ \*(PA\ [ m \ \*(PA]]
+.RB [ dst\-ip \ \*(PA\ [ m \ \*(PA]]
+.BM tos
+.BM l4proto
+.BM src\-port
+.BM dst\-port
+.BM spi
+.BM l4data
+.BM vlan\-etype
+.BM vlan
+.BM user\-def
+.BN action
+.BN loc
+.RB |
+.br
+.BI delete \ N
 .HP
 .B ethtool \-w|\-\-get\-dump
 .I devname
@@ -282,31 +306,6 @@ ethtool \- query or control network driver and hardware settings
 .I devname
 .RI FILE
 .RI [ N ]
-.HP
-.B ethtool \-u|\-\-show\-ntuple
-.I devname
-.BN rule
-.HP
-.BI ethtool\ \-U|\-\-config\-ntuple \ devname
-.BN delete
-.RB [\  flow\-type \ \*(NC
-.RB [ src \ \*(MA\ [ m \ \*(MA]]
-.RB [ dst \ \*(MA\ [ m \ \*(MA]]
-.BM proto
-.RB [ src\-ip \ \*(PA\ [ m \ \*(PA]]
-.RB [ dst\-ip \ \*(PA\ [ m \ \*(PA]]
-.BM tos
-.BM l4proto
-.BM src\-port
-.BM dst\-port
-.BM spi
-.BM l4data
-.BM vlan\-etype
-.BM vlan
-.BM user\-def
-.BN action
-.BN loc
-.RB ]
 .HP
 .B ethtool \-l|\-\-show\-channels
 .I devname
@@ -590,7 +589,7 @@ The precise meanings of these type flags differ between drivers.
 .PD
 .RE
 .TP
-.B \-n \-\-show\-nfc
+.B \-n \-u \-\-show\-nfc \-\-show\-ntuple
 Retrieves the receive network flow classification configurations.
 .TP
 .BR rx\-flow\-hash \ \*(FL
@@ -610,7 +609,12 @@ esp6	IPSEC ESP over IPv6
 sctp6	SCTP over IPv6
 .TE
 .TP
-.B \-N \-\-config\-nfc
+.BI rule \ N
+Retrieves the RX classification rule with the given ID.
+.PD
+.RE
+.TP
+.B \-N \-U \-\-config\-nfc \-\-config\-ntuple
 Configures the receive network flow classification.
 .TP
 .BR rx\-flow\-hash \ \*(FL \: \*(HO
@@ -630,56 +634,6 @@ Discard all packets of this flow type. When this option is set, all
 other options are ignored.
 T}
 .TE
-.TP
-.B \-w \-\-get\-dump
-Retrieves and prints firmware dump for the specified network device.
-By default, it prints out the dump flag, version and length of the dump data.
-When
-.I data
-is indicated, then ethtool fetches the dump data and directs it to a
-.I file.
-.TP
-.B \-W \-\-set\-dump
-Sets the dump flag for the device.
-.TP
-.B \-x \-\-show\-rxfh\-indir
-Retrieves the receive flow hash indirection table.
-.TP
-.B \-X \-\-set\-rxfh\-indir
-Configures the receive flow hash indirection table.
-.TP
-.BI equal\  N
-Sets the receive flow hash indirection table to spread flows evenly
-between the first \fIN\fR receive queues.
-.TP
-\fBweight\fR \fIW0 W1\fR ...
-Sets the receive flow hash indirection table to spread flows between
-receive queues according to the given weights.  The sum of the weights
-must be non-zero and must not exceed the size of the indirection table.
-.TP
-.B \-f \-\-flash \ FILE
-Flash firmware image from the specified file to a region on the adapter.
-By default this will flash all the regions on the adapter.
-.TP
-.B N
-A number to identify flash region where the image should be flashed.
-Default region is 0 which denotes all regions in the flash.
-.PD
-.RE
-.TP
-.B \-u \-\-show\-ntuple
-Get Rx ntuple filters and actions, then display them to the user.
-.TP
-.BI rule \ N
-Retrieves the RX classification rule with the given ID.
-.PD
-.RE
-.TP
-.B \-U \-\-config\-ntuple
-Configure Rx ntuple filters and actions
-.TP
-.BI delete \ N
-Deletes the RX classification rule with the given ID.
 .TP
 .B flow\-type \*(NC
 .TS
@@ -772,6 +726,45 @@ lB	l.
 Specify the location/ID to insert the rule. This will overwrite
 any rule present in that location and will not go through any
 of the rule ordering process.
+.TP
+.BI delete \ N
+Deletes the RX classification rule with the given ID.
+.TP
+.B \-w \-\-get\-dump
+Retrieves and prints firmware dump for the specified network device.
+By default, it prints out the dump flag, version and length of the dump data.
+When
+.I data
+is indicated, then ethtool fetches the dump data and directs it to a
+.I file.
+.TP
+.B \-W \-\-set\-dump
+Sets the dump flag for the device.
+.TP
+.B \-x \-\-show\-rxfh\-indir
+Retrieves the receive flow hash indirection table.
+.TP
+.B \-X \-\-set\-rxfh\-indir
+Configures the receive flow hash indirection table.
+.TP
+.BI equal\  N
+Sets the receive flow hash indirection table to spread flows evenly
+between the first \fIN\fR receive queues.
+.TP
+\fBweight\fR \fIW0 W1\fR ...
+Sets the receive flow hash indirection table to spread flows between
+receive queues according to the given weights.  The sum of the weights
+must be non-zero and must not exceed the size of the indirection table.
+.TP
+.B \-f \-\-flash \ FILE
+Flash firmware image from the specified file to a region on the adapter.
+By default this will flash all the regions on the adapter.
+.TP
+.B N
+A number to identify flash region where the image should be flashed.
+Default region is 0 which denotes all regions in the flash.
+.PD
+.RE
 .TP
 .B \-l \-\-show\-channels
 Queries the specified network device for the numbers of channels it has.
