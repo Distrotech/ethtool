@@ -590,10 +590,10 @@ The precise meanings of these type flags differ between drivers.
 .RE
 .TP
 .B \-n \-u \-\-show\-nfc \-\-show\-ntuple
-Retrieves the receive network flow classification configurations.
+Retrieves receive network flow classification options or rules.
 .TP
 .BR rx\-flow\-hash \ \*(FL
-Retrieves the hash options for the specified network traffic type.
+Retrieves the hash options for the specified flow type.
 .TS
 nokeep;
 lB	l.
@@ -615,10 +615,10 @@ Retrieves the RX classification rule with the given ID.
 .RE
 .TP
 .B \-N \-U \-\-config\-nfc \-\-config\-ntuple
-Configures the receive network flow classification.
+Configures receive network flow classification options or rules.
 .TP
 .BR rx\-flow\-hash \ \*(FL \: \*(HO
-Configures the hash options for the specified network traffic type.
+Configures the hash options for the specified flow type.
 .TS
 nokeep;
 lB	l.
@@ -636,6 +636,7 @@ T}
 .TE
 .TP
 .B flow\-type \*(NC
+Inserts or updates a classification rule for the specified flow type.
 .TS
 nokeep;
 lB	l.
