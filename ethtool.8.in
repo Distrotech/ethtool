@@ -214,6 +214,7 @@ ethtool \- query or control network driver and hardware settings
 .B2 lro on off
 .B2 rxvlan on off
 .B2 txvlan on off
+.B2 ntuple on off
 .B2 rxhash on off
 .HP
 .B ethtool \-p|\-\-identify
@@ -452,6 +453,9 @@ Specifies whether RX VLAN acceleration should be enabled
 .TP
 .A2 txvlan on off
 Specifies whether TX VLAN acceleration should be enabled
+.TP
+.A2 ntuple on off
+Specifies whether Rx ntuple filters and actions should be enabled
 .TP
 .A2 rxhash on off
 Specifies whether receive hashing offload should be enabled
