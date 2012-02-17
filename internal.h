@@ -144,6 +144,8 @@ int test_fclose(FILE *fh);
 
 int send_ioctl(struct cmd_context *ctx, void *cmd);
 
+void dump_hex(FILE *f, const u8 *data, int len, int offset);
+
 /* National Semiconductor DP83815, DP83816 */
 int natsemi_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 int natsemi_dump_eeprom(struct ethtool_drvinfo *info,
