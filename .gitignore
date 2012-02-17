@@ -13,6 +13,7 @@ ethtool.spec
 ethtool.8
 ethtool
 test-cmdline
+test-features
 stamp-h1
 config.*
 aclocal.m4

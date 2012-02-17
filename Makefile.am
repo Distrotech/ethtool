@@ -11,10 +11,12 @@ ethtool_SOURCES = ethtool.c ethtool-copy.h internal.h net_tstamp-copy.h \
 		  smsc911x.c at76c50x-usb.c sfc.c stmmac.c	\
 		  rxclass.c sfpid.c
 
-TESTS = test-cmdline
-check_PROGRAMS = test-cmdline
+TESTS = test-cmdline test-features
+check_PROGRAMS = test-cmdline test-features
 test_cmdline_SOURCES = test-cmdline.c test-common.c $(ethtool_SOURCES) 
 test_cmdline_CFLAGS = -DTEST_ETHTOOL
+test_features_SOURCES = test-features.c test-common.c $(ethtool_SOURCES) 
+test_features_CFLAGS = -DTEST_ETHTOOL
 
 dist-hook:
 	cp $(top_srcdir)/ethtool.spec $(distdir)
