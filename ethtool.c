@@ -1115,6 +1115,91 @@ static int dump_rxfhash(int fhash, u64 val)
 	return 0;
 }
 
+#define N_SOTS 7
+
+static char *so_timestamping_labels[N_SOTS] = {
+	"hardware-transmit     (SOF_TIMESTAMPING_TX_HARDWARE)",
+	"software-transmit     (SOF_TIMESTAMPING_TX_SOFTWARE)",
+	"hardware-receive      (SOF_TIMESTAMPING_RX_HARDWARE)",
+	"software-receive      (SOF_TIMESTAMPING_RX_SOFTWARE)",
+	"software-system-clock (SOF_TIMESTAMPING_SOFTWARE)",
+	"hardware-legacy-clock (SOF_TIMESTAMPING_SYS_HARDWARE)",
+	"hardware-raw-clock    (SOF_TIMESTAMPING_RAW_HARDWARE)",
+};
+
+#define N_TX_TYPES (HWTSTAMP_TX_ONESTEP_SYNC + 1)
+
+static char *tx_type_labels[N_TX_TYPES] = {
+	"off                   (HWTSTAMP_TX_OFF)",
+	"on                    (HWTSTAMP_TX_ON)",
+	"one-step-sync         (HWTSTAMP_TX_ONESTEP_SYNC)",
+};
+
+#define N_RX_FILTERS (HWTSTAMP_FILTER_PTP_V2_DELAY_REQ + 1)
+
+static char *rx_filter_labels[N_RX_FILTERS] = {
+	"none                  (HWTSTAMP_FILTER_NONE)",
+	"all                   (HWTSTAMP_FILTER_ALL)",
+	"some                  (HWTSTAMP_FILTER_SOME)",
+	"ptpv1-l4-event        (HWTSTAMP_FILTER_PTP_V1_L4_EVENT)",
+	"ptpv1-l4-sync         (HWTSTAMP_FILTER_PTP_V1_L4_SYNC)",
+	"ptpv1-l4-delay-req    (HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ)",
+	"ptpv2-l4-event        (HWTSTAMP_FILTER_PTP_V2_L4_EVENT)",
+	"ptpv2-l4-sync         (HWTSTAMP_FILTER_PTP_V2_L4_SYNC)",
+	"ptpv2-l4-delay-req    (HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ)",
+	"ptpv2-l2-event        (HWTSTAMP_FILTER_PTP_V2_L2_EVENT)",
+	"ptpv2-l2-sync         (HWTSTAMP_FILTER_PTP_V2_L2_SYNC)",
+	"ptpv2-l2-delay-req    (HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ)",
+	"ptpv2-event           (HWTSTAMP_FILTER_PTP_V2_EVENT)",
+	"ptpv2-sync            (HWTSTAMP_FILTER_PTP_V2_SYNC)",
+	"ptpv2-delay-req       (HWTSTAMP_FILTER_PTP_V2_DELAY_REQ)",
+};
+
+static int dump_tsinfo(const struct ethtool_ts_info *info)
+{
+	int i;
+
+	fprintf(stdout, "Capabilities:\n");
+
+	for (i = 0; i < N_SOTS; i++) {
+		if (info->so_timestamping & (1 << i))
+			fprintf(stdout, "\t%s\n", so_timestamping_labels[i]);
+	}
+
+	fprintf(stdout, "PTP Hardware Clock: ");
+
+	if (info->phc_index < 0)
+		fprintf(stdout, "none\n");
+	else
+		fprintf(stdout, "%d\n", info->phc_index);
+
+	fprintf(stdout, "Hardware Transmit Timestamp Modes:");
+
+	if (!info->tx_types)
+		fprintf(stdout, " none\n");
+	else
+		fprintf(stdout, "\n");
+
+	for (i = 0; i < N_TX_TYPES; i++) {
+		if (info->tx_types & (1 << i))
+			fprintf(stdout,	"\t%s\n", tx_type_labels[i]);
+	}
+
+	fprintf(stdout, "Hardware Receive Filter Modes:");
+
+	if (!info->rx_filters)
+		fprintf(stdout, " none\n");
+	else
+		fprintf(stdout, "\n");
+
+	for (i = 0; i < N_RX_FILTERS; i++) {
+		if (info->rx_filters & (1 << i))
+			fprintf(stdout, "\t%s\n", rx_filter_labels[i]);
+	}
+
+	return 0;
+}
+
 static struct ethtool_gstrings *
 get_stringset(struct cmd_context *ctx, enum ethtool_stringset set_id,
 	      ptrdiff_t drvinfo_offset)
@@ -3077,6 +3162,23 @@ static int do_sprivflags(struct cmd_context *ctx)
 	return 0;
 }
 
+static int do_tsinfo(struct cmd_context *ctx)
+{
+	struct ethtool_ts_info info;
+
+	if (ctx->argc != 0)
+		exit_bad_args();
+
+	fprintf(stdout, "Time stamping parameters for %s:\n", ctx->devname);
+	info.cmd = ETHTOOL_GET_TS_INFO;
+	if (send_ioctl(ctx, &info)) {
+		perror("Cannot get device time stamping settings");
+		return -1;
+	}
+	dump_tsinfo(&info);
+	return 0;
+}
+
 int send_ioctl(struct cmd_context *ctx, void *cmd)
 {
 #ifndef TEST_ETHTOOL
@@ -3206,6 +3308,8 @@ static const struct option {
 	  "			[ action %d ]\n"
 	  "			[ loc %d]] |\n"
 	  "		delete %d\n" },
+	{ "-T|--show-time-stamping", 1, do_tsinfo,
+	  "Show time stamping capabilities" },
 	{ "-x|--show-rxfh-indir", 1, do_grxfhindir,
 	  "Show Rx flow hash indirection" },
 	{ "-X|--set-rxfh-indir", 1, do_srxfhindir,

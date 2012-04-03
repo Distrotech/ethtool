@@ -292,6 +292,9 @@ ethtool \- query or control network driver and hardware settings
 .I devname
 .BI \ N
 .HP
+.B ethtool \-T|\-\-show\-time\-stamping
+.I devname
+.HP
 .B ethtool \-x|\-\-show\-rxfh\-indir
 .I devname
 .HP
@@ -744,6 +747,10 @@ is indicated, then ethtool fetches the dump data and directs it to a
 .TP
 .B \-W \-\-set\-dump
 Sets the dump flag for the device.
+.TP
+.B \-T \-\-show\-time\-stamping
+Show the device's time stamping capabilities and associated PTP
+hardware clock.
 .TP
 .B \-x \-\-show\-rxfh\-indir
 Retrieves the receive flow hash indirection table.

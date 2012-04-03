@@ -25,6 +25,7 @@ typedef __uint8_t u8;
 typedef __int32_t s32;
 
 #include "ethtool-copy.h"
+#include "net_tstamp-copy.h"
 
 #if __BYTE_ORDER == __BIG_ENDIAN
 static inline u16 cpu_to_be16(u16 value)
