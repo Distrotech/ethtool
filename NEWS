@@ -1,3 +1,13 @@
+Version 3.4 - June 8, 2012
+
+	* Cleanup: Merge RX NFC options
+	* Doc: Improve description of RX NFC options
+	* Doc: Add ntuple to the -K option in the man page
+	* Feature: Show time stamping capabilities (-T option)
+	* Feature: Dump plug-in module EEPROM (-m option)
+	* Feature: Show and change all generic net device features
+	  (-k and -K options)
+
 Version 3.2 - January 12, 2012
 
 	* Feature: Add support for querying and setting private flags
