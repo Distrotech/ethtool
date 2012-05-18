@@ -175,4 +175,7 @@ int rxclass_rule_ins(struct cmd_context *ctx,
 		     struct ethtool_rx_flow_spec *fsp);
 int rxclass_rule_del(struct cmd_context *ctx, __u32 loc);
 
+/* Module EEPROM parsing code */
+void sff8079_show_all(const __u8 *id);
+
 #endif /* ETHTOOL_INTERNAL_H__ */

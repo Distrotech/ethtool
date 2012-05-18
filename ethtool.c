@@ -3180,6 +3180,87 @@ static int do_tsinfo(struct cmd_context *ctx)
 	return 0;
 }
 
+static int do_getmodule(struct cmd_context *ctx)
+{
+	struct ethtool_modinfo modinfo;
+	struct ethtool_eeprom *eeprom;
+	u32 geeprom_offset = 0;
+	u32 geeprom_length = -1;
+	int geeprom_changed = 0;
+	int geeprom_dump_raw = 0;
+	int geeprom_dump_hex = 0;
+	int err;
+
+	struct cmdline_info cmdline_geeprom[] = {
+		{ "offset", CMDL_U32, &geeprom_offset, NULL },
+		{ "length", CMDL_U32, &geeprom_length, NULL },
+		{ "raw", CMDL_BOOL, &geeprom_dump_raw, NULL },
+		{ "hex", CMDL_BOOL, &geeprom_dump_hex, NULL },
+	};
+
+	parse_generic_cmdline(ctx, &geeprom_changed,
+			      cmdline_geeprom, ARRAY_SIZE(cmdline_geeprom));
+
+	if (geeprom_dump_raw && geeprom_dump_hex) {
+		printf("Hex and raw dump cannot be specified together\n");
+		return 1;
+	}
+
+	modinfo.cmd = ETHTOOL_GMODULEINFO;
+	err = send_ioctl(ctx, &modinfo);
+	if (err < 0) {
+		perror("Cannot get module EEPROM information");
+		return 1;
+	}
+
+	if (geeprom_length == -1)
+		geeprom_length = modinfo.eeprom_len;
+
+	if (modinfo.eeprom_len < geeprom_offset + geeprom_length)
+		geeprom_length = modinfo.eeprom_len - geeprom_offset;
+
+	eeprom = calloc(1, sizeof(*eeprom)+geeprom_length);
+	if (!eeprom) {
+		perror("Cannot allocate memory for Module EEPROM data");
+		return 1;
+	}
+
+	eeprom->cmd = ETHTOOL_GMODULEEEPROM;
+	eeprom->len = geeprom_length;
+	eeprom->offset = geeprom_offset;
+	err = send_ioctl(ctx, eeprom);
+	if (err < 0) {
+		perror("Cannot get Module EEPROM data");
+		free(eeprom);
+		return 1;
+	}
+
+	if (geeprom_dump_raw) {
+		fwrite(eeprom->data, 1, eeprom->len, stdout);
+	} else {
+		if (eeprom->offset != 0  ||
+		    (eeprom->len != modinfo.eeprom_len)) {
+			geeprom_dump_hex = 1;
+		} else if (!geeprom_dump_hex) {
+			switch (modinfo.type) {
+			case ETH_MODULE_SFF_8079:
+			case ETH_MODULE_SFF_8472:
+				sff8079_show_all(eeprom->data);
+				break;
+			default:
+				geeprom_dump_hex = 1;
+				break;
+			}
+		}
+		if (geeprom_dump_hex)
+			dump_hex(eeprom->data, eeprom->len, eeprom->offset);
+	}
+
+	free(eeprom);
+
+	return 0;
+}
+
 int send_ioctl(struct cmd_context *ctx, void *cmd)
 {
 #ifndef TEST_ETHTOOL
@@ -3336,6 +3417,12 @@ static const struct option {
 	{ "--show-priv-flags" , 1, do_gprivflags, "Query private flags" },
 	{ "--set-priv-flags", 1, do_sprivflags, "Set private flags",
 	  "		FLAG on|off ...\n" },
+	{ "-m|--dump-module-eeprom", 1, do_getmodule,
+	  "Qeuery/Decode Module EEPROM information",
+	  "		[ raw on|off ]\n"
+	  "		[ hex on|off ]\n"
+	  "		[ offset N ]\n"
+	  "		[ length N ]\n" },
 	{ "-h|--help", 0, show_usage, "Show this help" },
 	{ "--version", 0, do_version, "Show version number" },
 	{}
