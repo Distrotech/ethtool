@@ -787,6 +787,20 @@ static const struct {
 	{ "st_gmac", st_gmac_dump_regs },
 };
 
+static void dump_hex(__u8 *data, int len, int offset)
+{
+	int i;
+
+	fprintf(stdout, "Offset\t\tValues\n");
+	fprintf(stdout, "------\t\t------");
+	for (i = 0; i < len; i++) {
+		if (i % 16 == 0)
+			fprintf(stdout, "\n0x%04x:\t\t", i + offset);
+		fprintf(stdout, "%02x ", data[i]);
+	}
+	fprintf(stdout, "\n");
+}
+
 static int dump_regs(int gregs_dump_raw, int gregs_dump_hex,
 		     const char *gregs_dump_file,
 		     struct ethtool_drvinfo *info, struct ethtool_regs *regs)
@@ -820,22 +834,14 @@ static int dump_regs(int gregs_dump_raw, int gregs_dump_hex,
 				     ETHTOOL_BUSINFO_LEN))
 				return driver_list[i].func(info, regs);
 
-	fprintf(stdout, "Offset\tValues\n");
-	fprintf(stdout, "--------\t-----");
-	for (i = 0; i < regs->len; i++) {
-		if (i%16 == 0)
-			fprintf(stdout, "\n%03x:\t", i);
-		fprintf(stdout, " %02x", regs->data[i]);
-	}
-	fprintf(stdout, "\n\n");
+	dump_hex(regs->data, regs->len, 0);
+
 	return 0;
 }
 
 static int dump_eeprom(int geeprom_dump_raw, struct ethtool_drvinfo *info,
 		       struct ethtool_eeprom *ee)
 {
-	int i;
-
 	if (geeprom_dump_raw) {
 		fwrite(ee->data, 1, ee->len, stdout);
 		return 0;
@@ -847,13 +853,8 @@ static int dump_eeprom(int geeprom_dump_raw, struct ethtool_drvinfo *info,
 		return tg3_dump_eeprom(info, ee);
 	}
 
-	fprintf(stdout, "Offset\t\tValues\n");
-	fprintf(stdout, "------\t\t------");
-	for (i = 0; i < ee->len; i++) {
-		if(!(i%16)) fprintf(stdout, "\n0x%04x\t\t", i + ee->offset);
-		fprintf(stdout, "%02x ", ee->data[i]);
-	}
-	fprintf(stdout, "\n");
+	dump_hex(ee->data, ee->len, ee->offset);
+
 	return 0;
 }
 
