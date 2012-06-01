@@ -128,37 +128,62 @@ static const struct flag_info flags_msglvl[] = {
 	{ "wol",	NETIF_MSG_WOL },
 };
 
-static const struct {
+struct off_flag_def {
 	const char *short_name;
 	const char *long_name;
+	const char *kernel_name;
 	u32 get_cmd, set_cmd;
 	u32 value;
-} off_flag_def[] = {
-	{ "rx",     "rx-checksumming",
+};
+static const struct off_flag_def off_flag_def[] = {
+	{ "rx",     "rx-checksumming",		    "rx-checksum",
 	  ETHTOOL_GRXCSUM, ETHTOOL_SRXCSUM, ETH_FLAG_RXCSUM },
-	{ "tx",     "tx-checksumming",
+	{ "tx",     "tx-checksumming",		    "tx-checksum-*",
 	  ETHTOOL_GTXCSUM, ETHTOOL_STXCSUM, ETH_FLAG_TXCSUM },
-	{ "sg",     "scatter-gather",
+	{ "sg",     "scatter-gather",		    "tx-scatter-gather*",
 	  ETHTOOL_GSG,	   ETHTOOL_SSG,     ETH_FLAG_SG },
-	{ "tso",    "tcp-segmentation-offload",
+	{ "tso",    "tcp-segmentation-offload",	    "tx-tcp*-segmentation",
 	  ETHTOOL_GTSO,	   ETHTOOL_STSO,    ETH_FLAG_TSO },
-	{ "ufo",    "udp-fragmentation-offload",
+	{ "ufo",    "udp-fragmentation-offload",    "tx-udp-fragmentation",
 	  ETHTOOL_GUFO,	   ETHTOOL_SUFO,    ETH_FLAG_UFO },
-	{ "gso",    "generic-segmentation-offload",
+	{ "gso",    "generic-segmentation-offload", "tx-generic-segmentation",
 	  ETHTOOL_GGSO,	   ETHTOOL_SGSO,    ETH_FLAG_GSO },
-	{ "gro",    "generic-receive-offload",
+	{ "gro",    "generic-receive-offload",	    "rx-gro",
 	  ETHTOOL_GGRO,	   ETHTOOL_SGRO,    ETH_FLAG_GRO },
-	{ "lro",    "large-receive-offload",
+	{ "lro",    "large-receive-offload",	    "rx-lro",
 	  0,		   0,		    ETH_FLAG_LRO },
-	{ "rxvlan", "rx-vlan-offload",
+	{ "rxvlan", "rx-vlan-offload",		    "rx-vlan-hw-parse",
 	  0,		   0,		    ETH_FLAG_RXVLAN },
-	{ "txvlan", "tx-vlan-offload",
+	{ "txvlan", "tx-vlan-offload",		    "tx-vlan-hw-insert",
 	  0,		   0,		    ETH_FLAG_TXVLAN },
-	{ "ntuple", "ntuple-filters",
+	{ "ntuple", "ntuple-filters",		    "rx-ntuple-filter",
 	  0,		   0,		    ETH_FLAG_NTUPLE },
-	{ "rxhash", "receive-hashing",
+	{ "rxhash", "receive-hashing",		    "rx-hashing",
 	  0,		   0,		    ETH_FLAG_RXHASH },
 };
+
+struct feature_def {
+	char name[ETH_GSTRING_LEN];
+	int off_flag_index; /* index in off_flag_def; negative if none match */
+};
+
+struct feature_defs {
+	size_t n_features;
+	/* Number of features each offload flag is associated with */
+	unsigned int off_flag_matched[ARRAY_SIZE(off_flag_def)];
+	/* Name and offload flag index for each feature */
+	struct feature_def def[0];
+};
+
+#define FEATURE_BITS_TO_BLOCKS(n_bits)		DIV_ROUND_UP(n_bits, 32U)
+#define FEATURE_WORD(blocks, index, field)	((blocks)[(index) / 32U].field)
+#define FEATURE_FIELD_FLAG(index)		(1U << (index) % 32U)
+#define FEATURE_BIT_SET(blocks, index, field)			\
+	(FEATURE_WORD(blocks, index, field) |= FEATURE_FIELD_FLAG(index))
+#define FEATURE_BIT_CLEAR(blocks, index, field)			\
+	(FEATURE_WORD(blocks, index, filed) &= ~FEATURE_FIELD_FLAG(index))
+#define FEATURE_BIT_IS_SET(blocks, index, field)		\
+	(FEATURE_WORD(blocks, index, field) & FEATURE_FIELD_FLAG(index))
 
 static long long
 get_int_range(char *str, int base, long long min, long long max)
@@ -1069,21 +1094,84 @@ static int dump_coalesce(const struct ethtool_coalesce *ecoal)
 	return 0;
 }
 
-static int dump_offload(u32 active, u32 mask)
+struct feature_state {
+	u32 off_flags;
+	struct ethtool_gfeatures features;
+};
+
+static void dump_one_feature(const char *indent, const char *name,
+			     const struct feature_state *state,
+			     const struct feature_state *ref_state,
+			     u32 index)
+{
+	if (ref_state &&
+	    !(FEATURE_BIT_IS_SET(state->features.features, index, active) ^
+	      FEATURE_BIT_IS_SET(ref_state->features.features, index, active)))
+		return;
+
+	printf("%s%s: %s%s\n",
+	       indent, name,
+	       FEATURE_BIT_IS_SET(state->features.features, index, active) ?
+	       "on" : "off",
+	       (!FEATURE_BIT_IS_SET(state->features.features, index, available)
+		|| FEATURE_BIT_IS_SET(state->features.features, index,
+				      never_changed))
+	       ? " [fixed]"
+	       : (FEATURE_BIT_IS_SET(state->features.features, index, requested)
+		  ^ FEATURE_BIT_IS_SET(state->features.features, index, active))
+	       ? (FEATURE_BIT_IS_SET(state->features.features, index, requested)
+		  ? " [requested on]" : " [requested off]")
+	       : "");
+}
+
+static void dump_features(const struct feature_defs *defs,
+			  const struct feature_state *state,
+			  const struct feature_state *ref_state)
 {
 	u32 value;
-	int i;
+	int indent;
+	int i, j;
 
 	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
 		value = off_flag_def[i].value;
-		if (!(mask & value))
-			continue;
-		printf("%s: %s\n",
-		       off_flag_def[i].long_name,
-		       (active & value) ? "on" : "off");
+
+		/* If this offload flag matches exactly one generic
+		 * feature then it's redundant to show the flag and
+		 * feature states separately.  Otherwise, show the
+		 * flag state first.
+		 */
+		if (defs->off_flag_matched[i] != 1 &&
+		    (!ref_state ||
+		     (state->off_flags ^ ref_state->off_flags) & value)) {
+			printf("%s: %s\n",
+			       off_flag_def[i].long_name,
+			       (state->off_flags & value) ? "on" : "off");
+			indent = 1;
+		} else {
+			indent = 0;
+		}
+
+		/* Show matching features */
+		for (j = 0; j < defs->n_features; j++) {
+			if (defs->def[j].off_flag_index != i)
+				continue;
+			if (defs->off_flag_matched[i] != 1)
+				/* Show all matching feature states */
+				dump_one_feature(indent ? "\t" : "",
+						 defs->def[j].name,
+						 state, ref_state, j);
+			else
+				/* Show full state with the old flag name */
+				dump_one_feature("", off_flag_def[i].long_name,
+						 state, ref_state, j);
+		}
 	}
 
-	return 0;
+	/* Show all unmatched features that have non-null names */
+	for (j = 0; j < defs->n_features; j++)
+		if (defs->def[j].off_flag_index < 0 && defs->def[j].name[0])
+			dump_one_feature("", defs->def[j].name,
+					 state, ref_state, j);
 }
 
 static int dump_rxfhash(int fhash, u64 val)
@@ -1257,6 +1345,72 @@ get_stringset(struct cmd_context *ctx, enum ethtool_stringset set_id,
 	}
 
 	return strings;
+}
+
+static struct feature_defs *get_feature_defs(struct cmd_context *ctx)
+{
+	struct ethtool_gstrings *names;
+	struct feature_defs *defs;
+	u32 n_features;
+	int i, j;
+
+	names = get_stringset(ctx, ETH_SS_FEATURES, 0);
+	if (names) {
+		n_features = names->len;
+	} else if (errno == EOPNOTSUPP || errno == EINVAL) {
+		/* Kernel doesn't support named features; not an error */
+		n_features = 0;
+	} else {
+		return NULL;
+	}
+
+	defs = malloc(sizeof(*defs) + sizeof(defs->def[0]) * n_features);
+	if (!defs)
+		return NULL;
+
+	defs->n_features = n_features;
+	memset(defs->off_flag_matched, 0, sizeof(defs->off_flag_matched));
+
+	/* Copy out feature names and find those associated with legacy flags */
+	for (i = 0; i < defs->n_features; i++) {
+		memcpy(defs->def[i].name, names->data + i * ETH_GSTRING_LEN,
+		       ETH_GSTRING_LEN);
+		defs->def[i].off_flag_index = -1;
+
+		for (j = 0;
+		     j < ARRAY_SIZE(off_flag_def) &&
+			     defs->def[i].off_flag_index < 0;
+		     j++) {
+			const char *pattern =
+				off_flag_def[j].kernel_name;
+			const char *name = defs->def[i].name;
+			for (;;) {
+				if (*pattern == '*') {
+					/* There is only one wildcard; so
+					 * switch to a suffix comparison */
+					size_t pattern_len =
+						strlen(pattern + 1);
+					size_t name_len = strlen(name);
+					if (name_len < pattern_len)
+						break; /* name is too short */
+					name += name_len - pattern_len;
+					++pattern;
+				} else if (*pattern != *name) {
+					break; /* mismatch */
+				} else if (*pattern == 0) {
+					defs->def[i].off_flag_index = j;
+					defs->off_flag_matched[j]++;
+					break;
+				} else {
+					++name;
+					++pattern;
+				}
+			}
+		}
+	}
+
+	free(names);
+	return defs;
 }
 
 static int do_gdrv(struct cmd_context *ctx)
@@ -1649,14 +1803,22 @@ static int do_scoalesce(struct cmd_context *ctx)
 	return 0;
 }
 
-static int get_offload(struct cmd_context *ctx, u32 *flags)
+static struct feature_state *
+get_features(struct cmd_context *ctx, const struct feature_defs *defs)
 {
+	struct feature_state *state;
 	struct ethtool_value eval;
 	int err, allfail = 1;
 	u32 value;
 	int i;
 
-	*flags = 0; 
+	state = malloc(sizeof(*state) +
+		       FEATURE_BITS_TO_BLOCKS(defs->n_features) *
+		       sizeof(state->features.features[0]));
+	if (!state)
+		return NULL;
+
+	state->off_flags = 0;
 
 	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
 		value = off_flag_def[i].value;
@@ -1670,7 +1832,7 @@ static int get_offload(struct cmd_context *ctx, u32 *flags)
 				off_flag_def[i].long_name);
 		} else {
 			if (eval.data)
-				*flags |= value;
+				state->off_flags |= value;
 			allfail = 0;
 		}
 	}
@@ -1680,101 +1842,214 @@ static int get_offload(struct cmd_context *ctx, u32 *flags)
 	if (err) {
 		perror("Cannot get device flags");
 	} else {
-		*flags |= eval.data & ETH_FLAG_EXT_MASK;
+		state->off_flags |= eval.data & ETH_FLAG_EXT_MASK;
 		allfail = 0;
 	}
 
-	return allfail;
+	if (defs->n_features) {
+		state->features.cmd = ETHTOOL_GFEATURES;
+		state->features.size = FEATURE_BITS_TO_BLOCKS(defs->n_features);
+		err = send_ioctl(ctx, &state->features);
+		if (err)
+			perror("Cannot get device generic features");
+		else
+			allfail = 0;
+	}
+
+	if (allfail) {
+		free(state);
+		return NULL;
+	}
+
+	return state;
 }
 
-static int do_goffload(struct cmd_context *ctx)
+static int do_gfeatures(struct cmd_context *ctx)
 {
-	u32 flags;
+	struct feature_defs *defs;
+	struct feature_state *features;
 
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	fprintf(stdout, "Offload parameters for %s:\n", ctx->devname);
+	defs = get_feature_defs(ctx);
+	if (!defs)
+		return 1;
 
-	if (get_offload(ctx, &flags)) {
-		fprintf(stdout, "no offload info available\n");
-		return 83;
+	fprintf(stdout, "Features for %s:\n", ctx->devname);
+
+	features = get_features(ctx, defs);
+	if (!features) {
+		fprintf(stdout, "no feature info available\n");
+		return 1;
 	}
 
-	return dump_offload(flags, ~(u32)0);
+	dump_features(defs, features, NULL);
+	return 0;
 }
 
-static int do_soffload(struct cmd_context *ctx)
+static int do_sfeatures(struct cmd_context *ctx)
 {
-	int goffload_changed = 0;
+	struct feature_defs *defs;
+	int any_changed = 0, any_mismatch = 0;
 	u32 off_flags_wanted = 0;
 	u32 off_flags_mask = 0;
-	struct cmdline_info cmdline_offload[ARRAY_SIZE(off_flag_def)];
-	u32 old_flags, new_flags, diff;
+	struct ethtool_sfeatures *efeatures;
+	struct cmdline_info *cmdline_features;
+	struct feature_state *old_state, *new_state;
 	struct ethtool_value eval;
 	int err;
-	int i;
+	int i, j;
 
+	defs = get_feature_defs(ctx);
+	if (!defs)
+		return 1;
+	if (defs->n_features) {
+		efeatures = malloc(sizeof(*efeatures) +
+				   FEATURE_BITS_TO_BLOCKS(defs->n_features) *
+				   sizeof(efeatures->features[0]));
+		if (!efeatures) {
+			perror("Cannot parse arguments");
+			return 1;
+		}
+		efeatures->cmd = ETHTOOL_SFEATURES;
+		efeatures->size = FEATURE_BITS_TO_BLOCKS(defs->n_features);
+		memset(efeatures->features, 0,
+		       FEATURE_BITS_TO_BLOCKS(defs->n_features) *
+		       sizeof(efeatures->features[0]));
+	} else {
+		efeatures = NULL;
+	}
+
+	/* Generate cmdline_info for legacy flags and kernel-named
+	 * features, and parse our arguments.
+	 */
+	cmdline_features = calloc(ARRAY_SIZE(off_flag_def) + defs->n_features,
+				  sizeof(cmdline_features[0]));
+	if (!cmdline_features) {
+		perror("Cannot parse arguments");
+		return 1;
+	}
 	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++)
 		flag_to_cmdline_info(off_flag_def[i].short_name,
 				     off_flag_def[i].value,
 				     &off_flags_wanted, &off_flags_mask,
-				     &cmdline_offload[i]);
+				     &cmdline_features[i]);
+	for (i = 0; i < defs->n_features; i++)
+		flag_to_cmdline_info(
+			defs->def[i].name, FEATURE_FIELD_FLAG(i),
+			&FEATURE_WORD(efeatures->features, i, requested),
+			&FEATURE_WORD(efeatures->features, i, valid),
+			&cmdline_features[ARRAY_SIZE(off_flag_def) + i]);
+	parse_generic_cmdline(ctx, &any_changed, cmdline_features,
+			      ARRAY_SIZE(off_flag_def) + defs->n_features);
+	free(cmdline_features);
 
-	parse_generic_cmdline(ctx, &goffload_changed,
-			      cmdline_offload, ARRAY_SIZE(cmdline_offload));
-
-	if (get_offload(ctx, &old_flags)) {
-		fprintf(stderr, "no offload info available\n");
-		return 1;
-	}
-
-	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
-		if (!off_flag_def[i].set_cmd)
-			continue;
-		if (off_flags_mask & off_flag_def[i].value) {
-			eval.cmd = off_flag_def[i].set_cmd;
-			eval.data = !!(off_flags_wanted &
-				       off_flag_def[i].value);
-			err = send_ioctl(ctx, &eval);
-			if (err) {
-				fprintf(stderr,
-					"Cannot set device %s settings: %m\n",
-					off_flag_def[i].long_name);
-				return 1;
-			}
-		}
-	}
-	if (off_flags_mask & ETH_FLAG_EXT_MASK) {
-		eval.cmd = ETHTOOL_SFLAGS;
-		eval.data = old_flags & ~off_flags_mask & ETH_FLAG_EXT_MASK;
-		eval.data |= off_flags_wanted & ETH_FLAG_EXT_MASK;
-
-		err = send_ioctl(ctx, &eval);
-		if (err) {
-			perror("Cannot set device flag settings");
-			return 92;
-		}
-	}
-
-	if (off_flags_mask == 0) {
-		fprintf(stdout, "no offload settings changed\n");
+	if (!any_changed) {
+		fprintf(stdout, "no features changed\n");
 		return 0;
 	}
 
-	/* Compare new state with requested state */
-	if (get_offload(ctx, &new_flags)) {
-		fprintf(stderr, "no offload info available\n");
+	old_state = get_features(ctx, defs);
+	if (!old_state)
 		return 1;
+
+	/* For each offload that the user specified, update any
+	 * related features that the user did not specify and that
+	 * are not fixed.  Warn if all related features are fixed.
+	 */
+	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
+		int fixed = 1;
+
+		if (!(off_flags_mask & off_flag_def[i].value))
+			continue;
+
+		for (j = 0; j < defs->n_features; j++) {
+			if (defs->def[j].off_flag_index != i ||
+			    !FEATURE_BIT_IS_SET(old_state->features.features,
+						j, available) ||
+			    FEATURE_BIT_IS_SET(old_state->features.features,
+					       j, never_changed))
+				continue;
+
+			fixed = 0;
+			if (!FEATURE_BIT_IS_SET(efeatures->features, j, valid)) {
+				FEATURE_BIT_SET(efeatures->features, j, valid);
+				if (off_flags_wanted & off_flag_def[i].value)
+					FEATURE_BIT_SET(efeatures->features, j,
+							requested);
+			}
+		}
+
+		if (fixed)
+			fprintf(stderr, "Cannot change %s\n",
+				off_flag_def[i].long_name);
 	}
-	if (new_flags != ((old_flags & ~off_flags_mask) | off_flags_wanted)) {
-		if (new_flags == old_flags) {
+
+	if (efeatures) {
+		err = send_ioctl(ctx, efeatures);
+		if (err < 0) {
+			perror("Cannot set device feature settings");
+			return 1;
+		}
+	} else {
+		for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
+			if (!off_flag_def[i].set_cmd)
+				continue;
+			if (off_flags_mask & off_flag_def[i].value) {
+				eval.cmd = off_flag_def[i].set_cmd;
+				eval.data = !!(off_flags_wanted &
+					       off_flag_def[i].value);
+				err = send_ioctl(ctx, &eval);
+				if (err) {
+					fprintf(stderr,
+						"Cannot set device %s settings: %m\n",
+						off_flag_def[i].long_name);
+					return 1;
+				}
+			}
+		}
+
+		if (off_flags_mask & ETH_FLAG_EXT_MASK) {
+			eval.cmd = ETHTOOL_SFLAGS;
+			eval.data = (old_state->off_flags & ~off_flags_mask &
+				     ETH_FLAG_EXT_MASK);
+			eval.data |= off_flags_wanted & ETH_FLAG_EXT_MASK;
+
+			err = send_ioctl(ctx, &eval);
+			if (err) {
+				perror("Cannot set device flag settings");
+				return 92;
+			}
+		}
+	}
+
+	/* Compare new state with requested state */
+	new_state = get_features(ctx, defs);
+	if (!new_state)
+		return 1;
+	any_changed = new_state->off_flags != old_state->off_flags;
+	any_mismatch = (new_state->off_flags !=
+			((old_state->off_flags & ~off_flags_mask) |
+			 off_flags_wanted));
+	for (i = 0; i < FEATURE_BITS_TO_BLOCKS(defs->n_features); i++) {
+		if (new_state->features.features[i].active !=
+		    old_state->features.features[i].active)
+			any_changed = 1;
+		if (new_state->features.features[i].active !=
+		    ((old_state->features.features[i].active &
+		      ~efeatures->features[i].valid) |
+		     efeatures->features[i].requested))
+			any_mismatch = 1;
+	}
+	if (any_mismatch) {
+		if (!any_changed) {
 			fprintf(stderr,
-				"Could not change any device offload settings\n");
+				"Could not change any device features\n");
 			return 1;
 		}
 		printf("Actual changes:\n");
-		dump_offload(new_flags, new_flags ^ old_flags);
+		dump_features(defs, new_state, old_state);
 	}
 
 	return 0;
@@ -3237,22 +3512,11 @@ static const struct option {
 	  "		[ rx-mini N ]\n"
 	  "		[ rx-jumbo N ]\n"
 	  "		[ tx N ]\n" },
-	{ "-k|--show-offload", 1, do_goffload,
-	  "Get protocol offload information" },
-	{ "-K|--offload", 1, do_soffload, "Set protocol offload",
-	  "		[ rx on|off ]\n"
-	  "		[ tx on|off ]\n"
-	  "		[ sg on|off ]\n"
-	  "		[ tso on|off ]\n"
-	  "		[ ufo on|off ]\n"
-	  "		[ gso on|off ]\n"
-	  "		[ gro on|off ]\n"
-	  "		[ lro on|off ]\n"
-	  "		[ rxvlan on|off ]\n"
-	  "		[ txvlan on|off ]\n"
-	  "		[ ntuple on|off ]\n"
-	  "		[ rxhash on|off ]\n"
-	},
+	{ "-k|--show-features|--show-offload", 1, do_gfeatures,
+	  "Get state of protocol offload and other features" },
+	{ "-K|--features|--offload", 1, do_sfeatures,
+	  "Set protocol offload and other features",
+	  "		FEATURE on|off ...\n" },
 	{ "-i|--driver", 1, do_gdrv, "Show driver information" },
 	{ "-d|--register-dump", 1, do_gregs, "Do a register dump",
 	  "		[ raw on|off ]\n"

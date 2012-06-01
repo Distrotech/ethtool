@@ -199,23 +199,13 @@ ethtool \- query or control network driver and hardware settings
 .BN length
 .BN value
 .HP
-.B ethtool \-k|\-\-show\-offload
+.B ethtool \-k|\-\-show\-features|\-\-show\-offload
 .I devname
 .HP
-.B ethtool \-K|\-\-offload
-.I devname
-.B2 rx on off
-.B2 tx on off
-.B2 sg on off
-.B2 tso on off
-.B2 ufo on off
-.B2 gso on off
-.B2 gro on off
-.B2 lro on off
-.B2 rxvlan on off
-.B2 txvlan on off
-.B2 ntuple on off
-.B2 rxhash on off
+.B ethtool \-K|\-\-features|\-\-offload
+.I devname feature
+.A1 on off
+.RB ...
 .HP
 .B ethtool \-p|\-\-identify
 .I devname
@@ -428,11 +418,14 @@ parameters allow writing to certain portions of the EEPROM.
 Because of the persistent nature of writing to the EEPROM, a device-specific
 magic key must be specified to prevent the accidental writing to the EEPROM.
 .TP
-.B \-k \-\-show\-offload
-Queries the specified network device for offload information.
+.B \-k \-\-show\-features \-\-show\-offload
+Queries the specified network device for the state of protocol
+offload and other features.
 .TP
-.B \-K \-\-offload
-Changes the offload parameters of the specified network device.
+.B \-K \-\-features \-\-offload
+Changes the offload parameters and other features of the specified
+network device.  The following feature names are built-in and others
+may be defined by the kernel.
 .TP
 .A2 rx on off
 Specifies whether RX checksumming should be enabled.
