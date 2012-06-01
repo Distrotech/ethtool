@@ -10,6 +10,7 @@
  */
 
 #include <assert.h>
+#include <errno.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -251,10 +252,43 @@ static void test_close_all(void)
 /* Wrap test main function */
 
 static jmp_buf test_return;
+static FILE *orig_stderr;
 
 void test_exit(int rc)
 {
 	longjmp(test_return, rc + 1);
+}
+
+int test_ioctl(const struct cmd_expect *expect, void *cmd)
+{
+	int rc;
+
+	if (!expect->cmd || *(u32 *)cmd != *(const u32 *)expect->cmd) {
+		/* We have no idea how long this command structure is */
+		fprintf(orig_stderr, "Unexpected ioctl: cmd=%#10x\n",
+			*(u32 *)cmd);
+		return TEST_IOCTL_MISMATCH;
+	}
+
+	if (memcmp(cmd, expect->cmd, expect->cmd_len)) {
+		fprintf(orig_stderr, "Expected ioctl structure:\n");
+		dump_hex(orig_stderr, expect->cmd, expect->cmd_len, 0);
+		fprintf(orig_stderr, "Actual ioctl structure:\n");
+		dump_hex(orig_stderr, cmd, expect->cmd_len, 0);
+		return TEST_IOCTL_MISMATCH;
+	}
+
+	if (expect->resp)
+		memcpy(cmd, expect->resp, expect->resp_len);
+	rc = expect->rc;
+
+	/* Convert kernel return code according to libc convention */
+	if (rc >= 0) {
+		return rc;
+	} else {
+		errno = -rc;
+		return -1;
+	}
 }
 
 int test_cmdline(const char *args)
@@ -263,7 +297,7 @@ int test_cmdline(const char *args)
 	char **argv;
 	const char *arg;
 	size_t len;
-	int dev_null = -1, old_stdout = -1, old_stderr = -1;
+	int dev_null = -1, orig_stdout_fd = -1, orig_stderr_fd = -1;
 	int rc;
 
 	/* Convert line to argv */
@@ -298,17 +332,25 @@ int test_cmdline(const char *args)
 
 	fflush(NULL);
 	dup2(dev_null, STDIN_FILENO);
-	if (!getenv("TEST_TEST_VERBOSE")) {
-		old_stdout = dup(STDOUT_FILENO);
-		if (old_stdout < 0) {
+	if (getenv("TEST_TEST_VERBOSE")) {
+		orig_stderr = stderr;
+	} else {
+		orig_stdout_fd = dup(STDOUT_FILENO);
+		if (orig_stdout_fd < 0) {
 			perror("dup stdout");
 			rc = -1;
 			goto out;
 		}
 		dup2(dev_null, STDOUT_FILENO);
-		old_stderr = dup(STDERR_FILENO);
-		if (old_stderr < 0) {
+		orig_stderr_fd = dup(STDERR_FILENO);
+		if (orig_stderr_fd < 0) {
 			perror("dup stderr");
+			rc = -1;
+			goto out;
+		}
+		orig_stderr = fdopen(orig_stderr_fd, "w");
+		if (orig_stderr == NULL) {
+			perror("fdopen orig_stderr_fd");
 			rc = -1;
 			goto out;
 		}
@@ -320,13 +362,17 @@ int test_cmdline(const char *args)
 
 out:
 	fflush(NULL);
-	if (old_stderr >= 0) {
-		dup2(old_stderr, STDERR_FILENO);
-		close(old_stderr);
+	if (orig_stderr_fd >= 0) {
+		dup2(orig_stderr_fd, STDERR_FILENO);
+		if (orig_stderr)
+			fclose(orig_stderr);
+		else
+			close(orig_stderr_fd);
 	}
-	if (old_stdout >= 0) {
-		dup2(old_stdout, STDOUT_FILENO);
-		close(old_stdout);
+	orig_stderr = NULL;
+	if (orig_stdout_fd >= 0) {
+		dup2(orig_stdout_fd, STDOUT_FILENO);
+		close(orig_stdout_fd);
 	}
 	if (dev_null >= 0)
 		close(dev_null);

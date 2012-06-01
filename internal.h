@@ -103,6 +103,16 @@ struct cmd_context {
 #ifdef TEST_ETHTOOL
 int test_cmdline(const char *args);
 
+struct cmd_expect {
+	const void *cmd;	/* expected command; NULL at end of list */
+	size_t cmd_len;		/* length to match (might be < sizeof struct) */
+	int rc;			/* kernel return code */
+	const void *resp;	/* response to write back; may be NULL */
+	size_t resp_len;	/* length to write back */
+};
+int test_ioctl(const struct cmd_expect *expect, void *cmd);
+#define TEST_IOCTL_MISMATCH (-2)
+
 #ifndef TEST_NO_WRAPPERS
 int test_main(int argc, char **argp);
 #define main(...) test_main(__VA_ARGS__)
