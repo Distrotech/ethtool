@@ -481,6 +481,13 @@ dump_link_caps(const char *prefix, const char *an_prefix, u32 mask)
 	if (mask & ADVERTISED_1000baseT_Full) {
 		did1++; fprintf(stdout, "1000baseT/Full ");
 	}
+	if (did1 && (mask & ADVERTISED_1000baseKX_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	%*s", indent, "");
+	}
+	if (mask & ADVERTISED_1000baseKX_Full) {
+		did1++; fprintf(stdout, "1000baseKX/Full ");
+	}
 	if (did1 && (mask & ADVERTISED_2500baseX_Full)) {
 		fprintf(stdout, "\n");
 		fprintf(stdout, "	%*s", indent, "");
@@ -494,6 +501,13 @@ dump_link_caps(const char *prefix, const char *an_prefix, u32 mask)
 	}
 	if (mask & ADVERTISED_10000baseT_Full) {
 		did1++; fprintf(stdout, "10000baseT/Full ");
+	}
+	if (did1 && (mask & ADVERTISED_10000baseKX4_Full)) {
+		fprintf(stdout, "\n");
+		fprintf(stdout, "	%*s", indent, "");
+	}
+	if (mask & ADVERTISED_10000baseKX4_Full) {
+		did1++; fprintf(stdout, "10000baseKX4/Full ");
 	}
 	if (did1 && (mask & ADVERTISED_20000baseMLD2_Full)) {
 		fprintf(stdout, "\n");
