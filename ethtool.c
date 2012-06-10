@@ -416,7 +416,8 @@ static int do_version(struct cmd_context *ctx)
 	return 0;
 }
 
-static void dump_link_caps(const char *prefix, const char *an_prefix, u32 mask);
+static void dump_link_caps(const char *prefix, const char *an_prefix, u32 mask,
+			   int link_mode_only);
 
 static void dump_supported(struct ethtool_cmd *ep)
 {
@@ -435,14 +436,15 @@ static void dump_supported(struct ethtool_cmd *ep)
 		fprintf(stdout, "FIBRE ");
 	fprintf(stdout, "]\n");
 
-	dump_link_caps("Supported", "Supports", mask);
+	dump_link_caps("Supported", "Supports", mask, 0);
 }
 
 /* Print link capability flags (supported, advertised or lp_advertised).
  * Assumes that the corresponding SUPPORTED and ADVERTISED flags are equal.
  */
 static void
-dump_link_caps(const char *prefix, const char *an_prefix, u32 mask)
+dump_link_caps(const char *prefix, const char *an_prefix, u32 mask,
+	       int link_mode_only)
 {
 	static const struct {
 		int same_line; /* print on same line as previous */
@@ -490,24 +492,26 @@ dump_link_caps(const char *prefix, const char *an_prefix, u32 mask)
 		 fprintf(stdout, "Not reported");
 	fprintf(stdout, "\n");
 
-	fprintf(stdout, "	%s pause frame use: ", prefix);
-	if (mask & ADVERTISED_Pause) {
-		fprintf(stdout, "Symmetric");
-		if (mask & ADVERTISED_Asym_Pause)
-			fprintf(stdout, " Receive-only");
-		fprintf(stdout, "\n");
-	} else {
-		if (mask & ADVERTISED_Asym_Pause)
-			fprintf(stdout, "Transmit-only\n");
+	if (!link_mode_only) {
+		fprintf(stdout, "	%s pause frame use: ", prefix);
+		if (mask & ADVERTISED_Pause) {
+			fprintf(stdout, "Symmetric");
+			if (mask & ADVERTISED_Asym_Pause)
+				fprintf(stdout, " Receive-only");
+			fprintf(stdout, "\n");
+		} else {
+			if (mask & ADVERTISED_Asym_Pause)
+				fprintf(stdout, "Transmit-only\n");
+			else
+				fprintf(stdout, "No\n");
+		}
+
+		fprintf(stdout, "	%s auto-negotiation: ", an_prefix);
+		if (mask & ADVERTISED_Autoneg)
+			fprintf(stdout, "Yes\n");
 		else
 			fprintf(stdout, "No\n");
 	}
-
-	fprintf(stdout, "	%s auto-negotiation: ", an_prefix);
-	if (mask & ADVERTISED_Autoneg)
-		fprintf(stdout, "Yes\n");
-	else
-		fprintf(stdout, "No\n");
 }
 
 static int dump_ecmd(struct ethtool_cmd *ep)
@@ -515,10 +519,11 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 	u32 speed;
 
 	dump_supported(ep);
-	dump_link_caps("Advertised", "Advertised", ep->advertising);
+	dump_link_caps("Advertised", "Advertised", ep->advertising, 0);
 	if (ep->lp_advertising)
 		dump_link_caps("Link partner advertised",
-			       "Link partner advertised", ep->lp_advertising);
+			       "Link partner advertised", ep->lp_advertising,
+			       0);
 
 	fprintf(stdout, "	Speed: ");
 	speed = ethtool_cmd_speed(ep);
@@ -1195,6 +1200,34 @@ static int dump_rxfhash(int fhash, u64 val)
 	fprintf(stdout, "%s\n", unparse_rxfhashopts(val));
 
 	return 0;
+}
+
+static void dump_eeecmd(struct ethtool_eee *ep)
+{
+
+	fprintf(stdout, "	EEE status: ");
+	if (!ep->supported) {
+		fprintf(stdout, "not supported\n");
+		return;
+	} else if (!ep->eee_enabled) {
+		fprintf(stdout, "disabled\n");
+	} else {
+		fprintf(stdout, "enabled - ");
+		if (ep->eee_active)
+			fprintf(stdout, "active\n");
+		else
+			fprintf(stdout, "inactive\n");
+	}
+
+	fprintf(stdout, "	Tx LPI:");
+	if (ep->tx_lpi_enabled)
+		fprintf(stdout, " %d (us)\n", ep->tx_lpi_timer);
+	else
+		fprintf(stdout, " disabled\n");
+
+	dump_link_caps("Supported EEE", "", ep->supported, 1);
+	dump_link_caps("Advertised EEE", "", ep->advertised, 1);
+	dump_link_caps("Link partner advertised EEE", "", ep->lp_advertised, 1);
 }
 
 #define N_SOTS 7
@@ -3434,6 +3467,63 @@ static int do_getmodule(struct cmd_context *ctx)
 	return 0;
 }
 
+static int do_geee(struct cmd_context *ctx)
+{
+	struct ethtool_eee eeecmd;
+
+	if (ctx->argc != 0)
+		exit_bad_args();
+
+	eeecmd.cmd = ETHTOOL_GEEE;
+	if (send_ioctl(ctx, &eeecmd)) {
+		perror("Cannot get EEE settings");
+		return 1;
+	}
+
+	fprintf(stdout, "EEE Settings for %s:\n", ctx->devname);
+	dump_eeecmd(&eeecmd);
+
+	return 0;
+}
+
+static int do_seee(struct cmd_context *ctx)
+{
+	int adv_c = -1, lpi_c = -1, lpi_time_c = -1, eee_c = -1;
+	int change = -1, change2 = -1;
+	struct ethtool_eee eeecmd;
+	struct cmdline_info cmdline_eee[] = {
+		{ "advertise",    CMDL_U32,  &adv_c,       &eeecmd.advertised },
+		{ "tx-lpi",       CMDL_BOOL, &lpi_c,   &eeecmd.tx_lpi_enabled },
+		{ "tx-timer",	  CMDL_U32,  &lpi_time_c, &eeecmd.tx_lpi_timer},
+		{ "eee",	  CMDL_BOOL, &eee_c,	   &eeecmd.eee_enabled},
+	};
+
+	if (ctx->argc == 0)
+		exit_bad_args();
+
+	parse_generic_cmdline(ctx, &change, cmdline_eee,
+			      ARRAY_SIZE(cmdline_eee));
+
+	eeecmd.cmd = ETHTOOL_GEEE;
+	if (send_ioctl(ctx, &eeecmd)) {
+		perror("Cannot get EEE settings");
+		return 1;
+	}
+
+	do_generic_set(cmdline_eee, ARRAY_SIZE(cmdline_eee), &change2);
+
+	if (change2) {
+
+		eeecmd.cmd = ETHTOOL_SEEE;
+		if (send_ioctl(ctx, &eeecmd)) {
+			perror("Cannot set EEE settings");
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 #ifndef TEST_ETHTOOL
 int send_ioctl(struct cmd_context *ctx, void *cmd)
 {
@@ -3582,6 +3672,12 @@ static const struct option {
 	  "		[ hex on|off ]\n"
 	  "		[ offset N ]\n"
 	  "		[ length N ]\n" },
+	{ "--show-eee", 1, do_geee, "Show EEE settings"},
+	{ "--set-eee", 1, do_seee, "Set EEE settings",
+	  "		[ eee on|off ]\n"
+	  "		[ advertise %x ]\n"
+	  "		[ tx-lpi on|off ]\n"
+	  "		[ tx-timer %d ]\n"},
 	{ "-h|--help", 0, show_usage, "Show this help" },
 	{ "--version", 0, do_version, "Show version number" },
 	{}

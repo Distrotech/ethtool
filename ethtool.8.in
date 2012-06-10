@@ -325,6 +325,16 @@ ethtool \- query or control network driver and hardware settings
 .I devname flag
 .A1 on off
 .RB ...
+.HP
+.B ethtool \-\-show\-eee
+.I devname
+.HP
+.B ethtool \-\-set\-eee
+.I devname
+.B2 eee on off
+.B2 tx-lpi on off
+.BN tx-timer
+.BN advertise
 .
 .\" Adjust lines (i.e. full justification) and hyphenate.
 .ad
@@ -810,6 +820,28 @@ Sets the device's private flags as specified.
 .I flag
 .A1 on off
 Sets the state of the named private flag.
+.TP
+.B \-\-show\-eee
+Queries the specified network device for its support of Efficient Energy
+Ethernet (according to the IEEE 802.3az specifications)
+.TP
+.B \-\-set\-eee
+Sets the device EEE behaviour.
+.TP
+.A2 eee on off
+Enables/disables the device support of EEE.
+.TP
+.A2 tx-lpi on off
+Determines whether the device should assert its Tx LPI.
+.TP
+.BI advertise \ N
+Sets the speeds for which the device should advertise EEE capabiliities.
+Values are as for
+.B \-\-change advertise
+.TP
+.BI tx-timer \ N
+Sets the amount of time the device should stay in idle mode prior to asserting
+its Tx LPI (in microseconds). This has meaning only when Tx LPI is enabled.
 .SH BUGS
 Not supported (in part or whole) on all network drivers.
 .SH AUTHOR
