@@ -80,6 +80,32 @@ static const struct cmd_expect cmd_expect_get_features_off_old[] = {
 	{ 0, 0, 0, 0, 0 }
 };
 
+static const struct cmd_expect cmd_expect_get_features_off_old_some_unsup[] = {
+	{ &cmd_gssetinfo, sizeof(cmd_gssetinfo.cmd), -EINVAL },
+	{ &cmd_grxcsum_off, 4, 0, &cmd_grxcsum_off, sizeof(cmd_grxcsum_off) },
+	{ &cmd_gtxcsum_off, 4, 0, &cmd_gtxcsum_off, sizeof(cmd_gtxcsum_off) },
+	{ &cmd_gsg_off, 4, 0, &cmd_gsg_off, sizeof(cmd_gsg_off) },
+	{ &cmd_gtso_off, 4, 0, &cmd_gtso_off, sizeof(cmd_gtso_off) },
+	{ &cmd_gufo_off, 4, -EOPNOTSUPP },
+	{ &cmd_ggso_off, 4, 0, &cmd_ggso_off, sizeof(cmd_ggso_off) },
+	{ &cmd_ggro_off, 4, -EOPNOTSUPP },
+	{ &cmd_gflags_off, 4, 0, &cmd_gflags_off, sizeof(cmd_gflags_off) },
+	{ 0, 0, 0, 0, 0 }
+};
+
+static const struct cmd_expect cmd_expect_get_features_off_old_some_priv[] = {
+	{ &cmd_gssetinfo, sizeof(cmd_gssetinfo.cmd), -EPERM },
+	{ &cmd_grxcsum_off, 4, 0, &cmd_grxcsum_off, sizeof(cmd_grxcsum_off) },
+	{ &cmd_gtxcsum_off, 4, 0, &cmd_gtxcsum_off, sizeof(cmd_gtxcsum_off) },
+	{ &cmd_gsg_off, 4, 0, &cmd_gsg_off, sizeof(cmd_gsg_off) },
+	{ &cmd_gtso_off, 4, 0, &cmd_gtso_off, sizeof(cmd_gtso_off) },
+	{ &cmd_gufo_off, 4, 0, &cmd_gufo_off, sizeof(cmd_gufo_off) },
+	{ &cmd_ggso_off, 4, 0, &cmd_ggso_off, sizeof(cmd_ggso_off) },
+	{ &cmd_ggro_off, 4, -EPERM },
+	{ &cmd_gflags_off, 4, 0, &cmd_gflags_off, sizeof(cmd_gflags_off) },
+	{ 0, 0, 0, 0, 0 }
+};
+
 static const struct cmd_expect cmd_expect_set_features_off_old[] = {
 	{ &cmd_gssetinfo, sizeof(cmd_gssetinfo.cmd), -EINVAL },
 	{ &cmd_grxcsum_on, 4, 0, &cmd_grxcsum_on, sizeof(cmd_grxcsum_on) },
@@ -443,6 +469,8 @@ static struct test_case {
 	const struct cmd_expect *expect;
 } const test_cases[] = {
 	{ 0, "-k devname", cmd_expect_get_features_off_old },
+	{ 0, "-k dev_unsup", cmd_expect_get_features_off_old_some_unsup },
+	{ 0, "-k dev_priv", cmd_expect_get_features_off_old_some_priv },
 	{ 0, "-K devname rx off tx off sg off tso off ufo off gso off lro off rxvlan off txvlan off ntuple off rxhash off gro off",
 	  cmd_expect_set_features_off_old },
 	{ 0, "-K devname rx on tx on sg on tso on ufo on gso on lro on rxvlan on txvlan on ntuple on rxhash on gro on",

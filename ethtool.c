@@ -1360,6 +1360,10 @@ static struct feature_defs *get_feature_defs(struct cmd_context *ctx)
 	} else if (errno == EOPNOTSUPP || errno == EINVAL) {
 		/* Kernel doesn't support named features; not an error */
 		n_features = 0;
+	} else if (errno == EPERM) {
+		/* Kernel bug: ETHTOOL_GSSET_INFO was privileged.
+		 * Work around it. */
+		n_features = 0;
 	} else {
 		return NULL;
 	}
@@ -1873,8 +1877,10 @@ static int do_gfeatures(struct cmd_context *ctx)
 		exit_bad_args();
 
 	defs = get_feature_defs(ctx);
-	if (!defs)
+	if (!defs) {
+		perror("Cannot get device feature names");
 		return 1;
+	}
 
 	fprintf(stdout, "Features for %s:\n", ctx->devname);
 
@@ -1902,8 +1908,10 @@ static int do_sfeatures(struct cmd_context *ctx)
 	int i, j;
 
 	defs = get_feature_defs(ctx);
-	if (!defs)
+	if (!defs) {
+		perror("Cannot get device feature names");
 		return 1;
+	}
 	if (defs->n_features) {
 		efeatures = malloc(sizeof(*efeatures) +
 				   FEATURE_BITS_TO_BLOCKS(defs->n_features) *
