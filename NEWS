@@ -1,3 +1,11 @@
+Version 3.4.1 - June 13, 2012
+
+	* Fix: Work around failure of ETHTOOL_GSSET_INFO for unprivileged
+	  users (-k option)
+	* Fix: Report any unexpected error code from ETHTOOL_GSSET_INFO
+	  (-k and -K options)
+	* Doc: Fix the date of the man page to match the last update
+
 Version 3.4 - June 8, 2012
 
 	* Cleanup: Merge RX NFC options
