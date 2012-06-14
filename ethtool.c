@@ -615,19 +615,19 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 static int dump_drvinfo(struct ethtool_drvinfo *info)
 {
 	fprintf(stdout,
-		"driver: %s\n"
-		"version: %s\n"
-		"firmware-version: %s\n"
-		"bus-info: %s\n"
+		"driver: %.*s\n"
+		"version: %.*s\n"
+		"firmware-version: %.*s\n"
+		"bus-info: %.*s\n"
 		"supports-statistics: %s\n"
 		"supports-test: %s\n"
 		"supports-eeprom-access: %s\n"
 		"supports-register-dump: %s\n"
 		"supports-priv-flags: %s\n",
-		info->driver,
-		info->version,
-		info->fw_version,
-		info->bus_info,
+		(int)sizeof(info->driver), info->driver,
+		(int)sizeof(info->version), info->version,
+		(int)sizeof(info->fw_version), info->fw_version,
+		(int)sizeof(info->bus_info), info->bus_info,
 		info->n_stats ? "yes" : "no",
 		info->testinfo_len ? "yes" : "no",
 		info->eedump_len ? "yes" : "no",
@@ -1317,14 +1317,14 @@ static int dump_tsinfo(const struct ethtool_ts_info *info)
 
 static struct ethtool_gstrings *
 get_stringset(struct cmd_context *ctx, enum ethtool_stringset set_id,
-	      ptrdiff_t drvinfo_offset)
+	      ptrdiff_t drvinfo_offset, int null_terminate)
 {
 	struct {
 		struct ethtool_sset_info hdr;
 		u32 buf[1];
 	} sset_info;
 	struct ethtool_drvinfo drvinfo;
-	u32 len;
+	u32 len, i;
 	struct ethtool_gstrings *strings;
 
 	sset_info.hdr.cmd = ETHTOOL_GSSET_INFO;
@@ -1354,6 +1354,10 @@ get_stringset(struct cmd_context *ctx, enum ethtool_stringset set_id,
 		return NULL;
 	}
 
+	if (null_terminate)
+		for (i = 0; i < len; i++)
+			strings->data[(i + 1) * ETH_GSTRING_LEN - 1] = 0;
+
 	return strings;
 }
 
@@ -1364,7 +1368,7 @@ static struct feature_defs *get_feature_defs(struct cmd_context *ctx)
 	u32 n_features;
 	int i, j;
 
-	names = get_stringset(ctx, ETH_SS_FEATURES, 0);
+	names = get_stringset(ctx, ETH_SS_FEATURES, 0, 1);
 	if (names) {
 		n_features = names->len;
 	} else if (errno == EOPNOTSUPP || errno == EINVAL) {
@@ -2648,7 +2652,8 @@ static int do_test(struct cmd_context *ctx)
 	}
 
 	strings = get_stringset(ctx, ETH_SS_TEST,
-				offsetof(struct ethtool_drvinfo, testinfo_len));
+				offsetof(struct ethtool_drvinfo, testinfo_len),
+				1);
 	if (!strings) {
 		perror("Cannot get strings");
 		return 74;
@@ -2717,7 +2722,8 @@ static int do_gstats(struct cmd_context *ctx)
 		exit_bad_args();
 
 	strings = get_stringset(ctx, ETH_SS_STATS,
-				offsetof(struct ethtool_drvinfo, n_stats));
+				offsetof(struct ethtool_drvinfo, n_stats),
+				0);
 	if (!strings) {
 		perror("Cannot get stats strings information");
 		return 96;
@@ -3282,7 +3288,8 @@ static int do_gprivflags(struct cmd_context *ctx)
 		exit_bad_args();
 
 	strings = get_stringset(ctx, ETH_SS_PRIV_FLAGS,
-				offsetof(struct ethtool_drvinfo, n_priv_flags));
+				offsetof(struct ethtool_drvinfo, n_priv_flags),
+				1);
 	if (!strings) {
 		perror("Cannot get private flag names");
 		return 1;
@@ -3322,7 +3329,8 @@ static int do_sprivflags(struct cmd_context *ctx)
 	unsigned int i;
 
 	strings = get_stringset(ctx, ETH_SS_PRIV_FLAGS,
-				offsetof(struct ethtool_drvinfo, n_priv_flags));
+				offsetof(struct ethtool_drvinfo, n_priv_flags),
+				1);
 	if (!strings) {
 		perror("Cannot get private flag names");
 		return 1;
