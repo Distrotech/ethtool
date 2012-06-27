@@ -462,6 +462,10 @@ dump_link_caps(const char *prefix, const char *an_prefix, u32 mask,
 		{ 0, ADVERTISED_10000baseT_Full,    "10000baseT/Full" },
 		{ 0, ADVERTISED_10000baseKX4_Full,  "10000baseKX4/Full" },
 		{ 0, ADVERTISED_20000baseMLD2_Full, "20000baseMLD2/Full" },
+		{ 0, ADVERTISED_40000baseKR4_Full,  "40000baseKR4/Full" },
+		{ 0, ADVERTISED_40000baseCR4_Full,  "40000baseCR4/Full" },
+		{ 0, ADVERTISED_40000baseSR4_Full,  "40000baseSR4/Full" },
+		{ 0, ADVERTISED_40000baseLR4_Full,  "40000baseLR4/Full" },
 	};
 	int indent;
 	int did1, new_line_pend, i;
