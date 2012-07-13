@@ -207,6 +207,7 @@ static int rxclass_get_dev_info(struct cmd_context *ctx, __u32 *count,
 	int err;
 
 	nfccmd.cmd = ETHTOOL_GRXCLSRLCNT;
+	nfccmd.data = 0;
 	err = send_ioctl(ctx, &nfccmd);
 	*count = nfccmd.rule_cnt;
 	if (driver_select)
