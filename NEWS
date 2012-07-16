@@ -1,3 +1,12 @@
+Version 3.4.2 - July 16, 2012
+
+	* Fix: Fix regression in RX NFC rule insertion for drivers that do
+	  not select rule locations (-N/-U option)
+	* Fix: Remove bogus error message when changing offload settings
+	  on Linux < 2.6.39 (-K option)
+	* Fix: Use alternate method to check for VLAN tag offload on Linux
+	  < 2.6.37 (-k option)
+
 Version 3.4.1 - June 13, 2012
 
 	* Fix: Work around failure of ETHTOOL_GSSET_INFO for unprivileged

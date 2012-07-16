@@ -33,6 +33,8 @@
 #include <sys/utsname.h>
 #include <limits.h>
 #include <ctype.h>
+#include <assert.h>
+#include <sys/fcntl.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -1435,6 +1437,31 @@ static struct feature_defs *get_feature_defs(struct cmd_context *ctx)
 	return defs;
 }
 
+static int get_netdev_attr(struct cmd_context *ctx, const char *name,
+		    char *buf, size_t buf_len)
+{
+#ifdef TEST_ETHTOOL
+	errno = ENOENT;
+	return -1;
+#else
+	char path[40 + IFNAMSIZ];
+	ssize_t len;
+	int fd;
+
+	len = snprintf(path, sizeof(path), "/sys/class/net/%s/%s",
+		       ctx->devname, name);
+	assert(len < sizeof(path));
+	fd = open(path, O_RDONLY);
+	if (fd < 0)
+		return fd;
+	len = read(fd, buf, buf_len - 1);
+	if (len >= 0)
+		buf[len] = 0;
+	close(fd);
+	return len;
+#endif
+}
+
 static int do_gdrv(struct cmd_context *ctx)
 {
 	int err;
@@ -1876,6 +1903,20 @@ get_features(struct cmd_context *ctx, const struct feature_defs *defs)
 			perror("Cannot get device generic features");
 		else
 			allfail = 0;
+	} else {
+		/* We should have got VLAN tag offload flags through
+		 * ETHTOOL_GFLAGS.  However, prior to Linux 2.6.37
+		 * they were not exposed in this way - and since VLAN
+		 * tag offload was defined and implemented by many
+		 * drivers, we shouldn't assume they are off.
+		 * Instead, since these feature flag values were
+		 * stable, read them from sysfs.
+		 */
+		char buf[20];
+		if (get_netdev_attr(ctx, "features", buf, sizeof(buf)) > 0)
+			state->off_flags |=
+				strtoul(buf, NULL, 0) &
+				(ETH_FLAG_RXVLAN | ETH_FLAG_TXVLAN);
 	}
 
 	if (allfail) {
@@ -1980,39 +2021,45 @@ static int do_sfeatures(struct cmd_context *ctx)
 	if (!old_state)
 		return 1;
 
-	/* For each offload that the user specified, update any
-	 * related features that the user did not specify and that
-	 * are not fixed.  Warn if all related features are fixed.
-	 */
-	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
-		int fixed = 1;
+	if (efeatures) {
+		/* For each offload that the user specified, update any
+		 * related features that the user did not specify and that
+		 * are not fixed.  Warn if all related features are fixed.
+		 */
+		for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
+			int fixed = 1;
 
-		if (!(off_flags_mask & off_flag_def[i].value))
-			continue;
-
-		for (j = 0; j < defs->n_features; j++) {
-			if (defs->def[j].off_flag_index != i ||
-			    !FEATURE_BIT_IS_SET(old_state->features.features,
-						j, available) ||
-			    FEATURE_BIT_IS_SET(old_state->features.features,
-					       j, never_changed))
+			if (!(off_flags_mask & off_flag_def[i].value))
 				continue;
 
-			fixed = 0;
-			if (!FEATURE_BIT_IS_SET(efeatures->features, j, valid)) {
-				FEATURE_BIT_SET(efeatures->features, j, valid);
-				if (off_flags_wanted & off_flag_def[i].value)
-					FEATURE_BIT_SET(efeatures->features, j,
-							requested);
+			for (j = 0; j < defs->n_features; j++) {
+				if (defs->def[j].off_flag_index != i ||
+				    !FEATURE_BIT_IS_SET(
+					    old_state->features.features,
+					    j, available) ||
+				    FEATURE_BIT_IS_SET(
+					    old_state->features.features,
+					    j, never_changed))
+					continue;
+
+				fixed = 0;
+				if (!FEATURE_BIT_IS_SET(efeatures->features,
+							j, valid)) {
+					FEATURE_BIT_SET(efeatures->features,
+							j, valid);
+					if (off_flags_wanted &
+					    off_flag_def[i].value)
+						FEATURE_BIT_SET(
+							efeatures->features,
+							j, requested);
+				}
 			}
+
+			if (fixed)
+				fprintf(stderr, "Cannot change %s\n",
+					off_flag_def[i].long_name);
 		}
 
-		if (fixed)
-			fprintf(stderr, "Cannot change %s\n",
-				off_flag_def[i].long_name);
-	}
-
-	if (efeatures) {
 		err = send_ioctl(ctx, efeatures);
 		if (err < 0) {
 			perror("Cannot set device feature settings");
