@@ -1962,39 +1962,45 @@ static int do_sfeatures(struct cmd_context *ctx)
 	if (!old_state)
 		return 1;
 
-	/* For each offload that the user specified, update any
-	 * related features that the user did not specify and that
-	 * are not fixed.  Warn if all related features are fixed.
-	 */
-	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
-		int fixed = 1;
+	if (efeatures) {
+		/* For each offload that the user specified, update any
+		 * related features that the user did not specify and that
+		 * are not fixed.  Warn if all related features are fixed.
+		 */
+		for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
+			int fixed = 1;
 
-		if (!(off_flags_mask & off_flag_def[i].value))
-			continue;
-
-		for (j = 0; j < defs->n_features; j++) {
-			if (defs->def[j].off_flag_index != i ||
-			    !FEATURE_BIT_IS_SET(old_state->features.features,
-						j, available) ||
-			    FEATURE_BIT_IS_SET(old_state->features.features,
-					       j, never_changed))
+			if (!(off_flags_mask & off_flag_def[i].value))
 				continue;
 
-			fixed = 0;
-			if (!FEATURE_BIT_IS_SET(efeatures->features, j, valid)) {
-				FEATURE_BIT_SET(efeatures->features, j, valid);
-				if (off_flags_wanted & off_flag_def[i].value)
-					FEATURE_BIT_SET(efeatures->features, j,
-							requested);
+			for (j = 0; j < defs->n_features; j++) {
+				if (defs->def[j].off_flag_index != i ||
+				    !FEATURE_BIT_IS_SET(
+					    old_state->features.features,
+					    j, available) ||
+				    FEATURE_BIT_IS_SET(
+					    old_state->features.features,
+					    j, never_changed))
+					continue;
+
+				fixed = 0;
+				if (!FEATURE_BIT_IS_SET(efeatures->features,
+							j, valid)) {
+					FEATURE_BIT_SET(efeatures->features,
+							j, valid);
+					if (off_flags_wanted &
+					    off_flag_def[i].value)
+						FEATURE_BIT_SET(
+							efeatures->features,
+							j, requested);
+				}
 			}
+
+			if (fixed)
+				fprintf(stderr, "Cannot change %s\n",
+					off_flag_def[i].long_name);
 		}
 
-		if (fixed)
-			fprintf(stderr, "Cannot change %s\n",
-				off_flag_def[i].long_name);
-	}
-
-	if (efeatures) {
 		err = send_ioctl(ctx, efeatures);
 		if (err < 0) {
 			perror("Cannot set device feature settings");
