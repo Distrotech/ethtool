@@ -6,7 +6,7 @@ Group		: Utilities
 Summary		: Settings tool for Ethernet and other network devices
 
 License		: GPL
-URL		: http://sourceforge.net/projects/gkernel/
+URL		: https://ftp.kernel.org/pub/software/network/ethtool/
 
 Buildroot	: %{_tmppath}/%{name}-%{version}
 Source		: %{name}-%{version}.tar.gz
