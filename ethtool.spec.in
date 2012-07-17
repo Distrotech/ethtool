@@ -34,7 +34,7 @@ make install DESTDIR=${RPM_BUILD_ROOT}
 %defattr(-,root,root)
 /usr/sbin/ethtool
 %{_mandir}/man8/ethtool.8*
-%doc AUTHORS COPYING INSTALL NEWS README ChangeLog
+%doc AUTHORS COPYING NEWS README
 
 
 %changelog
