@@ -1,3 +1,13 @@
+Version 3.5 - August 2, 2012
+
+	* Feature: Display support for 1000BASE-KX and 10GBASE-KX4 link modes
+	* Feature: Energy Efficient Ethernet (EEE) configuration
+	  (--show-eee and --set-eee options)
+	* Fix: Don't trust drivers to null-terminate strings
+	* Feature: Display support for 40G link modes
+	* Package: Update RPM summary, description and URL
+	* Package: Exclude redundant documentation from RPM
+
 Version 3.4.2 - July 16, 2012
 
 	* Fix: Fix regression in RX NFC rule insertion for drivers that do
