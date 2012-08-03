@@ -822,7 +822,7 @@ Sets the device's private flags as specified.
 Sets the state of the named private flag.
 .TP
 .B \-\-show\-eee
-Queries the specified network device for its support of Efficient Energy
+Queries the specified network device for its support of Energy-Efficient
 Ethernet (according to the IEEE 802.3az specifications)
 .TP
 .B \-\-set\-eee
