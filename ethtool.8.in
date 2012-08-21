@@ -229,6 +229,7 @@ ethtool \- query or control network driver and hardware settings
 .BI speed \ N
 .B2 duplex half full
 .B4 port tp aui bnc mii fibre
+.B3 mdix auto on off
 .B2 autoneg on off
 .BN advertise
 .BN phyad
@@ -520,6 +521,13 @@ Sets full or half duplex mode.
 .TP
 .A4 port tp aui bnc mii fibre
 Selects device port.
+.TP
+.A3 mdix auto on off
+Selects MDI-X mode for port. May be used to override the automatic detection
+feature of most adapters.  Auto means automatic detection of MDI status, on
+forces MDI-X (crossover) mode, while off means MDI (straight through) mode.
+The driver should guarantee that this command takes effect immediately, and
+if necessary may reset the link to cause the change to take effect.
 .TP
 .A2 autoneg on off
 Specifies whether autonegotiation should be enabled. Autonegotiation 

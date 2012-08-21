@@ -18,6 +18,8 @@
  * Rx Network Flow Control configuration support <santwona.behera@sun.com>
  * Various features by Ben Hutchings <bhutchings@solarflare.com>;
  *	Copyright 2009, 2010 Solarflare Communications
+ * MDI-X set support by Jesse Brandeburg <jesse.brandeburg@intel.com>
+ *	Copyright 2012 Intel Corporation
  *
  * TODO:
  *   * show settings for all devices
@@ -602,16 +604,25 @@ static int dump_ecmd(struct ethtool_cmd *ep)
 
 	if (ep->port == PORT_TP) {
 		fprintf(stdout, "	MDI-X: ");
-		switch (ep->eth_tp_mdix) {
-		case ETH_TP_MDI:
-			fprintf(stdout, "off\n");
-			break;
-		case ETH_TP_MDI_X:
-			fprintf(stdout, "on\n");
-			break;
-		default:
-			fprintf(stdout, "Unknown\n");
-			break;
+		if (ep->eth_tp_mdix_ctrl == ETH_TP_MDI) {
+			fprintf(stdout, "off (forced)\n");
+		} else if (ep->eth_tp_mdix_ctrl == ETH_TP_MDI_X) {
+			fprintf(stdout, "on (forced)\n");
+		} else {
+			switch (ep->eth_tp_mdix) {
+			case ETH_TP_MDI:
+				fprintf(stdout, "off");
+				break;
+			case ETH_TP_MDI_X:
+				fprintf(stdout, "on");
+				break;
+			default:
+				fprintf(stdout, "Unknown");
+				break;
+			}
+			if (ep->eth_tp_mdix_ctrl == ETH_TP_MDI_AUTO)
+				fprintf(stdout, " (auto)");
+			fprintf(stdout, "\n");
 		}
 	}
 
@@ -2199,6 +2210,7 @@ static int do_sset(struct cmd_context *ctx)
 	int speed_wanted = -1;
 	int duplex_wanted = -1;
 	int port_wanted = -1;
+	int mdix_wanted = -1;
 	int autoneg_wanted = -1;
 	int phyad_wanted = -1;
 	int xcvr_wanted = -1;
@@ -2257,6 +2269,19 @@ static int do_sset(struct cmd_context *ctx)
 				port_wanted = PORT_MII;
 			else if (!strcmp(argp[i], "fibre"))
 				port_wanted = PORT_FIBRE;
+			else
+				exit_bad_args();
+		} else if (!strcmp(argp[i], "mdix")) {
+			gset_changed = 1;
+			i += 1;
+			if (i >= argc)
+				exit_bad_args();
+			if (!strcmp(argp[i], "auto"))
+				mdix_wanted = ETH_TP_MDI_AUTO;
+			else if (!strcmp(argp[i], "on"))
+				mdix_wanted = ETH_TP_MDI_X;
+			else if (!strcmp(argp[i], "off"))
+				mdix_wanted = ETH_TP_MDI;
 			else
 				exit_bad_args();
 		} else if (!strcmp(argp[i], "autoneg")) {
@@ -2380,6 +2405,13 @@ static int do_sset(struct cmd_context *ctx)
 				ecmd.duplex = duplex_wanted;
 			if (port_wanted != -1)
 				ecmd.port = port_wanted;
+			if (mdix_wanted != -1) {
+				/* check driver supports MDI-X */
+				if (ecmd.eth_tp_mdix_ctrl != ETH_TP_MDI_INVALID)
+					ecmd.eth_tp_mdix_ctrl = mdix_wanted;
+				else
+					fprintf(stderr, "setting MDI not supported\n");
+			}
 			if (autoneg_wanted != -1)
 				ecmd.autoneg = autoneg_wanted;
 			if (phyad_wanted != -1)
@@ -2439,6 +2471,8 @@ static int do_sset(struct cmd_context *ctx)
 				fprintf(stderr, "  not setting phy_address\n");
 			if (xcvr_wanted != -1)
 				fprintf(stderr, "  not setting transceiver\n");
+			if (mdix_wanted != -1)
+				fprintf(stderr, "  not setting mdix\n");
 		}
 	}
 
@@ -3604,6 +3638,7 @@ static const struct option {
 	  "		[ speed %d ]\n"
 	  "		[ duplex half|full ]\n"
 	  "		[ port tp|aui|bnc|mii|fibre ]\n"
+	  "		[ mdix auto|on|off ]\n"
 	  "		[ autoneg on|off ]\n"
 	  "		[ advertise %x ]\n"
 	  "		[ phyad %d ]\n"
