@@ -48,6 +48,53 @@
 #define MAX_ADDR_LEN	32
 #endif
 
+#define ALL_ADVERTISED_MODES			\
+	(ADVERTISED_10baseT_Half |		\
+	 ADVERTISED_10baseT_Full |		\
+	 ADVERTISED_100baseT_Half |		\
+	 ADVERTISED_100baseT_Full |		\
+	 ADVERTISED_1000baseT_Half |		\
+	 ADVERTISED_1000baseT_Full |		\
+	 ADVERTISED_2500baseX_Full |		\
+	 ADVERTISED_10000baseKX4_Full |		\
+	 ADVERTISED_10000baseKR_Full |		\
+	 ADVERTISED_10000baseR_FEC |		\
+	 ADVERTISED_20000baseMLD2_Full |	\
+	 ADVERTISED_20000baseKR2_Full |		\
+	 ADVERTISED_40000baseKR4_Full |		\
+	 ADVERTISED_40000baseCR4_Full |		\
+	 ADVERTISED_40000baseSR4_Full |		\
+	 ADVERTISED_40000baseLR4_Full)
+
+#define ALL_ADVERTISED_FLAGS			\
+	(ADVERTISED_10baseT_Half |		\
+	 ADVERTISED_10baseT_Full |		\
+	 ADVERTISED_100baseT_Half |		\
+	 ADVERTISED_100baseT_Full |		\
+	 ADVERTISED_1000baseT_Half |		\
+	 ADVERTISED_1000baseT_Full |		\
+	 ADVERTISED_Autoneg |			\
+	 ADVERTISED_TP |			\
+	 ADVERTISED_AUI |			\
+	 ADVERTISED_MII |			\
+	 ADVERTISED_FIBRE |			\
+	 ADVERTISED_BNC |			\
+	 ADVERTISED_10000baseT_Full |		\
+	 ADVERTISED_Pause |			\
+	 ADVERTISED_Asym_Pause |		\
+	 ADVERTISED_2500baseX_Full |		\
+	 ADVERTISED_Backplane |			\
+	 ADVERTISED_1000baseKX_Full |		\
+	 ADVERTISED_10000baseKX4_Full |		\
+	 ADVERTISED_10000baseKR_Full |		\
+	 ADVERTISED_10000baseR_FEC |		\
+	 ADVERTISED_20000baseMLD2_Full |	\
+	 ADVERTISED_20000baseKR2_Full |		\
+	 ADVERTISED_40000baseKR4_Full |		\
+	 ADVERTISED_40000baseCR4_Full |		\
+	 ADVERTISED_40000baseSR4_Full |		\
+	 ADVERTISED_40000baseLR4_Full)
+
 #ifndef HAVE_NETIF_MSG
 enum {
 	NETIF_MSG_DRV		= 0x0001,
@@ -2214,6 +2261,7 @@ static int do_sset(struct cmd_context *ctx)
 	int autoneg_wanted = -1;
 	int phyad_wanted = -1;
 	int xcvr_wanted = -1;
+	int full_advertising_wanted = -1;
 	int advertising_wanted = -1;
 	int gset_changed = 0; /* did anything in GSET change? */
 	u32 wol_wanted = 0;
@@ -2302,7 +2350,7 @@ static int do_sset(struct cmd_context *ctx)
 			i += 1;
 			if (i >= argc)
 				exit_bad_args();
-			advertising_wanted = get_int(argp[i], 16);
+			full_advertising_wanted = get_int(argp[i], 16);
 		} else if (!strcmp(argp[i], "phyad")) {
 			gset_changed = 1;
 			i += 1;
@@ -2359,7 +2407,10 @@ static int do_sset(struct cmd_context *ctx)
 		}
 	}
 
-	if (advertising_wanted < 0) {
+	if (full_advertising_wanted < 0) {
+		/* User didn't supply a full advertisement bitfield:
+		 * construct one from the specified speed and duplex.
+		 */
 		if (speed_wanted == SPEED_10 && duplex_wanted == DUPLEX_HALF)
 			advertising_wanted = ADVERTISED_10baseT_Half;
 		else if (speed_wanted == SPEED_10 &&
@@ -2437,19 +2488,31 @@ static int do_sset(struct cmd_context *ctx)
 			}
 			if (autoneg_wanted == AUTONEG_ENABLE &&
 			    advertising_wanted == 0) {
-				ecmd.advertising = ecmd.supported &
-					(ADVERTISED_10baseT_Half |
-					 ADVERTISED_10baseT_Full |
-					 ADVERTISED_100baseT_Half |
-					 ADVERTISED_100baseT_Full |
-					 ADVERTISED_1000baseT_Half |
-					 ADVERTISED_1000baseT_Full |
-					 ADVERTISED_2500baseX_Full |
-					 ADVERTISED_10000baseT_Full |
-					 ADVERTISED_20000baseMLD2_Full |
-					 ADVERTISED_20000baseKR2_Full);
+				/* Auto negotiation enabled, but with
+				 * unspecified speed and duplex: enable all
+				 * supported speeds and duplexes.
+				 */
+				ecmd.advertising =
+					(ecmd.advertising &
+					 ~ALL_ADVERTISED_MODES) |
+					(ALL_ADVERTISED_MODES & ecmd.supported);
+
+				/* If driver supports unknown flags, we cannot
+				 * be sure that we enable all link modes.
+				 */
+				if ((ecmd.supported & ALL_ADVERTISED_FLAGS) !=
+				    ecmd.supported) {
+					fprintf(stderr, "Driver supports one "
+					        "or more unknown flags\n");
+				}
 			} else if (advertising_wanted > 0) {
-				ecmd.advertising = advertising_wanted;
+				/* Enable all requested modes */
+				ecmd.advertising =
+					(ecmd.advertising &
+					 ~ALL_ADVERTISED_MODES) |
+					advertising_wanted;
+			} else if (full_advertising_wanted > 0) {
+				ecmd.advertising = full_advertising_wanted;
 			}
 
 			/* Try to perform the update. */
