@@ -523,11 +523,12 @@ Sets full or half duplex mode.
 Selects device port.
 .TP
 .A3 mdix auto on off
-Selects MDI-X mode for port. May be used to override the automatic detection
-feature of most adapters.  Auto means automatic detection of MDI status, on
-forces MDI-X (crossover) mode, while off means MDI (straight through) mode.
-The driver should guarantee that this command takes effect immediately, and
-if necessary may reset the link to cause the change to take effect.
+Selects MDI-X mode for port. May be used to override the automatic
+detection feature of most adapters. An argument of \fBauto\fR means
+automatic detection of MDI status, \fBon\fR forces MDI-X (crossover)
+mode, while \fBoff\fR means MDI (straight through) mode.  The driver
+should guarantee that this command takes effect immediately, and if
+necessary may reset the link to cause the change to take effect.
 .TP
 .A2 autoneg on off
 Specifies whether autonegotiation should be enabled. Autonegotiation 
