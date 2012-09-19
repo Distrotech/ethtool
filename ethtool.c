@@ -3645,7 +3645,7 @@ static int do_geee(struct cmd_context *ctx)
 static int do_seee(struct cmd_context *ctx)
 {
 	int adv_c = -1, lpi_c = -1, lpi_time_c = -1, eee_c = -1;
-	int change = -1, change2 = -1;
+	int change = -1, change2 = 0;
 	struct ethtool_eee eeecmd;
 	struct cmdline_info cmdline_eee[] = {
 		{ "advertise",    CMDL_U32,  &adv_c,       &eeecmd.advertised },
