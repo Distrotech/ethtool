@@ -1,3 +1,11 @@
+Version 3.6 - October 5, 2012
+
+	* Feature: Allow setting MDI-X state (-s option)
+	* Fix: Preserve pause advertising bits when setting speed and
+	  duplex with autoneg on (-s option)
+	* Fix: Don't call ioctl to set EEE parameters if they are the same
+	  as the current parameters (--set-eee option)
+
 Version 3.5 - August 2, 2012
 
 	* Feature: Display support for 1000BASE-KX and 10GBASE-KX4 link modes
