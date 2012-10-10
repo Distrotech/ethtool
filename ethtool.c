@@ -934,8 +934,15 @@ static int dump_regs(int gregs_dump_raw, int gregs_dump_hex,
 	if (!gregs_dump_hex)
 		for (i = 0; i < ARRAY_SIZE(driver_list); i++)
 			if (!strncmp(driver_list[i].name, info->driver,
-				     ETHTOOL_BUSINFO_LEN))
-				return driver_list[i].func(info, regs);
+				     ETHTOOL_BUSINFO_LEN)) {
+				if (driver_list[i].func(info, regs) == 0)
+					return 0;
+				/* This version (or some other
+				 * variation in the dump format) is
+				 * not handled; fall back to hex
+				 */
+				break;
+			}
 
 	dump_hex(stdout, regs->data, regs->len, 0);
 
@@ -2632,7 +2639,7 @@ static int do_gregs(struct cmd_context *ctx)
 	}
 	if (dump_regs(gregs_dump_raw, gregs_dump_hex, gregs_dump_file,
 		      &drvinfo, regs) < 0) {
-		perror("Cannot dump registers");
+		fprintf(stderr, "Cannot dump registers\n");
 		free(regs);
 		return 75;
 	}
