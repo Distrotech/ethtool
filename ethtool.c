@@ -888,6 +888,7 @@ static const struct {
         { "sfc", sfc_dump_regs },
 	{ "st_mac100", st_mac100_dump_regs },
 	{ "st_gmac", st_gmac_dump_regs },
+	{ "et131x", et131x_dump_regs },
 };
 
 void dump_hex(FILE *file, const u8 *data, int len, int offset)
