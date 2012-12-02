@@ -312,7 +312,7 @@ ethtool \- query or control network driver and hardware settings
 .BN other
 .BN combined
 .HP
-.B ethtool \-m|\-\-dump\-module\-eeprom
+.B ethtool \-m|\-\-dump\-module\-eeprom|\-\-module\-info
 .I devname
 .B2 raw on off
 .B2 hex on off
@@ -815,8 +815,10 @@ Changes the number of channels used only for other purposes e.g. link interrupts
 .BI combined \ N
 Changes the number of multi-purpose channels.
 .TP
-.B \-m \-\-dump\-module\-eeprom
-Retrieves and if possible decodes the EEPROM from plugin modules, e.g SFP+, QSFP
+.B \-m \-\-dump\-module\-eeprom \-\-module\-info
+Retrieves and if possible decodes the EEPROM from plugin modules, e.g SFP+, QSFP.
+If the driver and module support it, the optical diagnostic information is also
+read and decoded.
 .TP
 .B \-\-show\-priv\-flags
 Queries the specified network device for its private flags.  The

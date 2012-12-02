@@ -12,7 +12,7 @@
 
 static void sff8079_show_identifier(const __u8 *id)
 {
-	printf("\tIdentifier          : 0x%02x", id[0]);
+	printf("\t%-41s : 0x%02x", "Identifier", id[0]);
 	switch (id[0]) {
 	case 0x00:
 		printf(" (no module present, unknown, or unspecified)\n");
@@ -34,7 +34,7 @@ static void sff8079_show_identifier(const __u8 *id)
 
 static void sff8079_show_ext_identifier(const __u8 *id)
 {
-	printf("\tExtended identifier : 0x%02x", id[1]);
+	printf("\t%-41s : 0x%02x", "Extended identifier", id[1]);
 	if (id[1] == 0x00)
 		printf(" (GBIC not specified / not MOD_DEF compliant)\n");
 	else if (id[1] == 0x04)
@@ -47,7 +47,7 @@ static void sff8079_show_ext_identifier(const __u8 *id)
 
 static void sff8079_show_connector(const __u8 *id)
 {
-	printf("\tConnector           : 0x%02x", id[2]);
+	printf("\t%-41s : 0x%02x", "Connector", id[2]);
 	switch (id[2]) {
 	case 0x00:
 		printf(" (unknown or unspecified)\n");
@@ -105,10 +105,12 @@ static void sff8079_show_connector(const __u8 *id)
 
 static void sff8079_show_transceiver(const __u8 *id)
 {
-	static const char *pfx = "\t                    :  =>";
+	static const char *pfx =
+		"\tTransceiver type                          :";
 
-	printf("\tTransceiver codes   : 0x%02x 0x%02x 0x%02x" \
+	printf("\t%-41s : 0x%02x 0x%02x 0x%02x " \
 	       "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n",
+		   "Transceiver codes",
 	       id[3], id[4], id[5], id[6],
 	       id[7], id[8], id[9], id[10]);
 	/* 10G Ethernet Compliance Codes */
@@ -239,7 +241,7 @@ static void sff8079_show_transceiver(const __u8 *id)
 
 static void sff8079_show_encoding(const __u8 *id)
 {
-	printf("\tEncoding            : 0x%02x", id[11]);
+	printf("\t%-41s : 0x%02x", "Encoding", id[11]);
 	switch (id[11]) {
 	case 0x00:
 		printf(" (unspecified)\n");
@@ -270,7 +272,7 @@ static void sff8079_show_encoding(const __u8 *id)
 
 static void sff8079_show_rate_identifier(const __u8 *id)
 {
-	printf("\tRate identifier     : 0x%02x", id[13]);
+	printf("\t%-41s : 0x%02x", "Rate identifier", id[13]);
 	switch (id[13]) {
 	case 0x00:
 		printf(" (unspecified)\n");
@@ -295,14 +297,14 @@ static void sff8079_show_rate_identifier(const __u8 *id)
 
 static void sff8079_show_oui(const __u8 *id)
 {
-	printf("\tVendor OUI          : %02x:%02x:%02x\n",
+	printf("\t%-41s : %02x:%02x:%02x\n", "Vendor OUI",
 	       id[37], id[38], id[39]);
 }
 
 static void sff8079_show_wavelength_or_copper_compliance(const __u8 *id)
 {
 	if (id[8] & (1 << 2)) {
-		printf("\tPassive Cu cmplnce. : 0x%02x", id[60]);
+		printf("\t%-41s : 0x%02x", "Passive Cu cmplnce.", id[60]);
 		switch (id[60]) {
 		case 0x00:
 			printf(" (unspecified)");
@@ -316,7 +318,7 @@ static void sff8079_show_wavelength_or_copper_compliance(const __u8 *id)
 		}
 		printf(" [SFF-8472 rev10.4 only]\n");
 	} else if (id[8] & (1 << 3)) {
-		printf("\tActive Cu cmplnce.  : 0x%02x", id[60]);
+		printf("\t%-41s : 0x%02x", "Active Cu cmplnce.", id[60]);
 		switch (id[60]) {
 		case 0x00:
 			printf(" (unspecified)");
@@ -333,7 +335,7 @@ static void sff8079_show_wavelength_or_copper_compliance(const __u8 *id)
 		}
 		printf(" [SFF-8472 rev10.4 only]\n");
 	} else {
-		printf("\tLaser wavelength    : %unm\n",
+		printf("\t%-41s : %unm\n", "Laser wavelength",
 		       (id[60] << 8) | id[61]);
 	}
 }
@@ -344,7 +346,7 @@ static void sff8079_show_value_with_unit(const __u8 *id, unsigned int reg,
 {
 	unsigned int val = id[reg];
 
-	printf("\t%-20s: %u%s\n", name, val * mult, unit);
+	printf("\t%-41s : %u%s\n", name, val * mult, unit);
 }
 
 static void sff8079_show_ascii(const __u8 *id, unsigned int first_reg,
@@ -352,7 +354,7 @@ static void sff8079_show_ascii(const __u8 *id, unsigned int first_reg,
 {
 	unsigned int reg, val;
 
-	printf("\t%-20s: ", name);
+	printf("\t%-41s : ", name);
 	for (reg = first_reg; reg <= last_reg; reg++) {
 		val = id[reg];
 		putchar(((val >= 32) && (val <= 126)) ? val : '_');

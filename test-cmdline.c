@@ -213,6 +213,8 @@ static struct test_case {
 	{ 0, "-m devname" },
 	{ 1, "--dump-module-eeprom" },
 	{ 0, "--dump-module-eeprom devname" },
+	{ 1, "--module-info" },
+	{ 0, "--module-info devname" },
 	{ 0, "-m devname raw on" },
 	{ 0, "-m devname raw off" },
 	{ 0, "-m devname hex on" },

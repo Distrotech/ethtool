@@ -3604,6 +3604,16 @@ static int do_getmodule(struct cmd_context *ctx)
 		return 1;
 	}
 
+	/*
+	 * SFF-8079 EEPROM layout contains the memory available at A0 address on
+	 * the PHY EEPROM.
+	 * SFF-8472 defines a virtual extension of the EEPROM, where the
+	 * microcontroller on the SFP/SFP+ generates a page at the A2 address,
+	 * which contains data relative to optical diagnostics.
+	 * The current kernel implementation returns a blob, which contains:
+	 *  - ETH_MODULE_SFF_8079 => The A0 page only.
+	 *  - ETH_MODULE_SFF_8472 => The A0 and A2 page concatenated.
+	 */
 	if (geeprom_dump_raw) {
 		fwrite(eeprom->data, 1, eeprom->len, stdout);
 	} else {
@@ -3613,8 +3623,11 @@ static int do_getmodule(struct cmd_context *ctx)
 		} else if (!geeprom_dump_hex) {
 			switch (modinfo.type) {
 			case ETH_MODULE_SFF_8079:
+				sff8079_show_all(eeprom->data);
+				break;
 			case ETH_MODULE_SFF_8472:
 				sff8079_show_all(eeprom->data);
+				sff8472_show_all(eeprom->data);
 				break;
 			default:
 				geeprom_dump_hex = 1;
@@ -3831,8 +3844,8 @@ static const struct option {
 	{ "--show-priv-flags" , 1, do_gprivflags, "Query private flags" },
 	{ "--set-priv-flags", 1, do_sprivflags, "Set private flags",
 	  "		FLAG on|off ...\n" },
-	{ "-m|--dump-module-eeprom", 1, do_getmodule,
-	  "Qeuery/Decode Module EEPROM information",
+	{ "-m|--dump-module-eeprom|--module-info", 1, do_getmodule,
+	  "Query/Decode Module EEPROM information and optical diagnostics if available",
 	  "		[ raw on|off ]\n"
 	  "		[ hex on|off ]\n"
 	  "		[ offset N ]\n"

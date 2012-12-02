@@ -1,4 +1,5 @@
 AM_CFLAGS = -Wall
+LDADD = -lm
 
 man_MANS = ethtool.8
 EXTRA_DIST = LICENSE ethtool.8 ethtool.spec.in aclocal.m4 ChangeLog autogen.sh
@@ -9,7 +10,7 @@ ethtool_SOURCES = ethtool.c ethtool-copy.h internal.h net_tstamp-copy.h \
 		  fec_8xx.c ibm_emac.c ixgb.c ixgbe.c natsemi.c	\
 		  pcnet32.c realtek.c tg3.c marvell.c vioc.c	\
 		  smsc911x.c at76c50x-usb.c sfc.c stmmac.c	\
-		  rxclass.c sfpid.c
+		  rxclass.c sfpid.c sfpdiag.c
 
 TESTS = test-cmdline test-features
 check_PROGRAMS = test-cmdline test-features
