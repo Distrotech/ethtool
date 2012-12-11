@@ -41,26 +41,38 @@ static void rxclass_print_ipv4_rule(__be32 sip, __be32 sipm, __be32 dip,
 
 static void rxclass_print_nfc_spec_ext(struct ethtool_rx_flow_spec *fsp)
 {
-	u64 data, datam;
-	__u16 etype, etypem, tci, tcim;
+	if (fsp->flow_type & FLOW_EXT) {
+		u64 data, datam;
+		__u16 etype, etypem, tci, tcim;
+		etype = ntohs(fsp->h_ext.vlan_etype);
+		etypem = ntohs(~fsp->m_ext.vlan_etype);
+		tci = ntohs(fsp->h_ext.vlan_tci);
+		tcim = ntohs(~fsp->m_ext.vlan_tci);
+		data = (u64)ntohl(fsp->h_ext.data[0]) << 32;
+		data = (u64)ntohl(fsp->h_ext.data[1]);
+		datam = (u64)ntohl(~fsp->m_ext.data[0]) << 32;
+		datam |= (u64)ntohl(~fsp->m_ext.data[1]);
 
-	if (!(fsp->flow_type & FLOW_EXT))
-		return;
+		fprintf(stdout,
+			"\tVLAN EtherType: 0x%x mask: 0x%x\n"
+			"\tVLAN: 0x%x mask: 0x%x\n"
+			"\tUser-defined: 0x%llx mask: 0x%llx\n",
+			etype, etypem, tci, tcim, data, datam);
+	}
 
-	etype = ntohs(fsp->h_ext.vlan_etype);
-	etypem = ntohs(~fsp->m_ext.vlan_etype);
-	tci = ntohs(fsp->h_ext.vlan_tci);
-	tcim = ntohs(~fsp->m_ext.vlan_tci);
-	data = (u64)ntohl(fsp->h_ext.data[0]) << 32;
-	data = (u64)ntohl(fsp->h_ext.data[1]);
-	datam = (u64)ntohl(~fsp->m_ext.data[0]) << 32;
-	datam |= (u64)ntohl(~fsp->m_ext.data[1]);
+	if (fsp->flow_type & FLOW_MAC_EXT) {
+		unsigned char *dmac, *dmacm;
 
-	fprintf(stdout,
-		"\tVLAN EtherType: 0x%x mask: 0x%x\n"
-		"\tVLAN: 0x%x mask: 0x%x\n"
-		"\tUser-defined: 0x%llx mask: 0x%llx\n",
-		etype, etypem, tci, tcim, data, datam);
+		dmac = fsp->h_ext.h_dest;
+		dmacm = fsp->m_ext.h_dest;
+
+		fprintf(stdout,
+			"\tDest MAC addr: %02X:%02X:%02X:%02X:%02X:%02X"
+			" mask: %02X:%02X:%02X:%02X:%02X:%02X\n",
+			dmac[0], dmac[1], dmac[2], dmac[3], dmac[4],
+			dmac[5], dmacm[0], dmacm[1], dmacm[2], dmacm[3],
+			dmacm[4], dmacm[5]);
+	}
 }
 
 static void rxclass_print_nfc_rule(struct ethtool_rx_flow_spec *fsp)
@@ -70,7 +82,7 @@ static void rxclass_print_nfc_rule(struct ethtool_rx_flow_spec *fsp)
 
 	fprintf(stdout,	"Filter: %d\n", fsp->location);
 
-	flow_type = fsp->flow_type & ~FLOW_EXT;
+	flow_type = fsp->flow_type & ~(FLOW_EXT | FLOW_MAC_EXT);
 
 	invert_flow_mask(fsp);
 
@@ -172,7 +184,7 @@ static void rxclass_print_nfc_rule(struct ethtool_rx_flow_spec *fsp)
 static void rxclass_print_rule(struct ethtool_rx_flow_spec *fsp)
 {
 	/* print the rule in this location */
-	switch (fsp->flow_type & ~FLOW_EXT) {
+	switch (fsp->flow_type & ~(FLOW_EXT | FLOW_MAC_EXT)) {
 	case TCP_V4_FLOW:
 	case UDP_V4_FLOW:
 	case SCTP_V4_FLOW:
@@ -533,6 +545,7 @@ typedef enum {
 #define NTUPLE_FLAG_VLAN	0x100
 #define NTUPLE_FLAG_UDEF	0x200
 #define NTUPLE_FLAG_VETH	0x400
+#define NFC_FLAG_MAC_ADDR	0x800
 
 struct rule_opts {
 	const char	*name;
@@ -571,6 +584,9 @@ static const struct rule_opts rule_nfc_tcp_ip4[] = {
 	{ "user-def", OPT_BE64, NTUPLE_FLAG_UDEF,
 	  offsetof(struct ethtool_rx_flow_spec, h_ext.data),
 	  offsetof(struct ethtool_rx_flow_spec, m_ext.data) },
+	{ "dst-mac", OPT_MAC, NFC_FLAG_MAC_ADDR,
+	  offsetof(struct ethtool_rx_flow_spec, h_ext.h_dest),
+	  offsetof(struct ethtool_rx_flow_spec, m_ext.h_dest) },
 };
 
 static const struct rule_opts rule_nfc_esp_ip4[] = {
@@ -599,6 +615,9 @@ static const struct rule_opts rule_nfc_esp_ip4[] = {
 	{ "user-def", OPT_BE64, NTUPLE_FLAG_UDEF,
 	  offsetof(struct ethtool_rx_flow_spec, h_ext.data),
 	  offsetof(struct ethtool_rx_flow_spec, m_ext.data) },
+	{ "dst-mac", OPT_MAC, NFC_FLAG_MAC_ADDR,
+	  offsetof(struct ethtool_rx_flow_spec, h_ext.h_dest),
+	  offsetof(struct ethtool_rx_flow_spec, m_ext.h_dest) },
 };
 
 static const struct rule_opts rule_nfc_usr_ip4[] = {
@@ -639,6 +658,9 @@ static const struct rule_opts rule_nfc_usr_ip4[] = {
 	{ "user-def", OPT_BE64, NTUPLE_FLAG_UDEF,
 	  offsetof(struct ethtool_rx_flow_spec, h_ext.data),
 	  offsetof(struct ethtool_rx_flow_spec, m_ext.data) },
+	{ "dst-mac", OPT_MAC, NFC_FLAG_MAC_ADDR,
+	  offsetof(struct ethtool_rx_flow_spec, h_ext.h_dest),
+	  offsetof(struct ethtool_rx_flow_spec, m_ext.h_dest) },
 };
 
 static const struct rule_opts rule_nfc_ether[] = {
@@ -1063,6 +1085,8 @@ int rxclass_parse_ruleopts(struct cmd_context *ctx,
 		fsp->h_u.usr_ip4_spec.ip_ver = ETH_RX_NFC_IP4;
 	if (flags & (NTUPLE_FLAG_VLAN | NTUPLE_FLAG_UDEF | NTUPLE_FLAG_VETH))
 		fsp->flow_type |= FLOW_EXT;
+	if (flags & NFC_FLAG_MAC_ADDR)
+		fsp->flow_type |= FLOW_MAC_EXT;
 
 	return 0;
 

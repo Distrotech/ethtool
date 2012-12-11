@@ -268,6 +268,7 @@ ethtool \- query or control network driver and hardware settings
 .BM vlan\-etype
 .BM vlan
 .BM user\-def
+.RB [ dst-mac \ \*(MA\ [ m \ \*(MA]]
 .BN action
 .BN loc
 .RB |
@@ -738,6 +739,11 @@ Includes the VLAN tag and an optional mask.
 .TP
 .BI user\-def \ N \\fR\ [\\fPm \ N \\fR]\\fP
 Includes 64-bits of user-specific data and an optional mask.
+.TP
+.BR dst-mac \ \*(MA\ [ m \ \*(MA]
+Includes the destination MAC address, specified as 6 bytes in hexadecimal
+separated by colons, along with an optional mask.
+Valid for all IPv4 based flow-types.
 .TP
 .BI action \ N
 Specifies the Rx queue to send packets to, or some other action.

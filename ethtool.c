@@ -3231,6 +3231,10 @@ static int flow_spec_to_ntuple(struct ethtool_rx_flow_spec *fsp,
 	if (fsp->location != RX_CLS_LOC_ANY)
 		return -1;
 
+	/* destination MAC address in L3/L4 rules is not supported by ntuple */
+	if (fsp->flow_type & FLOW_MAC_EXT)
+		return -1;
+
 	/* verify ring cookie can transfer to action */
 	if (fsp->ring_cookie > INT_MAX && fsp->ring_cookie < (u64)(-2))
 		return -1;
@@ -3814,6 +3818,7 @@ static const struct option {
 	  "			[ vlan-etype %x [m %x] ]\n"
 	  "			[ vlan %x [m %x] ]\n"
 	  "			[ user-def %x [m %x] ]\n"
+	  "			[ dst-mac %x:%x:%x:%x:%x:%x [m %x:%x:%x:%x:%x:%x] ]\n"
 	  "			[ action %d ]\n"
 	  "			[ loc %d]] |\n"
 	  "		delete %d\n" },
