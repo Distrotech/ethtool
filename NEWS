@@ -1,3 +1,9 @@
+Version 3.7 - December 13, 2012
+
+	* Fix: Gracefully handle failure of register pretty-printer (-d option)
+	* Feature: Add support for et131x registers (-d option)
+	* Feature: Basic optical diagnostics for SFF-8472 modules (-m option)
+
 Version 3.6 - October 5, 2012
 
 	* Feature: Allow setting MDI-X state (-s option)
