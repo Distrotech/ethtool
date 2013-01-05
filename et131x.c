@@ -4,7 +4,11 @@
 
 int et131x_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 {
+	u8 version = (u8)(regs->version >> 24);
 	u32 *reg = (u32 *)regs->data;
+
+	if(version != 1)
+		return -1;
 
 	fprintf(stdout, "PHY Registers\n");
 	fprintf(stdout, "0x0, Basic Control Reg          = 0x%04X\n", *reg++);
