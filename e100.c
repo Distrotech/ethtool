@@ -46,7 +46,7 @@ e100_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	u32 reg;
 	u16 scb_status, scb_cmd;
 
-	if(version != 1)
+	if (version != 1)
 		return -1;
 
 	reg = regs_buff[0];

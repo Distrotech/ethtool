@@ -374,7 +374,7 @@ e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	enum e1000_mac_type mac_type;
 	u32 reg;
 
-	if(version != 1)
+	if (version != 1)
 		return -1;
 
 	mac_type = e1000_get_mac_type(hw_device_id, hw_revision_id);
