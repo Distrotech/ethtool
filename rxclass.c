@@ -49,7 +49,7 @@ static void rxclass_print_nfc_spec_ext(struct ethtool_rx_flow_spec *fsp)
 		tci = ntohs(fsp->h_ext.vlan_tci);
 		tcim = ntohs(~fsp->m_ext.vlan_tci);
 		data = (u64)ntohl(fsp->h_ext.data[0]) << 32;
-		data = (u64)ntohl(fsp->h_ext.data[1]);
+		data |= (u64)ntohl(fsp->h_ext.data[1]);
 		datam = (u64)ntohl(~fsp->m_ext.data[0]) << 32;
 		datam |= (u64)ntohl(~fsp->m_ext.data[1]);
 
