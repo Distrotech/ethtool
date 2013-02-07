@@ -678,9 +678,10 @@ ah4	IPSEC AH over IPv4
 esp4	IPSEC ESP over IPv4
 .TE
 .PP
-All fields below that include a mask option may either use "m" to
-indicate a mask, or may use the full name of the field with a "-mask"
-appended to indicate that this is the mask for a given field.
+For all fields that allow both a value and a mask to be specified, the
+mask may be specified immediately after the value using the \fBm\fR
+keyword, or separately using the field name keyword with \fB-mask\fR
+appended, e.g. \fBsrc-mask\fR.
 .PD
 .RE
 .TP
