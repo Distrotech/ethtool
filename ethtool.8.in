@@ -497,14 +497,16 @@ statistics.
 .B \-t \-\-test
 Executes adapter selftest on the specified network device. Possible test modes are:
 .TP
-.RI \*(SD
-defines test type: 
 .B offline
-(default) means to perform full set of tests possibly causing normal operation interruption during the tests,
+Perform full set of tests, possibly interrupting normal operation
+during the tests,
+.TP
 .B online
-means to perform limited set of tests do not interrupting normal adapter operation,
+Perform limited set of tests, not interrupting normal operation,
+.TP
 .B external_lb
-means to perform external-loopback test in addition to other offline tests.
+Perform full set of tests, as for \fBoffline\fR, and additionally an
+external-loopback test.
 .TP
 .B \-s \-\-change
 Allows changing some or all settings of the specified network device.
