@@ -251,7 +251,7 @@ ethtool \- query or control network driver and hardware settings
 .HP
 .B ethtool \-N|\-U|\-\-config\-nfc|\-\-config\-ntuple
 .I devname
-.BR rx\-flow\-hash \ \*(FL \: \*(HO \ |
+.BR rx\-flow\-hash \ \*(FL \ \: \*(HO \ |
 .br
 .B flow\-type \*(NC
 .RB [ src \ \*(MA\ [ m \ \*(MA]]
@@ -281,8 +281,7 @@ ethtool \- query or control network driver and hardware settings
 .IR filename ]
 .HP
 .B ethtool\ \-W|\-\-set\-dump
-.I devname
-.BI \ N
+.I devname N
 .HP
 .B ethtool \-T|\-\-show\-time\-stamping
 .I devname
@@ -299,8 +298,7 @@ ethtool \- query or control network driver and hardware settings
 .RB ...\ ]
 .HP
 .B ethtool \-f|\-\-flash
-.I devname
-.RI FILE
+.I devname file
 .RI [ N ]
 .HP
 .B ethtool \-l|\-\-show\-channels
@@ -414,7 +412,6 @@ If
 .I file
 is specified, then use contents of previous raw register dump, rather
 than reading from the device.
-
 .TP
 .B \-e \-\-eeprom\-dump
 Retrieves and prints an EEPROM dump for the specified network device.
