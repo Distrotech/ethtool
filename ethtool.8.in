@@ -792,13 +792,20 @@ Sets the receive flow hash indirection table to spread flows between
 receive queues according to the given weights.  The sum of the weights
 must be non-zero and must not exceed the size of the indirection table.
 .TP
-.B \-f \-\-flash \ FILE
-Flash firmware image from the specified file to a region on the adapter.
-By default this will flash all the regions on the adapter.
+.B \-f \-\-flash
+Write a firmware image to flash or other non-volatile memory on the
+device.
 .TP
-.B N
-A number to identify flash region where the image should be flashed.
-Default region is 0 which denotes all regions in the flash.
+.I file
+Specifies the filename of the firmware image.  The firmware must first
+be installed in one of the directories where the kernel firmware
+loader or firmware agent will look, such as /lib/firmware.
+.TP
+.I N
+If the device stores multiple firmware images in separate regions of
+non-volatile memory, this parameter may be used to specify which
+region is to be written.  The default is 0, requesting that all
+regions are written.  All other values are driver-dependent.
 .PD
 .RE
 .TP
