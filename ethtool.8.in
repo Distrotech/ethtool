@@ -711,7 +711,7 @@ with an optional mask.  Valid for all IPv4 based flow-types.
 Specify the value of the Type of Service field in the incoming packet to
 match along with an optional mask.  Applies to all IPv4 based flow-types.
 .TP
-.BI l4proto \ N \\fR\ [\\fPl4m \ N \\fR]\\fP
+.BI l4proto \ N \\fR\ [\\fPm \ N \\fR]\\fP
 Includes the layer 4 protocol number and optional mask.  Valid only for
 flow-type ip4.
 .TP
