@@ -226,7 +226,7 @@ ethtool \- query or control network driver and hardware settings
 .HP
 .B ethtool \-s
 .I devname
-.BI speed \ N
+.BN speed
 .B2 duplex half full
 .B4 port tp aui bnc mii fibre
 .B3 mdix auto on off
