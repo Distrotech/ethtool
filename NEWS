@@ -1,3 +1,12 @@
+Version 3.8 - February 28, 2013
+
+	* Feature: Allow setting destination MAC address in L3/L4 flow spec
+	  rules (-N/-U option)
+	* Fix: Show full 64 bits of user-data (-n/-u option)
+	* Fix: Add version check for et131x regs (-d option)
+	* Doc: Improve description of -f, -t, -s, -N/-U, -W options in man page
+	* Fix: Restore 20000baseKR2 cap display (no options)
+
 Version 3.7 - December 13, 2012
 
 	* Fix: Gracefully handle failure of register pretty-printer (-d option)
