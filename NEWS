@@ -1,3 +1,9 @@
+Version 3.9 - April 30, 2013
+
+	* Feature: Display support for 10000BASE-KR link mode (no options)
+	* Feature: Add support for new versions of ixgbe register dump
+	  (-d dump)
+
 Version 3.8 - February 28, 2013
 
 	* Feature: Allow setting destination MAC address in L3/L4 flow spec
