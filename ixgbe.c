@@ -133,10 +133,13 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	u8 i;
 	enum ixgbe_mac_type mac_type;
 
-	if (version != 1)
+	if (version == 0)
 		return -1;
 
-	mac_type = ixgbe_get_mac_type(hw_device_id);
+	/* The current driver reports the MAC type, but older versions
+	 * only report the device ID so we have to infer the MAC type.
+	 */
+	mac_type = version > 1 ? version : ixgbe_get_mac_type(hw_device_id);
 
 	reg = regs_buff[1065];
 	fprintf(stdout,
