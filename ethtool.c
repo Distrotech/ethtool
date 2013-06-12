@@ -3531,6 +3531,7 @@ static int do_sprivflags(struct cmd_context *ctx)
 		cmdline[i].seen_val = &seen_flags;
 	}
 	parse_generic_cmdline(ctx, &any_changed, cmdline, strings->len);
+	free(cmdline);
 
 	flags.cmd = ETHTOOL_GPFLAGS;
 	if (send_ioctl(ctx, &flags)) {
