@@ -1,3 +1,7 @@
+Version 3.10 - July 1, 2013
+
+	* Feature: Beautify private flags print (--show-priv-flags option)
+
 Version 3.9 - April 30, 2013
 
 	* Feature: Display support for 10000BASE-KR link mode (no options)
