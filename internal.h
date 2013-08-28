@@ -213,6 +213,8 @@ int ixgb_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
 int ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+int ixgbevf_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
+
 /* Broadcom Tigon3 Ethernet controller */
 int tg3_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
