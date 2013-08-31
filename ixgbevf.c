@@ -1,4 +1,4 @@
-/* Copyright (c) 2007 Intel Corporation */
+/* Copyright (c) 2013 Intel Corporation */
 #include <stdio.h>
 #include "internal.h"
 
