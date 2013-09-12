@@ -1,3 +1,11 @@
+Version 3.11 - September 12, 2013
+
+	* Feature: Update Realtek chip list for register dump to match
+	  r8169 driver in Linux 3.11 (-d option)
+	* Feature: Add ixgbevf support for register dump (-d option)
+	* Feature: Filter ixgbe register dump according to the specific chip
+	  (-d option)
+
 Version 3.10 - July 1, 2013
 
 	* Feature: Beautify private flags print (--show-priv-flags option)
