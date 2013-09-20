@@ -35,8 +35,6 @@
 #include <sys/utsname.h>
 #include <limits.h>
 #include <ctype.h>
-#include <assert.h>
-#include <sys/fcntl.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -1506,31 +1504,6 @@ static struct feature_defs *get_feature_defs(struct cmd_context *ctx)
 	return defs;
 }
 
-static int get_netdev_attr(struct cmd_context *ctx, const char *name,
-		    char *buf, size_t buf_len)
-{
-#ifdef TEST_ETHTOOL
-	errno = ENOENT;
-	return -1;
-#else
-	char path[40 + IFNAMSIZ];
-	ssize_t len;
-	int fd;
-
-	len = snprintf(path, sizeof(path), "/sys/class/net/%s/%s",
-		       ctx->devname, name);
-	assert(len < sizeof(path));
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
-		return fd;
-	len = read(fd, buf, buf_len - 1);
-	if (len >= 0)
-		buf[len] = 0;
-	close(fd);
-	return len;
-#endif
-}
-
 static int do_gdrv(struct cmd_context *ctx)
 {
 	int err;
@@ -1972,20 +1945,6 @@ get_features(struct cmd_context *ctx, const struct feature_defs *defs)
 			perror("Cannot get device generic features");
 		else
 			allfail = 0;
-	} else {
-		/* We should have got VLAN tag offload flags through
-		 * ETHTOOL_GFLAGS.  However, prior to Linux 2.6.37
-		 * they were not exposed in this way - and since VLAN
-		 * tag offload was defined and implemented by many
-		 * drivers, we shouldn't assume they are off.
-		 * Instead, since these feature flag values were
-		 * stable, read them from sysfs.
-		 */
-		char buf[20];
-		if (get_netdev_attr(ctx, "features", buf, sizeof(buf)) > 0)
-			state->off_flags |=
-				strtoul(buf, NULL, 0) &
-				(ETH_FLAG_RXVLAN | ETH_FLAG_TXVLAN);
 	}
 
 	if (allfail) {
