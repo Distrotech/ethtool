@@ -224,7 +224,7 @@ static void sff8472_calibration(const __u8 *id, struct sff8472_diags *sd)
 	__u16 rx_reading;
 
 	/* Calibration should occur for all values (threshold and current) */
-	for (i = 0; i < sizeof(sd->bias_cur); ++i) {
+	for (i = 0; i < ARRAY_SIZE(sd->bias_cur); ++i) {
 		/*
 		 * Apply calibration formula 1 (Temp., Voltage, Bias, Tx Power)
 		 */
