@@ -2562,8 +2562,8 @@
 
 struct efx_nic_reg_field {
 	const char *name;
-	u32 lbn:7, width:8;
-	u32 min_revision:3, max_revision:3;
+	u8 lbn, width;
+	u8 min_revision, max_revision;
 };
 
 #define REGISTER_FIELD_RENAME(name, display_name, arch, min_rev, max_rev) { \
@@ -3545,8 +3545,8 @@ static const struct efx_nic_reg_field efx_nic_reg_fields_BIU_MC_SFT_STATUS[] = {
 struct efx_nic_reg {
 	const char *name;
 	const struct efx_nic_reg_field *fields;
-	u32 field_count:7;
-	u32 min_revision:3, max_revision:3;
+	u8 field_count;
+	u8 min_revision, max_revision;
 };
 
 #define REGISTER(name, arch, min_rev, max_rev) {			\
@@ -3677,9 +3677,10 @@ static const struct efx_nic_reg efx_nic_regs[] = {
 struct efx_nic_reg_table {
 	const char *name;
 	const struct efx_nic_reg_field *fields;
-	u32 field_count:7;
-	u32 min_revision:3, max_revision:3;
-	u32 step:6, rows:21;
+	u8 field_count;
+	u8 min_revision, max_revision;
+	u8 step;
+	u32 rows;
 };
 
 #define REGISTER_TABLE_DIMENSIONS(name, _, arch, min_rev, max_rev, step, rows) { \
