@@ -3739,9 +3739,7 @@ static const struct efx_nic_reg_table efx_nic_reg_tables[] = {
 	REGISTER_TABLE_CZ(MC_TREG_SMEM),
 	/* MSIX_PBA_TABLE is not mapped */
 	/* SRM_DBG is not mapped (and is redundant with BUF_FLL_TBL) */
-#if !defined(EFX_USE_KCOMPAT) || defined(EFX_HAVE_VMALLOC_REG_DUMP_BUF)
 	REGISTER_TABLE_BZ(RX_FILTER_TBL0),
-#endif
 	REGISTER_TABLE_DZ(BIU_MC_SFT_STATUS),
 };
 
