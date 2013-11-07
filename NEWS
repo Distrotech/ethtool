@@ -1,3 +1,12 @@
+Version 3.12 - November 7, 2013
+
+	* Fix: Remove alternate method to check for VLAN tag offload on Linux
+	  < 2.6.37 (-k/-K options)
+	* Fix: Hide state of VLAN tag offload and LRO if the kernel is too old
+	  for us to reliably detect them (-k option)
+	* Feature: Add register dump support for Solarflare SFC9100 family
+	  (-d option)
+
 Version 3.11 - September 12, 2013
 
 	* Feature: Update Realtek chip list for register dump to match
