@@ -1,3 +1,10 @@
+Version 3.12.1 - November 8, 2013
+
+	* Fix: Memory corruption when applying external calibration to
+	  SFF-8472 module diagnostics (-m option)
+	* Feature: Add Intel 82599 and x540 DCB registers to dump
+	  (-d option)
+
 Version 3.12 - November 7, 2013
 
 	* Fix: Remove alternate method to check for VLAN tag offload on Linux
