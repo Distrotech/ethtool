@@ -549,8 +549,12 @@ lB	l	lB.
 0x020	1000 Full
 0x8000	2500 Full	(not supported by IEEE standards)
 0x1000	10000 Full
-0x20000	20000MLD2 Full	(not supported by IEEE standards)
-0x40000	20000KR2 Full	(not supported by IEEE standards)
+0x200000	20000MLD2 Full	(not supported by IEEE standards)
+0x400000	20000KR2 Full	(not supported by IEEE standards)
+0x800000	40000KR4 Full
+0x1000000	40000CR4 Full
+0x2000000	40000SR4 Full
+0x4000000	40000LR4 Full
 .TE
 .TP
 .BI phyad \ N
