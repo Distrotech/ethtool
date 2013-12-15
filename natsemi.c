@@ -437,8 +437,8 @@ natsemi_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		data[REG_TXCFG]);
 	tmp = (data[REG_TXCFG] & BIT_TXCFG_MXDMA)>>20;
 	fprintf(stdout,
-		"      Drain Threshhold = %d bytes (%d)\n"
-		"      Fill Threshhold = %d bytes (%d)\n"
+		"      Drain Threshold = %d bytes (%d)\n"
+		"      Fill Threshold = %d bytes (%d)\n"
 		"      Max DMA Burst per Tx = %d bytes\n"
 		"      Automatic Tx Padding %s\n"
 		"      Mac Loopback %s\n"
@@ -466,7 +466,7 @@ natsemi_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		data[REG_RXCFG]);
 	tmp = (data[REG_RXCFG] & BIT_RXCFG_MXDMA)>>20;
 	fprintf(stdout,
-		"      Drain Threshhold = %d bytes (%d)\n"
+		"      Drain Threshold = %d bytes (%d)\n"
 		"      Max DMA Burst per Rx = %d bytes\n"
 		"      Long Packets %s\n"
 		"      Tx Packets %s\n"

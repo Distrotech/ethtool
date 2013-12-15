@@ -3326,7 +3326,7 @@ static int do_srxntuple(struct cmd_context *ctx,
 	err = send_ioctl(ctx, &ntuplecmd);
 
 	/*
-	 * Display error only if reponse is something other than op not
+	 * Display error only if response is something other than op not
 	 * supported.  It is possible that the interface uses the network
 	 * flow classifier interface instead of N-tuple. 
 	 */ 

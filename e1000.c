@@ -608,7 +608,7 @@ e1000_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		reg = regs_buff[17];
 		fprintf(stdout,
 			"M88 PHY CONTROL REGISTER:                0x%08X\n"
-			"      Jabber funtion:                    %s\n"
+			"      Jabber function:                   %s\n"
 			"      Auto-polarity:                     %s\n"
 			"      SQE Test:                          %s\n"
 			"      CLK125:                            %s\n"

@@ -103,14 +103,14 @@ struct sff8472_diags {
 	__u16 tx_power[5];      /* Measured TX Power in 0.1uW units */
 	__u16 rx_power[5];      /* Measured RX Power */
 	__u8  rx_power_type;    /* 0 = OMA, 1 = Average power */
-	__s16 sfp_temp[5];      /* SFP Temp in 16-bit signed 1/256 Celcius */
+	__s16 sfp_temp[5];      /* SFP Temp in 16-bit signed 1/256 Celsius */
 	__u16 sfp_voltage[5];   /* SFP voltage in 0.1mV units */
 
 };
 
 static struct sff8472_aw_flags {
 	const char *str;        /* Human-readable string, null at the end */
-	int offset;             /* A2-relative adress offset */
+	int offset;             /* A2-relative address offset */
 	__u8 value;             /* Alarm is on if (offset & value) != 0. */
 } sff8472_aw_flags[] = {
 	{ "Laser bias current high alarm",   SFF_A2_ALRM_FLG, (1 << 3) },
