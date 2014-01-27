@@ -541,20 +541,23 @@ a hexadecimal value using one or a combination of the following values:
 .TS
 nokeep;
 lB	l	lB.
-0x001	10 Half
-0x002	10 Full
-0x004	100 Half
-0x008	100 Full
-0x010	1000 Half	(not supported by IEEE standards)
-0x020	1000 Full
-0x8000	2500 Full	(not supported by IEEE standards)
-0x1000	10000 Full
-0x200000	20000MLD2 Full	(not supported by IEEE standards)
-0x400000	20000KR2 Full	(not supported by IEEE standards)
-0x800000	40000KR4 Full
-0x1000000	40000CR4 Full
-0x2000000	40000SR4 Full
-0x4000000	40000LR4 Full
+0x001	10baseT Half
+0x002	10baseT Full
+0x004	100baseT Half
+0x008	100baseT Full
+0x010	1000baseT Half	(not supported by IEEE standards)
+0x020	1000baseT Full
+0x20000	1000baseKX Full
+0x8000	2500baseX Full	(not supported by IEEE standards)
+0x1000	10000baseT Full
+0x40000	10000baseKX4 Full
+0x80000	10000baseKR Full
+0x200000	20000baseMLD2 Full	(not supported by IEEE standards)
+0x400000	20000baseKR2 Full	(not supported by IEEE standards)
+0x800000	40000baseKR4 Full
+0x1000000	40000baseCR4 Full
+0x2000000	40000baseSR4 Full
+0x4000000	40000baseLR4 Full
 .TE
 .TP
 .BI phyad \ N
