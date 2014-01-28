@@ -1,3 +1,10 @@
+Version 3.13 - January 27, 2014
+
+	* Doc: Update GPL text to include current address of the FSF
+	* Fix: Spelling fixes
+	* Doc: Fix advertising flag values in manual page for 20G link modes,
+	  and add missing 1G, 10G and 40G link modes
+
 Version 3.12.1 - November 8, 2013
 
 	* Fix: Memory corruption when applying external calibration to
