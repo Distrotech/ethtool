@@ -496,6 +496,8 @@ static void dump_supported(struct ethtool_cmd *ep)
 		fprintf(stdout, "MII ");
 	if (mask & SUPPORTED_FIBRE)
 		fprintf(stdout, "FIBRE ");
+	if (mask & SUPPORTED_Backplane)
+		fprintf(stdout, "Backplane ");
 	fprintf(stdout, "]\n");
 
 	dump_link_caps("Supported", "Supports", mask, 0);
