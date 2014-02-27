@@ -13,6 +13,7 @@ ethtool.spec
 ethtool.8
 ethtool
 test-cmdline
+test-driver
 test-features
 stamp-h1
 config.*
