@@ -474,7 +474,11 @@ static int rxflow_str_to_type(const char *str)
 static int do_version(struct cmd_context *ctx)
 {
 	fprintf(stdout,
-		PACKAGE " version " VERSION "\n");
+		PACKAGE " version " VERSION
+#ifndef ETHTOOL_ENABLE_PRETTY_DUMP
+		" (pretty dumps disabled)"
+#endif
+		"\n");
 	return 0;
 }
 
@@ -879,6 +883,7 @@ static const struct {
 	int (*func)(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
 } driver_list[] = {
+#ifdef ETHTOOL_ENABLE_PRETTY_DUMP
 	{ "8139cp", realtek_dump_regs },
 	{ "8139too", realtek_dump_regs },
 	{ "r8169", realtek_dump_regs },
@@ -905,6 +910,7 @@ static const struct {
 	{ "st_mac100", st_mac100_dump_regs },
 	{ "st_gmac", st_gmac_dump_regs },
 	{ "et131x", et131x_dump_regs },
+#endif
 };
 
 void dump_hex(FILE *file, const u8 *data, int len, int offset)
@@ -973,13 +979,13 @@ static int dump_eeprom(int geeprom_dump_raw, struct ethtool_drvinfo *info,
 		fwrite(ee->data, 1, ee->len, stdout);
 		return 0;
 	}
-
+#ifdef ETHTOOL_ENABL_PRETTY_DUMP
 	if (!strncmp("natsemi", info->driver, ETHTOOL_BUSINFO_LEN)) {
 		return natsemi_dump_eeprom(info, ee);
 	} else if (!strncmp("tg3", info->driver, ETHTOOL_BUSINFO_LEN)) {
 		return tg3_dump_eeprom(info, ee);
 	}
-
+#endif
 	dump_hex(stdout, ee->data, ee->len, ee->offset);
 
 	return 0;
@@ -3635,6 +3641,7 @@ static int do_getmodule(struct cmd_context *ctx)
 			geeprom_dump_hex = 1;
 		} else if (!geeprom_dump_hex) {
 			switch (modinfo.type) {
+#ifdef ETHTOOL_ENABLE_PRETTY_DUMP
 			case ETH_MODULE_SFF_8079:
 				sff8079_show_all(eeprom->data);
 				break;
@@ -3642,6 +3649,7 @@ static int do_getmodule(struct cmd_context *ctx)
 				sff8079_show_all(eeprom->data);
 				sff8472_show_all(eeprom->data);
 				break;
+#endif
 			default:
 				geeprom_dump_hex = 1;
 				break;
