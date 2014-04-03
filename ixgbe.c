@@ -76,7 +76,7 @@ enum ixgbe_mac_type {
 	ixgbe_num_macs
 };
 
-enum ixgbe_mac_type
+static enum ixgbe_mac_type
 ixgbe_get_mac_type(u16 device_id)
 {
 	enum ixgbe_mac_type mac_type = ixgbe_mac_unknown;
