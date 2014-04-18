@@ -1770,7 +1770,7 @@ static int do_schannels(struct cmd_context *ctx)
 	if (!changed) {
 		fprintf(stderr, "no channel parameters changed, aborting\n");
 		fprintf(stderr, "current values: tx %u rx %u other %u"
-			"combined %u\n", echannels.rx_count,
+			" combined %u\n", echannels.rx_count,
 			echannels.tx_count, echannels.other_count,
 			echannels.combined_count);
 		return 1;
