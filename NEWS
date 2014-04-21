@@ -1,3 +1,10 @@
+Version 3.14 - April 21, 2014
+
+	* Fix: Report Backplane as supported port (no option)
+	* Feature: Allow building a smaller executable without pretty-
+	  printing of register/EEPROM dumps (./configure --disable-pretty-dump)
+	* Fix: Typo in channel parameter format in an error message (-L option)
+
 Version 3.13 - January 27, 2014
 
 	* Doc: Update GPL text to include current address of the FSF
