@@ -32,13 +32,14 @@ AC_CHECK_FUNCS(socket strtol)
 
 dnl Check for options
 AC_ARG_ENABLE(pretty-dump,
-	       [  --enable-pretty-dump	  enable registers, EEPROM and SFP pretty dumps (enabled by default)],
-	       [if test x$enableval != xno; then
-			AC_DEFINE(ETHTOOL_ENABLE_PRETTY_DUMP, 1,
-			[Define this to enable register, EEPROM and SFP pretty dumps.]) enable_prettydump=yes
-		fi],
-	       enable_prettydump=yes)
-AM_CONDITIONAL([ETHTOOL_ENABLE_PRETTY_DUMP], [test x$enable_prettydump = xyes])
+	      [  --enable-pretty-dump	  enable registers, EEPROM and SFP pretty dumps (enabled by default)],
+	      ,
+	      enable_pretty_dump=yes)
+if test x$enable_pretty_dump = xyes; then
+    AC_DEFINE(ETHTOOL_ENABLE_PRETTY_DUMP, 1,
+	      [Define this to enable register, EEPROM and SFP pretty dumps.])
+fi
+AM_CONDITIONAL([ETHTOOL_ENABLE_PRETTY_DUMP], [test x$enable_pretty_dump = xyes])
 
 AC_CONFIG_FILES([Makefile ethtool.spec ethtool.8])
 AC_OUTPUT

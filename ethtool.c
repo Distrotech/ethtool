@@ -979,7 +979,7 @@ static int dump_eeprom(int geeprom_dump_raw, struct ethtool_drvinfo *info,
 		fwrite(ee->data, 1, ee->len, stdout);
 		return 0;
 	}
-#ifdef ETHTOOL_ENABL_PRETTY_DUMP
+#ifdef ETHTOOL_ENABLE_PRETTY_DUMP
 	if (!strncmp("natsemi", info->driver, ETHTOOL_BUSINFO_LEN)) {
 		return natsemi_dump_eeprom(info, ee);
 	} else if (!strncmp("tg3", info->driver, ETHTOOL_BUSINFO_LEN)) {
