@@ -910,6 +910,7 @@ static const struct {
 	{ "st_mac100", st_mac100_dump_regs },
 	{ "st_gmac", st_gmac_dump_regs },
 	{ "et131x", et131x_dump_regs },
+	{ "altera_tse", altera_tse_dump_regs },
 #endif
 };
 

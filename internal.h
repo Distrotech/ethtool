@@ -243,6 +243,10 @@ int st_gmac_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 /* Et131x ethernet controller */
 int et131x_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs);
 
+/* Altera TSE 10/100/1000 ethernet controller */
+int altera_tse_dump_regs(struct ethtool_drvinfo *info,
+			 struct ethtool_regs *regs);
+
 /* Rx flow classification */
 int rxclass_parse_ruleopts(struct cmd_context *ctx,
 			   struct ethtool_rx_flow_spec *fsp);
