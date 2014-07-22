@@ -286,11 +286,12 @@ ethtool \- query or control network driver and hardware settings
 .B ethtool \-T|\-\-show\-time\-stamping
 .I devname
 .HP
-.B ethtool \-x|\-\-show\-rxfh\-indir
+.B ethtool \-x|\-\-show\-rxfh\-indir|\-\-show\-rxfh
 .I devname
 .HP
-.B ethtool \-X|\-\-set\-rxfh\-indir
+.B ethtool \-X|\-\-set\-rxfh\-indir|\-\-rxfh
 .I devname
+.RB [ hkey \ \*(MA:\...]
 .RB [\  equal
 .IR N \ |
 .BI weight\  W0
@@ -784,11 +785,16 @@ Sets the dump flag for the device.
 Show the device's time stamping capabilities and associated PTP
 hardware clock.
 .TP
-.B \-x \-\-show\-rxfh\-indir
-Retrieves the receive flow hash indirection table.
+.B \-x \-\-show\-rxfh\-indir \-\-show\-rxfh
+Retrieves the receive flow hash indirection table and/or RSS hash key.
 .TP
-.B \-X \-\-set\-rxfh\-indir
-Configures the receive flow hash indirection table.
+.B \-X \-\-set\-rxfh\-indir \-\-rxfh
+Configures the receive flow hash indirection table and/or RSS hash key.
+.TP
+.BI hkey
+Sets RSS hash key of the specified network device. RSS hash key should be of device supported length.
+Hash key format must be in xx:yy:zz:aa:bb:cc format meaning both the nibbles of a byte should be mentioned
+even if a nibble is zero.
 .TP
 .BI equal\  N
 Sets the receive flow hash indirection table to spread flows evenly
