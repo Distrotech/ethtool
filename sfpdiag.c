@@ -48,7 +48,7 @@
 #define SFF_A2_VCC_HWARN                  12
 #define SFF_A2_VCC_LWARN                  14
 
-#define SFF_A2_BIAS                       96
+#define SFF_A2_BIAS                       100
 #define SFF_A2_BIAS_HALRM                 16
 #define SFF_A2_BIAS_LALRM                 18
 #define SFF_A2_BIAS_HWARN                 20
