@@ -1,3 +1,8 @@
+Version 3.18 - December 14, 2014
+
+	* Fix: Lookup of SFP Tx bias in SFF-8472 module diagnostics (-m option)
+	* Fix: Build with musl by using more common typedefs
+
 Version 3.16 - September 22, 2014
 
 	* Feature: Support for configurable RSS hash key (-x/-X options)
