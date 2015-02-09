@@ -694,6 +694,7 @@ static int dump_drvinfo(struct ethtool_drvinfo *info)
 		"driver: %.*s\n"
 		"version: %.*s\n"
 		"firmware-version: %.*s\n"
+		"expansion-rom-version: %.*s\n"
 		"bus-info: %.*s\n"
 		"supports-statistics: %s\n"
 		"supports-test: %s\n"
@@ -703,6 +704,7 @@ static int dump_drvinfo(struct ethtool_drvinfo *info)
 		(int)sizeof(info->driver), info->driver,
 		(int)sizeof(info->version), info->version,
 		(int)sizeof(info->fw_version), info->fw_version,
+		(int)sizeof(info->erom_version), info->erom_version,
 		(int)sizeof(info->bus_info), info->bus_info,
 		info->n_stats ? "yes" : "no",
 		info->testinfo_len ? "yes" : "no",
