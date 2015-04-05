@@ -3126,7 +3126,7 @@ static void print_indir_table(struct cmd_context *ctx,
 		if (i % 8 == 0)
 			printf("%5u: ", i);
 		printf(" %5u", indir[i]);
-		if (i % 8 == 7)
+		if (i % 8 == 7 || i == indir_size - 1)
 			fputc('\n', stdout);
 	}
 }
