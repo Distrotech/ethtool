@@ -1,3 +1,12 @@
+Version 4.0 - May 31, 2014
+
+	* Fix: Formatting of RX flow hash indirection table when size not
+	  divisible by 8 (-x option)
+	* Fix: Add missing Advertised speeds (no option and -s option)
+	* Feature: Add support to get expansion ROM version (-i option)
+	* Feature: Include SFP serial number and date in EEPROM dump
+	  (-m option)
+
 Version 3.18 - December 14, 2014
 
 	* Fix: Lookup of SFP Tx bias in SFF-8472 module diagnostics (-m option)
