@@ -401,7 +401,7 @@ static void sff8079_show_options(const __u8 *id)
 void sff8079_show_all(const __u8 *id)
 {
 	sff8079_show_identifier(id);
-	if ((id[0] == 0x03) && (id[1] == 0x04)) {
+	if (((id[0] == 0x02) || (id[0] == 0x03)) && (id[1] == 0x04)) {
 		sff8079_show_ext_identifier(id);
 		sff8079_show_connector(id);
 		sff8079_show_transceiver(id);
