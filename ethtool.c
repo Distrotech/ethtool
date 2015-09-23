@@ -20,6 +20,7 @@
  *	Copyright 2009, 2010 Solarflare Communications
  * MDI-X set support by Jesse Brandeburg <jesse.brandeburg@intel.com>
  *	Copyright 2012 Intel Corporation
+ * vmxnet3 support by Shrikrishna Khare <skhare@vmware.com>
  *
  * TODO:
  *   * show settings for all devices
@@ -974,6 +975,7 @@ static const struct {
 	{ "st_gmac", st_gmac_dump_regs },
 	{ "et131x", et131x_dump_regs },
 	{ "altera_tse", altera_tse_dump_regs },
+	{ "vmxnet3", vmxnet3_dump_regs },
 #endif
 };
 
