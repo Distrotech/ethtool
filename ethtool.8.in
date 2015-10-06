@@ -872,7 +872,7 @@ Enables/disables the device support of EEE.
 Determines whether the device should assert its Tx LPI.
 .TP
 .BI advertise \ N
-Sets the speeds for which the device should advertise EEE capabiliities.
+Sets the speeds for which the device should advertise EEE capabilities.
 Values are as for
 .B \-\-change advertise
 .TP
