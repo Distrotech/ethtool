@@ -1,4 +1,4 @@
-Version 4.0 - May 31, 2014
+Version 4.0 - May 31, 2015
 
 	* Fix: Formatting of RX flow hash indirection table when size not
 	  divisible by 8 (-x option)
