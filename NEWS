@@ -1,3 +1,11 @@
+Version 4.2 - October 9, 2015
+
+	* Feature: Support soldered-on modules in module EEPROM dump (-m option)
+	* Feature: Add register dump support for VMware vmxnet3 (-d option)
+	* Feature: Update register dump support for IBM EMAC (-d option)
+	  (requires Linux 4.3 or a future stable update to 4.1 or 4.2)
+	* Doc: Fix typo in man page
+
 Version 4.0 - May 31, 2015
 
 	* Fix: Formatting of RX flow hash indirection table when size not
