@@ -132,10 +132,11 @@ struct cmd_expect {
 int test_ioctl(const struct cmd_expect *expect, void *cmd);
 #define TEST_IOCTL_MISMATCH (-2)
 
-#ifndef TEST_NO_WRAPPERS
 int test_main(int argc, char **argp);
-#define main(...) test_main(__VA_ARGS__)
 void test_exit(int rc) __attribute__((noreturn));
+
+#ifndef TEST_NO_WRAPPERS
+#define main(...) test_main(__VA_ARGS__)
 #undef exit
 #define exit(rc) test_exit(rc)
 void *test_malloc(size_t size);
