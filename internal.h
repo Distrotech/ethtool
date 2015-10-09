@@ -148,7 +148,7 @@ void *test_calloc(size_t nmemb, size_t size);
 char *test_strdup(const char *s);
 #undef strdup
 #define strdup(s) test_strdup(s)
-void *test_free(void *ptr);
+void test_free(void *ptr);
 #undef free
 #define free(ptr) test_free(ptr)
 void *test_realloc(void *ptr, size_t size);
