@@ -220,6 +220,9 @@ ethtool \- query or control network driver and hardware settings
 .B ethtool \-S|\-\-statistics
 .I devname
 .HP
+.B ethtool \-I|\-\-phy-statistics
+.I devname
+.HP
 .B ethtool \-t|\-\-test
 .I devname
 .RI [\*(SD]
@@ -491,6 +494,9 @@ auto-negotiation is enabled.
 .B \-S \-\-statistics
 Queries the specified network device for NIC- and driver-specific
 statistics.
+.TP
+.B \-I \-\-phy\-statistics
+Queries the specified network device for PHY specific statistics.
 .TP
 .B \-t \-\-test
 Executes adapter selftest on the specified network device. Possible test modes are:

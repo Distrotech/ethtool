@@ -2995,6 +2995,64 @@ static int do_gstats(struct cmd_context *ctx)
 	return 0;
 }
 
+static int do_gphystats(struct cmd_context *ctx)
+{
+	struct ethtool_gstrings *strings;
+	struct ethtool_stats *stats;
+	unsigned int n_stats, sz_stats, i;
+	int err;
+
+	if (ctx->argc != 0)
+		exit_bad_args();
+
+	strings = get_stringset(ctx, ETH_SS_PHY_STATS,
+				offsetof(struct ethtool_drvinfo, n_stats),
+				0);
+	if (!strings) {
+		perror("Cannot get stats strings information");
+		return 96;
+	}
+
+	n_stats = strings->len;
+	if (n_stats < 1) {
+		fprintf(stderr, "no stats available\n");
+		free(strings);
+		return 94;
+	}
+
+	sz_stats = n_stats * sizeof(u64);
+
+	stats = calloc(1, sz_stats + sizeof(struct ethtool_stats));
+	if (!stats) {
+		fprintf(stderr, "no memory available\n");
+		free(strings);
+		return 95;
+	}
+
+	stats->cmd = ETHTOOL_GPHYSTATS;
+	stats->n_stats = n_stats;
+	err = send_ioctl(ctx, stats);
+	if (err < 0) {
+		perror("Cannot get stats information");
+		free(strings);
+		free(stats);
+		return 97;
+	}
+
+	/* todo - pretty-print the strings per-driver */
+	fprintf(stdout, "PHY statistics:\n");
+	for (i = 0; i < n_stats; i++) {
+		fprintf(stdout, "     %.*s: %llu\n",
+			ETH_GSTRING_LEN,
+			&strings->data[i * ETH_GSTRING_LEN],
+			stats->data[i]);
+	}
+	free(strings);
+	free(stats);
+
+	return 0;
+}
+
 static int do_srxntuple(struct cmd_context *ctx,
 			struct ethtool_rx_flow_spec *rx_rule_fs);
 
@@ -4078,6 +4136,8 @@ static const struct option {
 	{ "-t|--test", 1, do_test, "Execute adapter self test",
 	  "               [ online | offline | external_lb ]\n" },
 	{ "-S|--statistics", 1, do_gstats, "Show adapter statistics" },
+	{ "-I|--phy-statistics", 1, do_gphystats,
+	  "Show phy statistics" },
 	{ "-n|-u|--show-nfc|--show-ntuple", 1, do_grxclass,
 	  "Show Rx network flow classification options or rules",
 	  "		[ rx-flow-hash tcp4|udp4|ah4|esp4|sctp4|"
