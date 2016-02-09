@@ -299,7 +299,7 @@ ethtool \- query or control network driver and hardware settings
 .IR N \ |
 .BI weight\  W0
 .IR W1
-.RB ...\ ]
+.RB ...\ | \ default \ ]
 .HP
 .B ethtool \-f|\-\-flash
 .I devname file
@@ -834,6 +834,9 @@ between the first \fIN\fR receive queues.
 Sets the receive flow hash indirection table to spread flows between
 receive queues according to the given weights.  The sum of the weights
 must be non-zero and must not exceed the size of the indirection table.
+.TP
+.BI default
+Sets the receive flow hash indirection table to its default value.
 .RE
 .TP
 .B \-f \-\-flash

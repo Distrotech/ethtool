@@ -3239,13 +3239,11 @@ static int do_grxfh(struct cmd_context *ctx)
 	return 0;
 }
 
-static int fill_indir_table(u32 *indir_size, u32 *indir, int rxfhindir_equal,
-			    char **rxfhindir_weight, u32 num_weights)
+static int fill_indir_table(u32 *indir_size, u32 *indir, int rxfhindir_default,
+			    int rxfhindir_equal, char **rxfhindir_weight,
+			    u32 num_weights)
 {
 	u32 i;
-	/*
-	 * "*indir_size == 0" ==> reset indir to default
-	 */
 	if (rxfhindir_equal) {
 		for (i = 0; i < *indir_size; i++)
 			indir[i] = i % rxfhindir_equal;
@@ -3279,6 +3277,9 @@ static int fill_indir_table(u32 *indir_size, u32 *indir, int rxfhindir_equal,
 			}
 			indir[i] = j;
 		}
+	} else if (rxfhindir_default) {
+		/* "*indir_size == 0" ==> reset indir to default */
+		*indir_size = 0;
 	} else {
 		*indir_size = ETH_RXFH_INDIR_NO_CHANGE;
 	}
@@ -3286,8 +3287,9 @@ static int fill_indir_table(u32 *indir_size, u32 *indir, int rxfhindir_equal,
 	return 0;
 }
 
-static int do_srxfhindir(struct cmd_context *ctx, int rxfhindir_equal,
-			 char **rxfhindir_weight, u32 num_weights)
+static int do_srxfhindir(struct cmd_context *ctx, int rxfhindir_default,
+			 int rxfhindir_equal, char **rxfhindir_weight,
+			 u32 num_weights)
 {
 	struct ethtool_rxfh_indir indir_head;
 	struct ethtool_rxfh_indir *indir;
@@ -3312,7 +3314,8 @@ static int do_srxfhindir(struct cmd_context *ctx, int rxfhindir_equal,
 	indir->cmd = ETHTOOL_SRXFHINDIR;
 	indir->size = indir_head.size;
 
-	if (fill_indir_table(&indir->size, indir->ring_index, rxfhindir_equal,
+	if (fill_indir_table(&indir->size, indir->ring_index,
+			     rxfhindir_default, rxfhindir_equal,
 			     rxfhindir_weight, num_weights)) {
 		free(indir);
 		return 1;
@@ -3334,7 +3337,7 @@ static int do_srxfh(struct cmd_context *ctx)
 	struct ethtool_rxfh rss_head = {0};
 	struct ethtool_rxfh *rss;
 	struct ethtool_rxnfc ring_count;
-	int rxfhindir_equal = 0;
+	int rxfhindir_equal = 0, rxfhindir_default = 0;
 	char **rxfhindir_weight = NULL;
 	char *rxfhindir_key = NULL;
 	char *hkey = NULL;
@@ -3343,7 +3346,7 @@ static int do_srxfh(struct cmd_context *ctx)
 	u32 entry_size = sizeof(rss_head.rss_config[0]);
 	u32 num_weights = 0;
 
-	if (ctx->argc < 2)
+	if (ctx->argc < 1)
 		exit_bad_args();
 
 	while (arg_num < ctx->argc) {
@@ -3368,6 +3371,9 @@ static int do_srxfh(struct cmd_context *ctx)
 			if (!rxfhindir_key)
 				exit_bad_args();
 			++arg_num;
+		} else if (!strcmp(ctx->argp[arg_num], "default")) {
+			++arg_num;
+			rxfhindir_default = 1;
 		} else {
 			exit_bad_args();
 		}
@@ -3376,6 +3382,18 @@ static int do_srxfh(struct cmd_context *ctx)
 	if (rxfhindir_equal && rxfhindir_weight) {
 		fprintf(stderr,
 			"Equal and weight options are mutually exclusive\n");
+		return 1;
+	}
+
+	if (rxfhindir_equal && rxfhindir_default) {
+		fprintf(stderr,
+			"Equal and default options are mutually exclusive\n");
+		return 1;
+	}
+
+	if (rxfhindir_weight && rxfhindir_default) {
+		fprintf(stderr,
+			"Weight and default options are mutually exclusive\n");
 		return 1;
 	}
 
@@ -3389,8 +3407,8 @@ static int do_srxfh(struct cmd_context *ctx)
 	rss_head.cmd = ETHTOOL_GRSSH;
 	err = send_ioctl(ctx, &rss_head);
 	if (err < 0 && errno == EOPNOTSUPP && !rxfhindir_key) {
-		return do_srxfhindir(ctx, rxfhindir_equal, rxfhindir_weight,
-				     num_weights);
+		return do_srxfhindir(ctx, rxfhindir_default, rxfhindir_equal,
+				     rxfhindir_weight, num_weights);
 	} else if (err < 0) {
 		perror("Cannot get RX flow hash indir size and key size");
 		return 1;
@@ -3415,8 +3433,8 @@ static int do_srxfh(struct cmd_context *ctx)
 	rss->indir_size = rss_head.indir_size;
 	rss->key_size = rss_head.key_size;
 
-	if (fill_indir_table(&rss->indir_size, rss->rss_config, rxfhindir_equal,
-			     rxfhindir_weight, num_weights)) {
+	if (fill_indir_table(&rss->indir_size, rss->rss_config, rxfhindir_default,
+			     rxfhindir_equal, rxfhindir_weight, num_weights)) {
 		err = 1;
 		goto free;
 	}
