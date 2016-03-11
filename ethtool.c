@@ -1007,6 +1007,7 @@ static int dump_regs(int gregs_dump_raw, int gregs_dump_hex,
 	if (gregs_dump_file) {
 		FILE *f = fopen(gregs_dump_file, "r");
 		struct stat st;
+		size_t nread;
 
 		if (!f || fstat(fileno(f), &st) < 0) {
 			fprintf(stderr, "Can't open '%s': %s\n",
@@ -1016,8 +1017,10 @@ static int dump_regs(int gregs_dump_raw, int gregs_dump_hex,
 
 		regs = realloc(regs, sizeof(*regs) + st.st_size);
 		regs->len = st.st_size;
-		fread(regs->data, regs->len, 1, f);
+		nread = fread(regs->data, regs->len, 1, f);
 		fclose(f);
+		if (nread != 1)
+			return -1;
 	}
 
 	if (!gregs_dump_hex)
