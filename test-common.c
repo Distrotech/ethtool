@@ -100,7 +100,7 @@ void test_free(void *ptr)
 
 void *test_realloc(void *ptr, size_t size)
 {
-	struct list_head *block;
+	struct list_head *block = NULL;
 
 	if (ptr) {
 		block = (struct list_head *)ptr - 1;
