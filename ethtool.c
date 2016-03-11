@@ -994,7 +994,6 @@ void dump_hex(FILE *file, const u8 *data, int len, int offset)
 }
 
 static int dump_regs(int gregs_dump_raw, int gregs_dump_hex,
-		     const char *gregs_dump_file,
 		     struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 {
 	int i;
@@ -1002,25 +1001,6 @@ static int dump_regs(int gregs_dump_raw, int gregs_dump_hex,
 	if (gregs_dump_raw) {
 		fwrite(regs->data, regs->len, 1, stdout);
 		return 0;
-	}
-
-	if (gregs_dump_file) {
-		FILE *f = fopen(gregs_dump_file, "r");
-		struct stat st;
-		size_t nread;
-
-		if (!f || fstat(fileno(f), &st) < 0) {
-			fprintf(stderr, "Can't open '%s': %s\n",
-				gregs_dump_file, strerror(errno));
-			return -1;
-		}
-
-		regs = realloc(regs, sizeof(*regs) + st.st_size);
-		regs->len = st.st_size;
-		nread = fread(regs->data, regs->len, 1, f);
-		fclose(f);
-		if (nread != 1)
-			return -1;
 	}
 
 	if (!gregs_dump_hex)
@@ -2711,7 +2691,31 @@ static int do_gregs(struct cmd_context *ctx)
 		free(regs);
 		return 74;
 	}
-	if (dump_regs(gregs_dump_raw, gregs_dump_hex, gregs_dump_file,
+
+	if (!gregs_dump_raw && gregs_dump_file != NULL) {
+		/* overwrite reg values from file dump */
+		FILE *f = fopen(gregs_dump_file, "r");
+		struct stat st;
+		size_t nread;
+
+		if (!f || fstat(fileno(f), &st) < 0) {
+			fprintf(stderr, "Can't open '%s': %s\n",
+				gregs_dump_file, strerror(errno));
+			free(regs);
+			return 75;
+		}
+
+		regs = realloc(regs, sizeof(*regs) + st.st_size);
+		regs->len = st.st_size;
+		nread = fread(regs->data, regs->len, 1, f);
+		fclose(f);
+		if (nread != 1) {
+			free(regs);
+			return 75;
+		}
+        }
+
+	if (dump_regs(gregs_dump_raw, gregs_dump_hex,
 		      &drvinfo, regs) < 0) {
 		fprintf(stderr, "Cannot dump registers\n");
 		free(regs);
