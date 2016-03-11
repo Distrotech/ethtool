@@ -18,7 +18,7 @@ static const struct {
 	struct ethtool_sset_info cmd;
 	u32 data[1];
 }
-cmd_gssetinfo = { { ETHTOOL_GSSET_INFO, 0, 1ULL << ETH_SS_FEATURES }, 34 };
+cmd_gssetinfo = { { ETHTOOL_GSSET_INFO, 0, 1ULL << ETH_SS_FEATURES }, { 34 } };
 
 static const struct ethtool_value
 cmd_grxcsum_off = { ETHTOOL_GRXCSUM, 0 },
