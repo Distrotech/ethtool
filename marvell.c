@@ -381,7 +381,8 @@ static void dump_prefetch(const char *name, const void *r)
 
 int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 {
-	const u32 *r = (const u32 *) regs->data;
+	const u16 *r16 = (const u16 *) regs->data;
+	const u32 *r32 = (const u32 *) regs->data;
 	int dual;
 
 	dump_pci(regs->data + 0x1c00);
@@ -390,15 +391,15 @@ int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 
 	printf("\nBus Management Unit\n");
 	printf("-------------------\n");
-	printf("CSR Receive Queue 1              0x%08X\n", r[24]);
-	printf("CSR Sync Queue 1                 0x%08X\n", r[26]);
-	printf("CSR Async Queue 1                0x%08X\n", r[27]);
+	printf("CSR Receive Queue 1              0x%08X\n", r32[24]);
+	printf("CSR Sync Queue 1                 0x%08X\n", r32[26]);
+	printf("CSR Async Queue 1                0x%08X\n", r32[27]);
 
 	dual = (regs->data[0x11e] & 2) != 0;
 	if (dual) {
-		printf("CSR Receive Queue 2              0x%08X\n", r[25]);
-		printf("CSR Async Queue 2                0x%08X\n", r[29]);
-		printf("CSR Sync Queue 2                 0x%08X\n", r[28]);
+		printf("CSR Receive Queue 2              0x%08X\n", r32[25]);
+		printf("CSR Async Queue 2                0x%08X\n", r32[29]);
+		printf("CSR Sync Queue 2                 0x%08X\n", r32[28]);
 	}
 
 	dump_mac(regs->data);
@@ -423,9 +424,9 @@ int sky2_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	dump_timer("TX status", regs->data + 0xec0);
 	dump_timer("ISR", regs->data + 0xed0);
 
-	printf("\nGMAC control             0x%04X\n", *(u32 *)(regs->data + 0xf00));
-	printf("GPHY control             0x%04X\n", *(u32 *)(regs->data + 0xf04));
-	printf("LINK control             0x%02hX\n", *(u16 *)(regs->data + 0xf10));
+	printf("\nGMAC control             0x%04X\n", r32[0xf00 >> 2]);
+	printf("GPHY control             0x%04X\n", r32[0xf04 >> 2]);
+	printf("LINK control             0x%02hX\n", r16[0xf10 >> 1]);
 
 	dump_gmac("GMAC 1", regs->data + 0x2800);
 	dump_gmac_fifo("Rx GMAC 1", regs->data + 0xc40);
