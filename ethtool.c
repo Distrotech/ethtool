@@ -2828,8 +2828,10 @@ static int do_seeprom(struct cmd_context *ctx)
 	if (seeprom_length == -1)
 		seeprom_length = drvinfo.eedump_len;
 
-	if (drvinfo.eedump_len < seeprom_offset + seeprom_length)
-		seeprom_length = drvinfo.eedump_len - seeprom_offset;
+	if (drvinfo.eedump_len < seeprom_offset + seeprom_length) {
+		fprintf(stderr, "offset & length out of bounds\n");
+		return 1;
+	}
 
 	eeprom = calloc(1, sizeof(*eeprom)+seeprom_length);
 	if (!eeprom) {
@@ -2844,8 +2846,18 @@ static int do_seeprom(struct cmd_context *ctx)
 	eeprom->data[0] = seeprom_value;
 
 	/* Multi-byte write: read input from stdin */
-	if (!seeprom_value_seen)
-		eeprom->len = fread(eeprom->data, 1, eeprom->len, stdin);
+	if (!seeprom_value_seen) {
+		if (fread(eeprom->data, eeprom->len, 1, stdin) != 1) {
+			fprintf(stderr, "not enough data from stdin\n");
+			free(eeprom);
+			return 75;
+		}
+		if ((fgetc(stdin) != EOF) || !feof(stdin)) {
+			fprintf(stderr, "too much data from stdin\n");
+			free(eeprom);
+			return 75;
+		}
+	}
 
 	err = send_ioctl(ctx, eeprom);
 	if (err < 0) {
