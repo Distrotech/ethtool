@@ -25,3 +25,5 @@ push
 .dotest
 autom4te.cache
 .deps
+test-*.log
+test-*.trs
