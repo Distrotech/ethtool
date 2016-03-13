@@ -2937,7 +2937,8 @@ static int do_phys_id(struct cmd_context *ctx)
 	return err;
 }
 
-static int do_gstats(struct cmd_context *ctx)
+static int do_gstats(struct cmd_context *ctx, int cmd, int stringset,
+		    const char *name)
 {
 	struct ethtool_gstrings *strings;
 	struct ethtool_stats *stats;
@@ -2947,7 +2948,7 @@ static int do_gstats(struct cmd_context *ctx)
 	if (ctx->argc != 0)
 		exit_bad_args();
 
-	strings = get_stringset(ctx, ETH_SS_STATS,
+	strings = get_stringset(ctx, stringset,
 				offsetof(struct ethtool_drvinfo, n_stats),
 				0);
 	if (!strings) {
@@ -2971,7 +2972,7 @@ static int do_gstats(struct cmd_context *ctx)
 		return 95;
 	}
 
-	stats->cmd = ETHTOOL_GSTATS;
+	stats->cmd = cmd;
 	stats->n_stats = n_stats;
 	err = send_ioctl(ctx, stats);
 	if (err < 0) {
@@ -2982,7 +2983,7 @@ static int do_gstats(struct cmd_context *ctx)
 	}
 
 	/* todo - pretty-print the strings per-driver */
-	fprintf(stdout, "NIC statistics:\n");
+	fprintf(stdout, "%s statistics:\n", name);
 	for (i = 0; i < n_stats; i++) {
 		fprintf(stdout, "     %.*s: %llu\n",
 			ETH_GSTRING_LEN,
@@ -2995,62 +2996,14 @@ static int do_gstats(struct cmd_context *ctx)
 	return 0;
 }
 
+static int do_gnicstats(struct cmd_context *ctx)
+{
+	return do_gstats(ctx, ETHTOOL_GSTATS, ETH_SS_STATS, "NIC");
+}
+
 static int do_gphystats(struct cmd_context *ctx)
 {
-	struct ethtool_gstrings *strings;
-	struct ethtool_stats *stats;
-	unsigned int n_stats, sz_stats, i;
-	int err;
-
-	if (ctx->argc != 0)
-		exit_bad_args();
-
-	strings = get_stringset(ctx, ETH_SS_PHY_STATS,
-				offsetof(struct ethtool_drvinfo, n_stats),
-				0);
-	if (!strings) {
-		perror("Cannot get stats strings information");
-		return 96;
-	}
-
-	n_stats = strings->len;
-	if (n_stats < 1) {
-		fprintf(stderr, "no stats available\n");
-		free(strings);
-		return 94;
-	}
-
-	sz_stats = n_stats * sizeof(u64);
-
-	stats = calloc(1, sz_stats + sizeof(struct ethtool_stats));
-	if (!stats) {
-		fprintf(stderr, "no memory available\n");
-		free(strings);
-		return 95;
-	}
-
-	stats->cmd = ETHTOOL_GPHYSTATS;
-	stats->n_stats = n_stats;
-	err = send_ioctl(ctx, stats);
-	if (err < 0) {
-		perror("Cannot get stats information");
-		free(strings);
-		free(stats);
-		return 97;
-	}
-
-	/* todo - pretty-print the strings per-driver */
-	fprintf(stdout, "PHY statistics:\n");
-	for (i = 0; i < n_stats; i++) {
-		fprintf(stdout, "     %.*s: %llu\n",
-			ETH_GSTRING_LEN,
-			&strings->data[i * ETH_GSTRING_LEN],
-			stats->data[i]);
-	}
-	free(strings);
-	free(stats);
-
-	return 0;
+	return do_gstats(ctx, ETHTOOL_GPHYSTATS, ETH_SS_PHY_STATS, "PHY");
 }
 
 static int do_srxntuple(struct cmd_context *ctx,
@@ -4135,7 +4088,7 @@ static const struct option {
 	  "               [ TIME-IN-SECONDS ]\n" },
 	{ "-t|--test", 1, do_test, "Execute adapter self test",
 	  "               [ online | offline | external_lb ]\n" },
-	{ "-S|--statistics", 1, do_gstats, "Show adapter statistics" },
+	{ "-S|--statistics", 1, do_gnicstats, "Show adapter statistics" },
 	{ "--phy-statistics", 1, do_gphystats,
 	  "Show phy statistics" },
 	{ "-n|-u|--show-nfc|--show-ntuple", 1, do_grxclass,
