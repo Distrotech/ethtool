@@ -220,7 +220,7 @@ ethtool \- query or control network driver and hardware settings
 .B ethtool \-S|\-\-statistics
 .I devname
 .HP
-.B ethtool \-I|\-\-phy-statistics
+.B ethtool \-\-phy\-statistics
 .I devname
 .HP
 .B ethtool \-t|\-\-test
@@ -495,7 +495,7 @@ auto-negotiation is enabled.
 Queries the specified network device for NIC- and driver-specific
 statistics.
 .TP
-.B \-I \-\-phy\-statistics
+.B \-\-phy\-statistics
 Queries the specified network device for PHY specific statistics.
 .TP
 .B \-t \-\-test
