@@ -29,6 +29,12 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
 
+/* ethtool.h epxects __KERNEL_DIV_ROUND_UP to be defined by <linux/kernel.h> */
+#include <linux/kernel.h>
+#ifndef __KERNEL_DIV_ROUND_UP
+#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+#endif
+
 #include "ethtool-copy.h"
 #include "net_tstamp-copy.h"
 
