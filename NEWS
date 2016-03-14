@@ -1,3 +1,19 @@
+Version 4.5 - March 14, 2016
+
+	* Tests: Fix missing function declarations when building tests
+	* Tests: Fix return type of test_free() prorotype
+	* Feature: Add PHY statistics support (--phy-statistics option)
+	* Doc: Properly indent sub-options in man page
+	* Feature: Support setting default Rx flow indirection table
+	  (-X option)
+	* Fix: Use 'sane' kernel type definitions on 64-bit architectures
+	* Fix: Don't ignore fread() return value (-d option)
+	* Fix: Heap corruption when dumping registers from a file (-d option)
+	* Fix: Stricter input validation for EEPROM setting (-E option)
+	* Fix: Fix strict-aliasing compiler warnings in marvell.c
+	* Tests: Fix use of uninitialised variable in test_realloc()
+	* Tests: Fix compiler warning in test-features.c
+
 Version 4.2 - October 9, 2015
 
 	* Feature: Support soldered-on modules in module EEPROM dump (-m option)
