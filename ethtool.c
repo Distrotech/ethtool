@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <sys/utsname.h>
 #include <limits.h>
@@ -3540,6 +3541,22 @@ static int do_permaddr(struct cmd_context *ctx)
 	return err;
 }
 
+static bool flow_type_is_ntuple_supported(__u32 flow_type)
+{
+	switch (flow_type) {
+	case TCP_V4_FLOW:
+	case UDP_V4_FLOW:
+	case SCTP_V4_FLOW:
+	case AH_V4_FLOW:
+	case ESP_V4_FLOW:
+	case IPV4_USER_FLOW:
+	case ETHER_FLOW:
+		return true;
+	default:
+		return false;
+	}
+}
+
 static int flow_spec_to_ntuple(struct ethtool_rx_flow_spec *fsp,
 			       struct ethtool_rx_ntuple_flow_spec *ntuple)
 {
@@ -3561,6 +3578,10 @@ static int flow_spec_to_ntuple(struct ethtool_rx_flow_spec *fsp,
 	if ((fsp->flow_type & FLOW_EXT) &&
 	    (fsp->m_ext.data[0] || fsp->m_ext.data[1]) &&
 	    fsp->m_ext.vlan_etype)
+		return -1;
+
+	/* IPv6 flow types are not supported by ntuple */
+	if (!flow_type_is_ntuple_supported(fsp->flow_type & ~FLOW_EXT))
 		return -1;
 
 	/* Set entire ntuple to ~0 to guarantee all masks are set */
