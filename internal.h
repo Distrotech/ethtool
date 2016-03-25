@@ -12,6 +12,7 @@
 #ifdef HAVE_CONFIG_H
 #include "ethtool-config.h"
 #endif
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -121,6 +122,71 @@ static inline int test_bit(unsigned int nr, const unsigned long *addr)
 #define ETH_FLAG_EXT_MASK	(ETH_FLAG_LRO | ETH_FLAG_RXVLAN |	\
 				 ETH_FLAG_TXVLAN | ETH_FLAG_NTUPLE |	\
 				 ETH_FLAG_RXHASH)
+
+/* internal API for link mode bitmap interaction with kernel. */
+
+#define ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NU32		\
+	(SCHAR_MAX)
+#define ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NBITS		\
+	(32 * ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NU32)
+#define ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NBYTES	\
+	(4 * ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NU32)
+#define ETHTOOL_DECLARE_LINK_MODE_MASK(name)		\
+	u32 name[ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NU32]
+
+struct ethtool_link_usettings {
+	struct {
+		__u8 transceiver;
+	} deprecated;
+	struct ethtool_link_settings base;
+	struct {
+		ETHTOOL_DECLARE_LINK_MODE_MASK(supported);
+		ETHTOOL_DECLARE_LINK_MODE_MASK(advertising);
+		ETHTOOL_DECLARE_LINK_MODE_MASK(lp_advertising);
+	} link_modes;
+};
+
+#define ethtool_link_mode_for_each_u32(index)			\
+	for ((index) = 0;					\
+	     (index) < ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NU32;	\
+	     ++(index))
+
+static inline void ethtool_link_mode_zero(u32 *dst)
+{
+	memset(dst, 0, ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NBYTES);
+}
+
+static inline bool ethtool_link_mode_is_empty(const u32 *mask)
+{
+	unsigned int i;
+
+	ethtool_link_mode_for_each_u32(i) {
+		if (mask[i] != 0)
+			return false;
+	}
+
+	return true;
+}
+
+static inline void ethtool_link_mode_copy(u32 *dst, const u32 *src)
+{
+	memcpy(dst, src, ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NBYTES);
+}
+
+static inline int ethtool_link_mode_test_bit(unsigned int nr, const u32 *mask)
+{
+	if (nr >= ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NBITS)
+		return !!0;
+	return !!(mask[nr / 32] & (1 << (nr % 32)));
+}
+
+static inline int ethtool_link_mode_set_bit(unsigned int nr, u32 *mask)
+{
+	if (nr >= ETHTOOL_LINK_MODE_MASK_MAX_KERNEL_NBITS)
+		return -1;
+	mask[nr / 32] |= (1 << (nr % 32));
+	return 0;
+}
 
 /* Context for sub-commands */
 struct cmd_context {
