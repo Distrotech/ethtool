@@ -54,7 +54,7 @@
 .\"
 .\"	\(*PA - IP address
 .\"
-.ds PA \fIx\fP\fB.\fP\fIx\fP\fB.\fP\fIx\fP\fB.\fP\fIx\fP
+.ds PA \fIip-address\fP
 .\"
 .\"	\(*WO - wol flags
 .\"
