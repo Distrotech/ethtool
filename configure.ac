@@ -15,7 +15,6 @@ AM_PROG_CC_C_O
 dnl Checks for libraries.
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(sys/ioctl.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_MSG_CHECKING([whether <linux/types.h> defines big-endian types])
