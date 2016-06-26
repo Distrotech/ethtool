@@ -947,7 +947,8 @@ Scott Feldman,
 Andi Kleen,
 Alexander Duyck,
 Sucheta Chakraborty,
-Jesse Brandeburg.
+Jesse Brandeburg,
+Ben Hutchings.
 .SH AVAILABILITY
 .B ethtool
 is available from

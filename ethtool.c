@@ -21,6 +21,8 @@
  * MDI-X set support by Jesse Brandeburg <jesse.brandeburg@intel.com>
  *	Copyright 2012 Intel Corporation
  * vmxnet3 support by Shrikrishna Khare <skhare@vmware.com>
+ * Various features by Ben Hutchings <ben@decadent.org.uk>;
+ *	Copyright 2008-2010, 2013-2016 Ben Hutchings
  *
  * TODO:
  *   * show settings for all devices
