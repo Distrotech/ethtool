@@ -63,6 +63,23 @@
 #define IXGBE_SUBDEV_ID_82599_KX4_KR_MEZZ  0x000C
 #define IXGBE_DEV_ID_82599_LS            0x154F
 #define IXGBE_DEV_ID_X540T               0x1528
+#define IXGBE_DEV_ID_82599_SFP_SF_QP     0x154A
+#define IXGBE_DEV_ID_82599_QSFP_SF_QP    0x1558
+#define IXGBE_DEV_ID_X540T1              0x1560
+
+#define IXGBE_DEV_ID_X550T		0x1563
+#define IXGBE_DEV_ID_X550T1		0x15D1
+#define IXGBE_DEV_ID_X550EM_X_KX4	0x15AA
+#define IXGBE_DEV_ID_X550EM_X_KR	0x15AB
+#define IXGBE_DEV_ID_X550EM_X_SFP	0x15AC
+#define IXGBE_DEV_ID_X550EM_X_10G_T	0x15AD
+#define IXGBE_DEV_ID_X550EM_X_1G_T	0x15AE
+#define IXGBE_DEV_ID_X550EM_A_KR	0x15C2
+#define IXGBE_DEV_ID_X550EM_A_KR_L	0x15C3
+#define IXGBE_DEV_ID_X550EM_A_SFP_N	0x15C4
+#define IXGBE_DEV_ID_X550EM_A_SGMII	0x15C6
+#define IXGBE_DEV_ID_X550EM_A_SGMII_L	0x15C7
+#define IXGBE_DEV_ID_X550EM_A_SFP	0x15CE
 
 /*
  * Enumerated types specific to the ixgbe hardware
@@ -73,6 +90,9 @@ enum ixgbe_mac_type {
 	ixgbe_mac_82598EB,
 	ixgbe_mac_82599EB,
 	ixgbe_mac_X540,
+	ixgbe_mac_x550,
+	ixgbe_mac_x550em_x,
+	ixgbe_mac_x550em_a,
 	ixgbe_num_macs
 };
 
@@ -112,10 +132,32 @@ ixgbe_get_mac_type(u16 device_id)
 	case IXGBE_DEV_ID_82599_COMBO_BACKPLANE:
 	case IXGBE_SUBDEV_ID_82599_KX4_KR_MEZZ:
 	case IXGBE_DEV_ID_82599_LS:
+	case IXGBE_DEV_ID_82599_SFP_SF_QP:
+	case IXGBE_DEV_ID_82599_QSFP_SF_QP:
 		mac_type = ixgbe_mac_82599EB;
 		break;
 	case IXGBE_DEV_ID_X540T:
+	case IXGBE_DEV_ID_X540T1:
 		mac_type = ixgbe_mac_X540;
+		break;
+	case IXGBE_DEV_ID_X550T:
+	case IXGBE_DEV_ID_X550T1:
+		mac_type = ixgbe_mac_x550;
+		break;
+	case IXGBE_DEV_ID_X550EM_X_KX4:
+	case IXGBE_DEV_ID_X550EM_X_KR:
+	case IXGBE_DEV_ID_X550EM_X_SFP:
+	case IXGBE_DEV_ID_X550EM_X_10G_T:
+	case IXGBE_DEV_ID_X550EM_X_1G_T:
+		mac_type = ixgbe_mac_x550em_x;
+		break;
+	case IXGBE_DEV_ID_X550EM_A_KR:
+	case IXGBE_DEV_ID_X550EM_A_KR_L:
+	case IXGBE_DEV_ID_X550EM_A_SFP_N:
+	case IXGBE_DEV_ID_X550EM_A_SGMII:
+	case IXGBE_DEV_ID_X550EM_A_SGMII_L:
+	case IXGBE_DEV_ID_X550EM_A_SFP:
+		mac_type = ixgbe_mac_x550em_a;
 		break;
 	default:
 		mac_type = ixgbe_mac_82598EB;
@@ -131,6 +173,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 	u32 *regs_buff = (u32 *)regs->data;
 	u32 regs_buff_len = regs->len / sizeof(*regs_buff);
 	u32 reg;
+	u32 offset;
 	u16 hw_device_id = (u16) regs->version;
 	u8 version = (u8)(regs->version >> 24);
 	u8 i;
@@ -231,7 +274,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 
 	reg = regs_buff[1047];
 	fprintf(stdout,
-	"0x04250: HLREG0 (Highlander Control 0 register)       0x%08X\n"
+	"0x04240: HLREG0 (Highlander Control 0 register)       0x%08X\n"
 	"       Transmit CRC:                                  %s\n"
 	"       Receive CRC Strip:                             %s\n"
 	"       Jumbo Frames:                                  %s\n"
@@ -278,17 +321,19 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		regs_buff[7]);
 
 	/* NVM Register */
+	offset = mac_type == ixgbe_mac_x550em_a ? 0x15FF8 : 0x10010;
 	fprintf(stdout,
-		"0x10010: EEC         (EEPROM/Flash Control)           0x%08X\n",
-		regs_buff[8]);
+		"0x%05X: EEC         (EEPROM/Flash Control)           0x%08X\n",
+		offset, regs_buff[8]);
 
 	fprintf(stdout,
 		"0x10014: EERD        (EEPROM Read)                    0x%08X\n",
 		regs_buff[9]);
 
+	offset = mac_type == ixgbe_mac_x550em_a ? 0x15F6C : 0x1001C;
 	fprintf(stdout,
-		"0x1001C: FLA         (Flash Access)                   0x%08X\n",
-		regs_buff[10]);
+		"0x%05X: FLA         (Flash Access)                   0x%08X\n",
+		offset, regs_buff[10]);
 
 	fprintf(stdout,
 		"0x10110: EEMNGCTL    (Manageability EEPROM Control)   0x%08X\n",
@@ -299,7 +344,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		regs_buff[12]);
 
 	fprintf(stdout,
-		"0x10110: FLMNGCTL    (Manageability Flash Control)    0x%08X\n",
+		"0x10118: FLMNGCTL    (Manageability Flash Control)    0x%08X\n",
 		regs_buff[13]);
 
 	fprintf(stdout,
@@ -314,9 +359,10 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		"0x1013C: FLOP        (Flash Opcode)                   0x%08X\n",
 		regs_buff[16]);
 
+	offset = mac_type == ixgbe_mac_x550em_a ? 0x15F64 : 0x10200;
 	fprintf(stdout,
-		"0x10200: GRC         (General Receive Control)        0x%08X\n",
-		regs_buff[17]);
+		"0x%05X: GRC         (General Receive Control)        0x%08X\n",
+		offset, regs_buff[17]);
 
 	/* Interrupt */
 	fprintf(stdout,
@@ -648,7 +694,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 			fprintf(stdout,
 			"0x%05X: TDPT2TCSR%d  (Tx Data Plane T2 TC Status %d)   0x%08X\n",
 			0x0CD40 + (4 * i), i, i, regs_buff[873 + i]);
-	} else if (mac_type >= ixgbe_mac_82599EB) {
+	} else if (mac_type >= ixgbe_mac_82599EB && mac_type <= ixgbe_mac_x550) {
 		fprintf(stdout,
 			"0x04900: RTTDCS      (Tx Descr Plane Ctrl&Status)     0x%08X\n",
 			regs_buff[830]);
@@ -676,60 +722,64 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 			"0x%05X: RTTDT2C%d    (Tx Descr Plane T2 Config %d)     0x%08X\n",
 			0x04910 + (4 * i), i, i, regs_buff[849 + i]);
 
-		for (i = 0; i < 8; i++)
-			fprintf(stdout,
-			"0x%05X: RTTDT2S%d    (Tx Descr Plane T2 Status %d)     0x%08X\n",
-			0x04930 + (4 * i), i, i, regs_buff[857 + i]);
+		if (mac_type < ixgbe_mac_x550)
+			for (i = 0; i < 8; i++)
+				fprintf(stdout,
+					"0x%05X: RTTDT2S%d    (Tx Descr Plane T2 Status %d)     0x%08X\n",
+					0x04930 + (4 * i), i, i, regs_buff[857 + i]);
 
 		for (i = 0; i < 8; i++)
 			fprintf(stdout,
 			"0x%05X: RTTPT2C%d    (Tx Packet Plane T2 Config %d)    0x%08X\n",
 			0x0CD20 + (4 * i), i, i, regs_buff[865]);
 
-		for (i = 0; i < 8; i++)
-			fprintf(stdout,
-			"0x%05X: RTTPT2S%d    (Tx Packet Plane T2 Status %d)    0x%08X\n",
-			0x0CD40 + (4 * i), i, i, regs_buff[873 + i]);
+		if (mac_type < ixgbe_mac_x550)
+			for (i = 0; i < 8; i++)
+				fprintf(stdout,
+					"0x%05X: RTTPT2S%d    (Tx Packet Plane T2 Status %d)    0x%08X\n",
+					0x0CD40 + (4 * i), i, i, regs_buff[873 + i]);
+	}
 
-		if (regs_buff_len > 1129) {
-			fprintf(stdout,
+	if (regs_buff_len > 1129 && mac_type != ixgbe_mac_82598EB) {
+		fprintf(stdout,
 			"0x03020: RTRUP2TC    (Rx User Prio to Traffic Classes)0x%08X\n",
 			regs_buff[1129]);
 
-			fprintf(stdout,
+		fprintf(stdout,
 			"0x0C800: RTTUP2TC    (Tx User Prio to Traffic Classes)0x%08X\n",
 			regs_buff[1130]);
 
+		if (mac_type <= ixgbe_mac_x550)
 			for (i = 0; i < 4; i++)
 				fprintf(stdout,
-				"0x%05X: TXLLQ%d      (Strict Low Lat Tx Queues %d)     0x%08X\n",
-				0x082E0 + (4 * i), i, i, regs_buff[1131 + i]);
+					"0x%05X: TXLLQ%d      (Strict Low Lat Tx Queues %d)     0x%08X\n",
+					0x082E0 + (4 * i), i, i, regs_buff[1131 + i]);
 
-			if (mac_type == ixgbe_mac_82599EB) {
-				fprintf(stdout,
+		if (mac_type == ixgbe_mac_82599EB) {
+			fprintf(stdout,
 				"0x04980: RTTBCNRM    (DCB TX Rate Sched MMW)          0x%08X\n",
 				regs_buff[1135]);
 
-				fprintf(stdout,
+			fprintf(stdout,
 				"0x0498C: RTTBCNRD    (DCB TX Rate-Scheduler Drift)    0x%08X\n",
 				regs_buff[1136]);
-			} else if (mac_type == ixgbe_mac_X540) {
-				fprintf(stdout,
+		} else if (mac_type <= ixgbe_mac_x550) {
+			fprintf(stdout,
 				"0x04980: RTTQCNRM    (DCB TX QCN Rate Sched MMW)      0x%08X\n",
 				regs_buff[1135]);
 
-				fprintf(stdout,
+			fprintf(stdout,
 				"0x0498C: RTTQCNRR    (DCB TX QCN Rate Reset)          0x%08X\n",
 				regs_buff[1136]);
 
+			if (mac_type < ixgbe_mac_x550)
 				fprintf(stdout,
-				"0x08B00: RTTQCNCR    (DCB TX QCN Control)             0x%08X\n",
-				regs_buff[1137]);
+					"0x08B00: RTTQCNCR    (DCB TX QCN Control)             0x%08X\n",
+					regs_buff[1137]);
 
-				fprintf(stdout,
+			fprintf(stdout,
 				"0x04A90: RTTQCNTG    (DCB TX QCN Tagging)             0x%08X\n",
 				regs_buff[1138]);
-			}
 		}
 	}
 
@@ -1085,7 +1135,7 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 			regs_buff[1068]);
 
 		fprintf(stdout,
-			"0x042B0: ANLP2       (Auto Neg Lnk Part. Ctrl Word 2) 0x%08X\n",
+			"0x042B4: ANLP2       (Auto Neg Lnk Part. Ctrl Word 2) 0x%08X\n",
 			regs_buff[1069]);
 	}
 
@@ -1143,21 +1193,10 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		"0x07F08: TDHMPN      (Tx Desc Handler Mem Page Num)   0x%08X\n",
 		regs_buff[1095]);
 
-	fprintf(stdout,
-		"0x07F10: TIC_DW0     (Tx Desc Hand. Mem Read Data 0)  0x%08X\n",
-		regs_buff[1096]);
-
-	fprintf(stdout,
-		"0x07F14: TIC_DW1     (Tx Desc Hand. Mem Read Data 1)  0x%08X\n",
-		regs_buff[1097]);
-
-	fprintf(stdout,
-		"0x07F18: TIC_DW2     (Tx Desc Hand. Mem Read Data 2)  0x%08X\n",
-		regs_buff[1098]);
-
-	fprintf(stdout,
-		"0x07F1C: TIC_DW3     (Tx Desc Hand. Mem Read Data 3)  0x%08X\n",
-		regs_buff[1099]);
+	for (i = 0; i < 4; i++)
+		fprintf(stdout,
+			"0x%05X: TIC_DW%d     (Tx Desc Hand. Mem Read Data %d)  0x%08X\n",
+			0x07F10 + (4 * i), i, i, regs_buff[1096 + i]);
 
 	fprintf(stdout,
 		"0x07F20: TDPROBE     (Tx Probe Mode Status)           0x%08X\n",
@@ -1167,41 +1206,19 @@ ixgbe_dump_regs(struct ethtool_drvinfo *info, struct ethtool_regs *regs)
 		"0x0C600: TXBUFCTRL   (TX Buffer Access Control)       0x%08X\n",
 		regs_buff[1101]);
 
-	fprintf(stdout,
-		"0x0C610: TXBUFDATA0  (TX Buffer DATA 0)               0x%08X\n",
-		regs_buff[1102]);
-
-	fprintf(stdout,
-		"0x0C614: TXBUFDATA1  (TX Buffer DATA 1)               0x%08X\n",
-		regs_buff[1103]);
-
-	fprintf(stdout,
-		"0x0C618: TXBUFDATA2  (TX Buffer DATA 2)               0x%08X\n",
-		regs_buff[1104]);
-
-	fprintf(stdout,
-		"0x0C61C: TXBUFDATA3  (TX Buffer DATA 3)               0x%08X\n",
-		regs_buff[1105]);
+	for (i = 0; i < 4; i++)
+		fprintf(stdout,
+			"0x%05X: TXBUFDATA%d  (TX Buffer DATA %d)               0x%08X\n",
+			0x0C610 + (4 * i), i, i, regs_buff[1102 + i]);
 
 	fprintf(stdout,
 		"0x03600: RXBUFCTRL   (RX Buffer Access Control)       0x%08X\n",
 		regs_buff[1106]);
 
-	fprintf(stdout,
-		"0x03610: RXBUFDATA0  (RX Buffer DATA 0)               0x%08X\n",
-		regs_buff[1107]);
-
-	fprintf(stdout,
-		"0x03614: RXBUFDATA1  (RX Buffer DATA 1)               0x%08X\n",
-		regs_buff[1108]);
-
-	fprintf(stdout,
-		"0x03618: RXBUFDATA2  (RX Buffer DATA 2)               0x%08X\n",
-		regs_buff[1109]);
-
-	fprintf(stdout,
-		"0x0361C: RXBUFDATA3  (RX Buffer DATA 3)               0x%08X\n",
-		regs_buff[1110]);
+	for (i = 0; i < 4; i++)
+		fprintf(stdout,
+			"0x%05X: RXBUFDATA%d  (RX Buffer DATA %d)               0x%08X\n",
+			0x03610 + (4 * i), i, i, regs_buff[1107 + i]);
 
 	for (i = 0; i < 8; i++)
 		fprintf(stdout,
