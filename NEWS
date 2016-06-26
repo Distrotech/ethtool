@@ -1,3 +1,13 @@
+Version 4.6 - June 26, 2016
+
+	* Feature: Support register dump on Intel X550 NICs (-d option)
+	* Fix: Correct some reported register offsets on Intel 10GbE NICs
+	  (-d option)
+	* Feature: Add IPv6 support to NFC (-n, -N, -u and -U options)
+	* Feature: Add support for ETHTOOL_xLINKSETTINGS ioctls (no option
+	  and -s option)
+	* Feature: Use netlink socket when AF_INET not available
+
 Version 4.5 - March 14, 2016
 
 	* Tests: Fix missing function declarations when building tests
