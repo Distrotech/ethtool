@@ -43,6 +43,7 @@
 #include <arpa/inet.h>
 
 #include <linux/sockios.h>
+#include <linux/netlink.h>
 
 #ifndef MAX_ADDR_LEN
 #define MAX_ADDR_LEN	32
@@ -66,6 +67,10 @@ enum {
 	NETIF_MSG_HW		= 0x2000,
 	NETIF_MSG_WOL		= 0x4000,
 };
+#endif
+
+#ifndef NETLINK_GENERIC
+#define NETLINK_GENERIC	16
 #endif
 
 #define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
@@ -4667,6 +4672,8 @@ opt_found:
 
 		/* Open control socket. */
 		ctx.fd = socket(AF_INET, SOCK_DGRAM, 0);
+		if (ctx.fd < 0)
+			ctx.fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
 		if (ctx.fd < 0) {
 			perror("Cannot get control socket");
 			return 70;
