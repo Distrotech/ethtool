@@ -4353,6 +4353,11 @@ static int do_getmodule(struct cmd_context *ctx)
 				sff8079_show_all(eeprom->data);
 				sff8472_show_all(eeprom->data);
 				break;
+			case ETH_MODULE_SFF_8436:
+			case ETH_MODULE_SFF_8636:
+				sff8636_show_all(eeprom->data,
+						 modinfo.eeprom_len);
+				break;
 #endif
 			default:
 				geeprom_dump_hex = 1;

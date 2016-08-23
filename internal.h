@@ -345,4 +345,7 @@ void sff8079_show_all(const __u8 *id);
 /* Optics diagnostics */
 void sff8472_show_all(const __u8 *id);
 
+/* QSFP Optics diagnostics */
+void sff8636_show_all(const __u8 *id, __u32 eeprom_len);
+
 #endif /* ETHTOOL_INTERNAL_H__ */
