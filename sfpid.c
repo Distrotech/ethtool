@@ -9,27 +9,11 @@
 
 #include <stdio.h>
 #include "internal.h"
+#include "sff-common.h"
 
 static void sff8079_show_identifier(const __u8 *id)
 {
-	printf("\t%-41s : 0x%02x", "Identifier", id[0]);
-	switch (id[0]) {
-	case 0x00:
-		printf(" (no module present, unknown, or unspecified)\n");
-		break;
-	case 0x01:
-		printf(" (GBIC)\n");
-		break;
-	case 0x02:
-		printf(" (module soldered to motherboard)\n");
-		break;
-	case 0x03:
-		printf(" (SFP)\n");
-		break;
-	default:
-		 printf(" (reserved or unknown)\n");
-		break;
-	}
+	sff8024_show_identifier(id, 0);
 }
 
 static void sff8079_show_ext_identifier(const __u8 *id)
@@ -47,60 +31,7 @@ static void sff8079_show_ext_identifier(const __u8 *id)
 
 static void sff8079_show_connector(const __u8 *id)
 {
-	printf("\t%-41s : 0x%02x", "Connector", id[2]);
-	switch (id[2]) {
-	case 0x00:
-		printf(" (unknown or unspecified)\n");
-		break;
-	case 0x01:
-		printf(" (SC)\n");
-		break;
-	case 0x02:
-		printf(" (Fibre Channel Style 1 copper)\n");
-		break;
-	case 0x03:
-		printf(" (Fibre Channel Style 2 copper)\n");
-		break;
-	case 0x04:
-		printf(" (BNC/TNC)\n");
-		break;
-	case 0x05:
-		printf(" (Fibre Channel coaxial headers)\n");
-		break;
-	case 0x06:
-		printf(" (FibreJack)\n");
-		break;
-	case 0x07:
-		printf(" (LC)\n");
-		break;
-	case 0x08:
-		printf(" (MT-RJ)\n");
-		break;
-	case 0x09:
-		printf(" (MU)\n");
-		break;
-	case 0x0a:
-		printf(" (SG)\n");
-		break;
-	case 0x0b:
-		printf(" (Optical pigtail)\n");
-		break;
-	case 0x0c:
-		printf(" (MPO Parallel Optic)\n");
-		break;
-	case 0x20:
-		printf(" (HSSDC II)\n");
-		break;
-	case 0x21:
-		printf(" (Copper pigtail)\n");
-		break;
-	case 0x22:
-		printf(" (RJ45)\n");
-		break;
-	default:
-		printf(" (reserved or unknown)\n");
-		break;
-	}
+	sff8024_show_connector(id, 2);
 }
 
 static void sff8079_show_transceiver(const __u8 *id)
@@ -241,33 +172,7 @@ static void sff8079_show_transceiver(const __u8 *id)
 
 static void sff8079_show_encoding(const __u8 *id)
 {
-	printf("\t%-41s : 0x%02x", "Encoding", id[11]);
-	switch (id[11]) {
-	case 0x00:
-		printf(" (unspecified)\n");
-		break;
-	case 0x01:
-		printf(" (8B/10B)\n");
-		break;
-	case 0x02:
-		printf(" (4B/5B)\n");
-		break;
-	case 0x03:
-		printf(" (NRZ)\n");
-		break;
-	case 0x04:
-		printf(" (Manchester)\n");
-		break;
-	case 0x05:
-		printf(" (SONET Scrambled)\n");
-		break;
-	case 0x06:
-		printf(" (64B/66B)\n");
-		break;
-	default:
-		printf(" (reserved or unknown)\n");
-		break;
-	}
+	sff8024_show_encoding(id, 11, ETH_MODULE_SFF_8472);
 }
 
 static void sff8079_show_rate_identifier(const __u8 *id)

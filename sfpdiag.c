@@ -12,6 +12,7 @@
 #include <math.h>
 #include <arpa/inet.h>
 #include "internal.h"
+#include "sff-common.h"
 
 /* Offsets in decimal, for direct comparison with the SFF specs */
 
@@ -86,28 +87,6 @@
 #define SFF_A2_CAL_V_SLP                  88
 #define SFF_A2_CAL_V_OFF                  90
 
-
-struct sff8472_diags {
-
-#define MCURR 0
-#define LWARN 1
-#define HWARN 2
-#define LALRM 3
-#define HALRM 4
-
-	/* [5] tables are current, low/high warn, low/high alarm */
-	__u8 supports_dom;      /* Supports DOM */
-	__u8 supports_alarms;   /* Supports alarm/warning thold */
-	__u8 calibrated_ext;    /* Is externally calibrated */
-	__u16 bias_cur[5];      /* Measured bias current in 2uA units */
-	__u16 tx_power[5];      /* Measured TX Power in 0.1uW units */
-	__u16 rx_power[5];      /* Measured RX Power */
-	__u8  rx_power_type;    /* 0 = OMA, 1 = Average power */
-	__s16 sfp_temp[5];      /* SFP Temp in 16-bit signed 1/256 Celsius */
-	__u16 sfp_voltage[5];   /* SFP voltage in 0.1mV units */
-
-};
-
 static struct sff8472_aw_flags {
 	const char *str;        /* Human-readable string, null at the end */
 	int offset;             /* A2-relative address offset */
@@ -141,12 +120,6 @@ static struct sff8472_aw_flags {
 	{ NULL, 0, 0 },
 };
 
-static double convert_mw_to_dbm(double mw)
-{
-	return (10. * log10(mw / 1000.)) + 30.;
-}
-
-
 /* Most common case: 16-bit unsigned integer in a certain unit */
 #define A2_OFFSET_TO_U16(offset) \
 	(id[SFF_A2_BASE + (offset)] << 8 | id[SFF_A2_BASE + (offset) + 1])
@@ -170,10 +143,8 @@ static double convert_mw_to_dbm(double mw)
  */
 #define A2_OFFSET_TO_TEMP(offset) ((__s16)A2_OFFSET_TO_U16(offset))
 
-
-static void sff8472_dom_parse(const __u8 *id, struct sff8472_diags *sd)
+static void sff8472_dom_parse(const __u8 *id, struct sff_diags *sd)
 {
-
 	sd->bias_cur[MCURR] = A2_OFFSET_TO_U16(SFF_A2_BIAS);
 	sd->bias_cur[HALRM] = A2_OFFSET_TO_U16(SFF_A2_BIAS_HALRM);
 	sd->bias_cur[LALRM] = A2_OFFSET_TO_U16(SFF_A2_BIAS_LALRM);
@@ -203,7 +174,6 @@ static void sff8472_dom_parse(const __u8 *id, struct sff8472_diags *sd)
 	sd->sfp_temp[LALRM] = A2_OFFSET_TO_TEMP(SFF_A2_TEMP_LALRM);
 	sd->sfp_temp[HWARN] = A2_OFFSET_TO_TEMP(SFF_A2_TEMP_HWARN);
 	sd->sfp_temp[LWARN] = A2_OFFSET_TO_TEMP(SFF_A2_TEMP_LWARN);
-
 }
 
 /* Converts to a float from a big-endian 4-byte source buffer. */
@@ -218,7 +188,7 @@ static float befloattoh(const __u32 *source)
 	return converter.dst;
 }
 
-static void sff8472_calibration(const __u8 *id, struct sff8472_diags *sd)
+static void sff8472_calibration(const __u8 *id, struct sff_diags *sd)
 {
 	int i;
 	__u16 rx_reading;
@@ -252,7 +222,7 @@ static void sff8472_calibration(const __u8 *id, struct sff8472_diags *sd)
 	}
 }
 
-static void sff8472_parse_eeprom(const __u8 *id, struct sff8472_diags *sd)
+static void sff8472_parse_eeprom(const __u8 *id, struct sff_diags *sd)
 {
 	sd->supports_dom = id[SFF_A0_DOM] & SFF_A0_DOM_IMPL;
 	sd->supports_alarms = id[SFF_A0_OPTIONS] & SFF_A0_OPTIONS_AW;
@@ -271,7 +241,7 @@ static void sff8472_parse_eeprom(const __u8 *id, struct sff8472_diags *sd)
 
 void sff8472_show_all(const __u8 *id)
 {
-	struct sff8472_diags sd;
+	struct sff_diags sd;
 	char *rx_power_string = NULL;
 	int i;
 
@@ -279,40 +249,22 @@ void sff8472_show_all(const __u8 *id)
 
 	if (!sd.supports_dom) {
 		printf("\t%-41s : No\n", "Optical diagnostics support");
-		return ;
+		return;
 	}
 	printf("\t%-41s : Yes\n", "Optical diagnostics support");
 
-#define PRINT_BIAS(string, index)                                        \
-	printf("\t%-41s : %.3f mA\n", (string),                          \
-	       (double)(sd.bias_cur[(index)] / 500.))
-
-# define PRINT_xX_PWR(string, var, index)                                \
-	printf("\t%-41s : %.4f mW / %.2f dBm\n", (string),               \
-	       (double)((var)[(index)] / 10000.),                        \
-	       convert_mw_to_dbm((double)((var)[(index)] / 10000.)))
-
-#define PRINT_TEMP(string, index)                                        \
-	printf("\t%-41s : %.2f degrees C / %.2f degrees F\n", (string),  \
-	       (double)(sd.sfp_temp[(index)] / 256.),                    \
-	       (double)(sd.sfp_temp[(index)] / 256. * 1.8 + 32.))
-
-#define PRINT_VCC(string, index)                                         \
-	printf("\t%-41s : %.4f V\n", (string),                           \
-	       (double)(sd.sfp_voltage[(index)] / 10000.))
-
-	PRINT_BIAS("Laser bias current", MCURR);
-	PRINT_xX_PWR("Laser output power", sd.tx_power, MCURR);
+	PRINT_BIAS("Laser bias current", sd.bias_cur[MCURR]);
+	PRINT_xX_PWR("Laser output power", sd.tx_power[MCURR]);
 
 	if (!sd.rx_power_type)
 		rx_power_string = "Receiver signal OMA";
 	else
 		rx_power_string = "Receiver signal average optical power";
 
-	PRINT_xX_PWR(rx_power_string, sd.rx_power, MCURR);
+	PRINT_xX_PWR(rx_power_string, sd.rx_power[MCURR]);
 
-	PRINT_TEMP("Module temperature", MCURR);
-	PRINT_VCC("Module voltage", MCURR);
+	PRINT_TEMP("Module temperature", sd.sfp_temp[MCURR]);
+	PRINT_VCC("Module voltage", sd.sfp_voltage[MCURR]);
 
 	printf("\t%-41s : %s\n", "Alarm/warning flags implemented",
 	       (sd.supports_alarms ? "Yes" : "No"));
@@ -323,40 +275,7 @@ void sff8472_show_all(const __u8 *id)
 			       id[SFF_A2_BASE + sff8472_aw_flags[i].offset]
 			       & sff8472_aw_flags[i].value ? "On" : "Off");
 		}
-
-		PRINT_BIAS("Laser bias current high alarm threshold",   HALRM);
-		PRINT_BIAS("Laser bias current low alarm threshold",    LALRM);
-		PRINT_BIAS("Laser bias current high warning threshold", HWARN);
-		PRINT_BIAS("Laser bias current low warning threshold",  LWARN);
-
-		PRINT_xX_PWR("Laser output power high alarm threshold",
-			     sd.tx_power, HALRM);
-		PRINT_xX_PWR("Laser output power low alarm threshold",
-			     sd.tx_power, LALRM);
-		PRINT_xX_PWR("Laser output power high warning threshold",
-			     sd.tx_power, HWARN);
-		PRINT_xX_PWR("Laser output power low warning threshold",
-			     sd.tx_power, LWARN);
-
-		PRINT_TEMP("Module temperature high alarm threshold",   HALRM);
-		PRINT_TEMP("Module temperature low alarm threshold",    LALRM);
-		PRINT_TEMP("Module temperature high warning threshold", HWARN);
-		PRINT_TEMP("Module temperature low warning threshold",  LWARN);
-
-		PRINT_VCC("Module voltage high alarm threshold",   HALRM);
-		PRINT_VCC("Module voltage low alarm threshold",    LALRM);
-		PRINT_VCC("Module voltage high warning threshold", HWARN);
-		PRINT_VCC("Module voltage low warning threshold",  LWARN);
-
-		PRINT_xX_PWR("Laser rx power high alarm threshold",
-			     sd.rx_power, HALRM);
-		PRINT_xX_PWR("Laser rx power low alarm threshold",
-			     sd.rx_power, LALRM);
-		PRINT_xX_PWR("Laser rx power high warning threshold",
-			     sd.rx_power, HWARN);
-		PRINT_xX_PWR("Laser rx power low warning threshold",
-			     sd.rx_power, LWARN);
+		sff_show_thresholds(sd);
 	}
-
 }
 
