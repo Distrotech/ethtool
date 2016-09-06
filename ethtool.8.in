@@ -575,10 +575,16 @@ lB	l	lB.
 0x010	1000baseT Half	(not supported by IEEE standards)
 0x020	1000baseT Full
 0x20000	1000baseKX Full
+0x20000000000	1000baseX Full
 0x8000	2500baseX Full	(not supported by IEEE standards)
 0x1000	10000baseT Full
 0x40000	10000baseKX4 Full
 0x80000	10000baseKR Full
+0x40000000000	10000baseCR  Full
+0x80000000000	10000baseSR  Full
+0x100000000000	10000baseLR  Full
+0x200000000000	10000baseLRM Full
+0x400000000000	10000baseER  Full
 0x200000	20000baseMLD2 Full	(not supported by IEEE standards)
 0x400000	20000baseKR2 Full	(not supported by IEEE standards)
 0x80000000	25000baseCR Full
