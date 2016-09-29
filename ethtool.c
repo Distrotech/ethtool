@@ -3941,6 +3941,11 @@ static int do_permaddr(struct cmd_context *ctx)
 	struct ethtool_perm_addr *epaddr;
 
 	epaddr = malloc(sizeof(struct ethtool_perm_addr) + MAX_ADDR_LEN);
+	if (!epaddr) {
+		perror("Cannot allocate memory for operation");
+		return 1;
+	}
+
 	epaddr->cmd = ETHTOOL_GPERMADDR;
 	epaddr->size = MAX_ADDR_LEN;
 
