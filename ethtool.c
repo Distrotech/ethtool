@@ -2233,10 +2233,13 @@ static int do_gfeatures(struct cmd_context *ctx)
 	features = get_features(ctx, defs);
 	if (!features) {
 		fprintf(stdout, "no feature info available\n");
+		free(defs);
 		return 1;
 	}
 
 	dump_features(defs, features, NULL);
+	free(features);
+	free(defs);
 	return 0;
 }
 
