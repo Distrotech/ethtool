@@ -4205,7 +4205,7 @@ static int do_gprivflags(struct cmd_context *ctx)
 	struct ethtool_gstrings *strings;
 	struct ethtool_value flags;
 	unsigned int i;
-	int max_len = 0, cur_len;
+	int max_len = 0, cur_len, rc;
 
 	if (ctx->argc != 0)
 		exit_bad_args();
@@ -4219,7 +4219,8 @@ static int do_gprivflags(struct cmd_context *ctx)
 	}
 	if (strings->len == 0) {
 		fprintf(stderr, "No private flags defined\n");
-		return 1;
+		rc = 1;
+		goto err;
 	}
 	if (strings->len > 32) {
 		/* ETHTOOL_GPFLAGS can only cover 32 flags */
@@ -4230,7 +4231,8 @@ static int do_gprivflags(struct cmd_context *ctx)
 	flags.cmd = ETHTOOL_GPFLAGS;
 	if (send_ioctl(ctx, &flags)) {
 		perror("Cannot get private flags");
-		return 1;
+		rc = 1;
+		goto err;
 	}
 
 	/* Find longest string and align all strings accordingly */
@@ -4248,7 +4250,11 @@ static int do_gprivflags(struct cmd_context *ctx)
 		       (const char *)strings->data + i * ETH_GSTRING_LEN,
 		       (flags.data & (1U << i)) ? "on" : "off");
 
-	return 0;
+	rc = 0;
+
+err:
+	free(strings);
+	return rc;
 }
 
 static int do_sprivflags(struct cmd_context *ctx)
