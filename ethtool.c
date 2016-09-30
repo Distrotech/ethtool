@@ -1715,8 +1715,10 @@ static struct feature_defs *get_feature_defs(struct cmd_context *ctx)
 	}
 
 	defs = malloc(sizeof(*defs) + sizeof(defs->def[0]) * n_features);
-	if (!defs)
+	if (!defs) {
+		free(names);
 		return NULL;
+	}
 
 	defs->n_features = n_features;
 	memset(defs->off_flag_matched, 0, sizeof(defs->off_flag_matched));
