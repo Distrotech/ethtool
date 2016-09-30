@@ -2253,7 +2253,7 @@ static int do_sfeatures(struct cmd_context *ctx)
 	struct cmdline_info *cmdline_features;
 	struct feature_state *old_state, *new_state;
 	struct ethtool_value eval;
-	int err;
+	int err, rc;
 	int i, j;
 
 	defs = get_feature_defs(ctx);
@@ -2267,7 +2267,8 @@ static int do_sfeatures(struct cmd_context *ctx)
 				   sizeof(efeatures->features[0]));
 		if (!efeatures) {
 			perror("Cannot parse arguments");
-			return 1;
+			rc = 1;
+			goto err;
 		}
 		efeatures->cmd = ETHTOOL_SFEATURES;
 		efeatures->size = FEATURE_BITS_TO_BLOCKS(defs->n_features);
@@ -2285,7 +2286,8 @@ static int do_sfeatures(struct cmd_context *ctx)
 				  sizeof(cmdline_features[0]));
 	if (!cmdline_features) {
 		perror("Cannot parse arguments");
-		return 1;
+		rc = 1;
+		goto err;
 	}
 	for (i = 0; i < ARRAY_SIZE(off_flag_def); i++)
 		flag_to_cmdline_info(off_flag_def[i].short_name,
@@ -2304,12 +2306,15 @@ static int do_sfeatures(struct cmd_context *ctx)
 
 	if (!any_changed) {
 		fprintf(stdout, "no features changed\n");
-		return 0;
+		rc = 0;
+		goto err;
 	}
 
 	old_state = get_features(ctx, defs);
-	if (!old_state)
-		return 1;
+	if (!old_state) {
+		rc = 1;
+		goto err;
+	}
 
 	if (efeatures) {
 		/* For each offload that the user specified, update any
@@ -2353,7 +2358,8 @@ static int do_sfeatures(struct cmd_context *ctx)
 		err = send_ioctl(ctx, efeatures);
 		if (err < 0) {
 			perror("Cannot set device feature settings");
-			return 1;
+			rc = 1;
+			goto err;
 		}
 	} else {
 		for (i = 0; i < ARRAY_SIZE(off_flag_def); i++) {
@@ -2368,7 +2374,8 @@ static int do_sfeatures(struct cmd_context *ctx)
 					fprintf(stderr,
 						"Cannot set device %s settings: %m\n",
 						off_flag_def[i].long_name);
-					return 1;
+					rc = 1;
+					goto err;
 				}
 			}
 		}
@@ -2382,15 +2389,18 @@ static int do_sfeatures(struct cmd_context *ctx)
 			err = send_ioctl(ctx, &eval);
 			if (err) {
 				perror("Cannot set device flag settings");
-				return 92;
+				rc = 92;
+				goto err;
 			}
 		}
 	}
 
 	/* Compare new state with requested state */
 	new_state = get_features(ctx, defs);
-	if (!new_state)
-		return 1;
+	if (!new_state) {
+		rc = 1;
+		goto err;
+	}
 	any_changed = new_state->off_flags != old_state->off_flags;
 	any_mismatch = (new_state->off_flags !=
 			((old_state->off_flags & ~off_flags_mask) |
@@ -2409,13 +2419,18 @@ static int do_sfeatures(struct cmd_context *ctx)
 		if (!any_changed) {
 			fprintf(stderr,
 				"Could not change any device features\n");
-			return 1;
+			rc = 1;
+			goto err;
 		}
 		printf("Actual changes:\n");
 		dump_features(defs, new_state, old_state);
 	}
 
-	return 0;
+	rc = 0;
+
+err:
+	free(defs);
+	return rc;
 }
 
 static struct ethtool_link_usettings *
