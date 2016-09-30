@@ -2430,6 +2430,8 @@ static int do_sfeatures(struct cmd_context *ctx)
 
 err:
 	free(defs);
+	if (efeatures)
+		free(efeatures);
 	return rc;
 }
 
