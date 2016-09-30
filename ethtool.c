@@ -4283,7 +4283,7 @@ static int do_sprivflags(struct cmd_context *ctx)
 	struct cmdline_info *cmdline;
 	struct ethtool_value flags;
 	u32 wanted_flags = 0, seen_flags = 0;
-	int any_changed;
+	int any_changed, rc;
 	unsigned int i;
 
 	strings = get_stringset(ctx, ETH_SS_PRIV_FLAGS,
@@ -4295,7 +4295,8 @@ static int do_sprivflags(struct cmd_context *ctx)
 	}
 	if (strings->len == 0) {
 		fprintf(stderr, "No private flags defined\n");
-		return 1;
+		rc = 1;
+		goto err;
 	}
 	if (strings->len > 32) {
 		/* ETHTOOL_{G,S}PFLAGS can only cover 32 flags */
@@ -4306,7 +4307,8 @@ static int do_sprivflags(struct cmd_context *ctx)
 	cmdline = calloc(strings->len, sizeof(*cmdline));
 	if (!cmdline) {
 		perror("Cannot parse arguments");
-		return 1;
+		rc = 1;
+		goto err;
 	}
 	for (i = 0; i < strings->len; i++) {
 		cmdline[i].name = ((const char *)strings->data +
@@ -4322,17 +4324,22 @@ static int do_sprivflags(struct cmd_context *ctx)
 	flags.cmd = ETHTOOL_GPFLAGS;
 	if (send_ioctl(ctx, &flags)) {
 		perror("Cannot get private flags");
-		return 1;
+		rc = 1;
+		goto err;
 	}
 
 	flags.cmd = ETHTOOL_SPFLAGS;
 	flags.data = (flags.data & ~seen_flags) | wanted_flags;
 	if (send_ioctl(ctx, &flags)) {
 		perror("Cannot set private flags");
-		return 1;
+		rc = 1;
+		goto err;
 	}
 
-	return 0;
+	rc = 0;
+err:
+	free(strings);
+	return rc;
 }
 
 static int do_tsinfo(struct cmd_context *ctx)
