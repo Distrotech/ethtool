@@ -1,3 +1,10 @@
+Version 4.8 - October 3, 2016
+
+	* Feature: QSFP Plus/QSFP28 Diagnostics Information Support
+	* Feature: Enhancing link mode bits to support 25G/50G/100G
+	* Feature: add support for 1000BaseX and missing 10G link mode
+	* Fixes: address Coverity issues 1363118 - 1363125
+
 Version 4.6 - June 26, 2016
 
 	* Feature: Support register dump on Intel X550 NICs (-d option)
